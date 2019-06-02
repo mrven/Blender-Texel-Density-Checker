@@ -13,6 +13,11 @@ With **Texel Density Checker** you can:
 
 Texel Density Checker simple for use. You need select your mesh (or faces) and texture size and just click button.
 
+***Download latest version:***
+
+* ***[Blender 2.79](/Releases/Texel_Density_1_0_9_279.zip)***
+* ***[Blender 2.80](/Releases/Texel_Density_1_0_9_280.zip)***
+
 ***Units*** – Different Texel Density units: **px/cm**, **px/m**, **px/in**, **px/ft**.
 
 ![Different Units](/images/units.gif)
