@@ -2,7 +2,7 @@
 
 ![Header](/images/header.png)
 
-[English README](/README.md)
+**[English README](/README.md)**
 
 
 Texel Density Checker – Аддон для Blender, который позволяет расчитывать и задавать размер текселя на модели. 
@@ -19,4 +19,3 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 ***Units*** – Different Texel Density units: **px/cm**, **px/m**, **px/in**, **px/ft**.
 
 ![Different Units](/images/units.gif)
-
