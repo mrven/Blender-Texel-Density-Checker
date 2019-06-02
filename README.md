@@ -26,6 +26,10 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 
 ![Calculate TD](/images/calculate_td.gif)
 
+***Set Texel Density*** – Set the Texel Density. Addon calculates the current TD value and rescale UV islands for get entered TD value.
+
+![Set TD](/images/set_td.gif)
+
 ***Set Method*** – Set TD Methods. **Each** - Each island will be rescale individually; **Average** - All islands will be rescale proportionally.
 
 ![Set TD Method](/images/set_td_method.gif)
