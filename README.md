@@ -1,6 +1,6 @@
 # Blender Addon: Texel Density Checker
 
-![Header](//images/header.png)
+![Header](/images/header.png)
 
 With **Texel Density Checker** you can: 
 
