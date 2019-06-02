@@ -2,7 +2,10 @@
 
 ![Header](/images/header.png)
 
-[Russian README](/README_ru.md)
+[English README](/README.md)
+
+
+Texel Density Checker – Аддон для Blender, который позволяет расчитывать и задавать размер текселя на модели. 
 
 With **Texel Density Checker** you can: 
 
