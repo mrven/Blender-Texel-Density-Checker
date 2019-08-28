@@ -12,6 +12,10 @@ Texel Density Checker – Аддон для Blender, который позвол
 * ***[Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
 * ***[Blender 2.80](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_280.zip)***
 
+Если вы хотите поддержать меня, то можете купить аддон на следующих площадках:
+* ***[Gumroad (Свободная цена)](https://gumroad.com/l/CEIOR)***
+* ***[Blender Market (10$)](https://blendermarket.com/products/texel-density-checker)***
+
 ***Units*** – Единицы измерения текселя: **px/cm**, **px/m**, **px/in**, **px/ft**.
 
 ![Different Units](/images/units.gif)
