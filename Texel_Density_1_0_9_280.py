@@ -750,7 +750,19 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		layout.operator("object.calculate_to_set", text="Calc -> Set Value")
 		layout.separator()
 		layout.label(text="Set Texel Density")
-		layout.prop(td, 'set_method', expand=False)
+		
+		#Split row
+		row = layout.row()
+		c = row.column()
+		row = c.row()
+		split = row.split(factor=0.5, align=True)
+		c = split.column()
+		c.label(text="Set Method:")
+		split = split.split()
+		c = split.column()
+		c.prop(td, 'set_method', expand=False)
+		#----
+
 		row = layout.row()
 		c = row.column()
 		row = c.row()
@@ -892,7 +904,7 @@ class TD_Addon_Props(PropertyGroup):
 		default="0.1")
 	
 	set_method_list = (('0','Each',''),('1','Average',''))
-	set_method: EnumProperty(name="Set Method", items = set_method_list)
+	set_method: EnumProperty(name="", items = set_method_list)
 
 #-------------------------------------------------------
 classes = (
