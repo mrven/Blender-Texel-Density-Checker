@@ -48,11 +48,11 @@ If you want to support me you can buy this addon:
 ![Calc To Set](/images/copy_calc_to_set.gif)
 
 
-***Peset Buttons*** for Quick Set Texel Density.
+***Preset Buttons*** for Quick Set Texel Density.
 
 ![Peset Buttons](/images/presets.gif)
 
-***TD from Active to Others*** – Copy TD Value from Active to Selected Object.
+***TD from Active to Others*** – Copy TD Value from Active to Selected Objects.
 
 ![Copy TD](/images/copy_td.gif)
 
@@ -60,6 +60,6 @@ If you want to support me you can buy this addon:
 
 ![Filled UV Space](/images/filled_uv.png)
 
-***Select Faces with same TD*** – Select Faces with same Texel Density. Select only one face and click Button.
+***Select Faces with same TD*** – Select Faces with same Texel Density. Select only one face and click Button. With “Select Threshold” value you can change  sensitivity of selection.
 
 ![Select Faces](/images/select_same_td.gif)
