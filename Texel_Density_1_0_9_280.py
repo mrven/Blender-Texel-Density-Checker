@@ -4,7 +4,6 @@ bl_info = {
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
 	"version": (1, 0, 9),
 	"blender": (2, 80, 0),
-	"warning": "Beta Release",
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }
@@ -694,35 +693,56 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		td = context.scene.td
 	
 		layout = self.layout
-		layout.prop(td, 'units', expand=False)
+
+		#Split row
+		row = layout.row()
+		c = row.column()
+		row = c.row()
+		split = row.split(factor=0.5, align=True)
+		c = split.column()
+		c.label(text="Units:")
+		split = split.split()
+		c = split.column()
+		c.prop(td, 'units', expand=False)
+		#----
+
 		layout.label(text="Texture Size:")
 
 		row = layout.row()
 		row.prop(td, 'texture_size', expand=False)
+
 		if td.texture_size == '4':
-			#Split row
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.85, align=True)
+			split = row.split(factor=0.35, align=True)
+			c = split.column()
+			c.label(text="Width:")
+			split = split.split(factor=0.65, align=True)
 			c = split.column()
 			c.prop(td, "custom_width")
 			split = split.split()
 			c = split.column()
 			c.label(text="px")
-			#----
+
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.85, align=True)
+			split = row.split(factor=0.35, align=True)
+			c = split.column()
+			c.label(text="Height:")
+			split = split.split(factor=0.65, align=True)
 			c = split.column()
 			c.prop(td, "custom_height")
 			split = split.split()
 			c = split.column()
 			c.label(text="px")
+	
+
 		if context.object.mode == 'EDIT':
 			layout.separator()
 			layout.prop(td, "selected_faces", text="Selected Faces")
+		
 		layout.separator()
 		layout.label(text="Filled UV Space:")
 		row = layout.row()
@@ -858,7 +878,17 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		if context.object.mode == 'EDIT':
 			layout.separator()
 			layout.operator("object.select_same_texel", text="Select Faces with same TD")
-			layout.prop(td, "select_td_threshold")
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.6, align=True)
+			c = split.column()
+			c.label(text="Select Threshold:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, "select_td_threshold")
+			#----
 
 
 class TD_Addon_Props(PropertyGroup):
@@ -883,23 +913,23 @@ class TD_Addon_Props(PropertyGroup):
 	selected_faces: BoolProperty(
 		name="Selected Faces",
 		description="Operate only on selected faces",
-		default = False)
+		default = True)
 	
 	custom_width: StringProperty(
-		name="Width",
+		name="",
 		description="Custom Width",
 		default="1024")
 	
 	custom_height: StringProperty(
-		name="Height",
+		name="",
 		description="Custom Height",
 		default="1024")
 	
 	units_list = (('0','px/cm',''),('1','px/m',''), ('2','px/in',''), ('3','px/ft',''))
-	units: EnumProperty(name="Units", items = units_list)
+	units: EnumProperty(name="", items = units_list)
 	
 	select_td_threshold: StringProperty(
-		name="Select Threshold",
+		name="",
 		description="Select Threshold",
 		default="0.1")
 	
