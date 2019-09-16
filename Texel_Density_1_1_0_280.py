@@ -667,6 +667,79 @@ class Checker_Assign(Operator):
 	
 	def execute(self, context):
 		td = context.scene.td
+
+		checker_rexolution_x = 1024
+		checker_rexolution_y = 1024
+		
+		#Get texture size from panel
+		if td.texture_size == '0':
+			checker_rexolution_x = 512
+			checker_rexolution_y = 512
+		if td.texture_size == '1':
+			checker_rexolution_x = 1024
+			checker_rexolution_y = 1024
+		if td.texture_size == '2':
+			checker_rexolution_x = 2048
+			checker_rexolution_y = 2048
+		if td.texture_size == '3':
+			checker_rexolution_x = 4096
+			checker_rexolution_y = 4096
+		if td.texture_size == '4':
+			try:
+				checker_rexolution_x = int(td.custom_width)
+			except:
+				checker_rexolution_x = 1024
+				message = "Width value is wrong. Height will be set to 1024"
+			try:
+				checker_rexolution_y = int(td.custom_height)
+			except:
+				checker_rexolution_y = 1024
+				message = "Height value is wrong. Height will be set to 1024"
+
+		#Check exist texture image
+		flag_exist_texture = False
+		for t in range(len(bpy.data.images)):
+			if bpy.data.images[t].name == 'TD_Checker':
+				flag_exist_texture = True
+				
+		# create or not texture
+		if flag_exist_texture == False:
+			bpy.ops.image.new(name='TD_Checker', width = checker_rexolution_x, height = checker_rexolution_y, generated_type='COLOR_GRID')
+		else:
+			bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
+			bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
+
+		#Check exist TD_Checker_mat
+		flag_exist_material = False
+		for m in range(len(bpy.data.materials)):
+			if bpy.data.materials[m].name == 'TD_Checker':
+				flag_exist_material = True
+				
+		# create or not material
+		if flag_exist_material == False:
+			td_checker_mat = bpy.data.materials.new('TD_Checker')
+			td_checker_mat.use_nodes = True
+			Nodes = td_checker_mat.node_tree.nodes
+			Links = td_checker_mat.node_tree.links
+			TexNode = Nodes.new('ShaderNodeTexImage')
+			TexNode.location = (-500,0)
+			TexNode.image = bpy.data.images['TD_Checker']
+			Links.new(TexNode.outputs["Color"], Nodes['Principled BSDF'].inputs['Base Color'])
+		
+		bpy.ops.object.mode_set(mode = 'OBJECT')
+		start_active_obj = bpy.context.active_object
+		start_selected_obj = bpy.context.selected_objects
+
+		if td.checker_method == '0':
+			#Clear All Materials and append TD_Checker Material
+			for o in bpy.context.selected_objects:
+				if o.type == 'MESH' and len(o.data.materials) > 0:
+					for q in reversed(range(len(o.data.materials))):
+						bpy.context.object.active_material_index = q
+						o.data.materials.pop(index = q, update_data=True)
+				if o.type == 'MESH':
+					o.data.materials.append(bpy.data.materials['TD_Checker'])
+
 		print("Assign Checker Material")
 				
 		return {'FINISHED'}
@@ -685,6 +758,46 @@ class Checker_Restore(Operator):
 		return {'FINISHED'}
 
 def Change_Texture_Size(self, context):
+	td = context.scene.td
+
+	#Check exist texture image
+	flag_exist_texture = False
+	for t in range(len(bpy.data.images)):
+		if bpy.data.images[t].name == 'TD_Checker':
+			flag_exist_texture = True
+			
+	if flag_exist_texture:
+		checker_rexolution_x = 1024
+		checker_rexolution_y = 1024
+		
+		#Get texture size from panel
+		if td.texture_size == '0':
+			checker_rexolution_x = 512
+			checker_rexolution_y = 512
+		if td.texture_size == '1':
+			checker_rexolution_x = 1024
+			checker_rexolution_y = 1024
+		if td.texture_size == '2':
+			checker_rexolution_x = 2048
+			checker_rexolution_y = 2048
+		if td.texture_size == '3':
+			checker_rexolution_x = 4096
+			checker_rexolution_y = 4096
+		if td.texture_size == '4':
+			try:
+				checker_rexolution_x = int(td.custom_width)
+			except:
+				checker_rexolution_x = 1024
+				message = "Width value is wrong. Height will be set to 1024"
+			try:
+				checker_rexolution_y = int(td.custom_height)
+			except:
+				checker_rexolution_y = 1024
+				message = "Height value is wrong. Height will be set to 1024"
+
+		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
+		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
+
 	print("Texture Size Changed")
 
 #-------------------------------------------------------
