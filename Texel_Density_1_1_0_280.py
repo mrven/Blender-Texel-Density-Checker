@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Tools for for checking Texel Density and wasting of uv space",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
-	"version": (1, 0, 9),
+	"version": (1, 1, 0),
 	"blender": (2, 80, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
@@ -659,6 +659,35 @@ class Select_Same_TD(Operator):
 		return {'FINISHED'}
 		
 #-------------------------------------------------------
+class Checker_Assign(Operator):
+	"""Assign Checker Material"""
+	bl_idname = "object.checker_assign"
+	bl_label = "Assign Checker Material"
+	bl_options = {'REGISTER', 'UNDO'}
+	
+	def execute(self, context):
+		td = context.scene.td
+		print("Assign Checker Material")
+				
+		return {'FINISHED'}
+
+#-------------------------------------------------------
+class Checker_Restore(Operator):
+	"""Restore Saved Materials"""
+	bl_idname = "object.checker_restore"
+	bl_label = "Restore Saved Materials"
+	bl_options = {'REGISTER', 'UNDO'}
+	
+	def execute(self, context):
+		td = context.scene.td
+		print("Restore Saved Materials")
+				
+		return {'FINISHED'}
+
+def Change_Texture_Size(self, context):
+	print("Texture Size Changed")
+
+#-------------------------------------------------------
 #FUNCTIONS
 def Vector2dMultiple(A, B, C):
 	return abs((B[0]- A[0])*(C[1]- A[1])-(B[1]- A[1])*(C[0]- A[0]))
@@ -738,6 +767,17 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			c = split.column()
 			c.label(text="px")
 	
+
+		layout.separator()
+		row = layout.row()
+		row.label(text="Checker Material Method:")
+		row = layout.row()
+		row.prop(td, 'checker_method', expand=False)
+		row = layout.row()
+		row.operator("object.checker_assign", text="Assign Checker Material")
+		row = layout.row()
+		row.operator("object.checker_restore", text="Restore Materials")
+		
 
 		if context.object.mode == 'EDIT':
 			layout.separator()
@@ -908,7 +948,7 @@ class TD_Addon_Props(PropertyGroup):
 		default="0")
 	
 	tex_size = (('0','512px',''),('1','1024px',''),('2','2048px',''),('3','4096px',''), ('4','Custom',''))
-	texture_size: EnumProperty(name="", items = tex_size)
+	texture_size: EnumProperty(name="", items = tex_size, update = Change_Texture_Size)
 	
 	selected_faces: BoolProperty(
 		name="Selected Faces",
@@ -918,12 +958,14 @@ class TD_Addon_Props(PropertyGroup):
 	custom_width: StringProperty(
 		name="",
 		description="Custom Width",
-		default="1024")
+		default="1024",
+		update = Change_Texture_Size)
 	
 	custom_height: StringProperty(
 		name="",
 		description="Custom Height",
-		default="1024")
+		default="1024",
+		update = Change_Texture_Size)
 	
 	units_list = (('0','px/cm',''),('1','px/m',''), ('2','px/in',''), ('3','px/ft',''))
 	units: EnumProperty(name="", items = units_list)
@@ -936,6 +978,9 @@ class TD_Addon_Props(PropertyGroup):
 	set_method_list = (('0','Each',''),('1','Average',''))
 	set_method: EnumProperty(name="", items = set_method_list)
 
+	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''), ('2','Append to Existing',''))
+	checker_method: EnumProperty(name="", items = checker_method_list)
+
 #-------------------------------------------------------
 classes = (
     VIEW3D_PT_texel_density_checker,
@@ -946,6 +991,8 @@ classes = (
 	Calculated_To_Set,
 	Preset_Set,
 	Select_Same_TD,
+	Checker_Assign,
+	Checker_Restore,
 )	
 def register():
 	for cls in classes:
