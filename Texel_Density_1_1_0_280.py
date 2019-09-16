@@ -11,6 +11,8 @@ bl_info = {
 import bpy
 import bmesh
 import math
+import tempfile
+import sqlite3
 
 from bpy.types import (
         Operator,
@@ -729,6 +731,25 @@ class Checker_Assign(Operator):
 		bpy.ops.object.mode_set(mode = 'OBJECT')
 		start_active_obj = bpy.context.active_object
 		start_selected_obj = bpy.context.selected_objects
+
+		if td.checker_method == '1':
+			if len(bpy.data.filepath) == 0:
+				conn = sqlite3.connect(tempfile.gettempdir() + '//TD_Objects.db')
+			else:
+				conn = sqlite3.connect(bpy.path.abspath('//TD_Objects.db'))
+
+			cursor = conn.cursor()
+			try:
+				cursor.execute("""CREATE TABLE objects(objectName text, materialID int, materialName text)""")
+			except:
+				print("Table objects exist")
+			
+			#Test work with db
+			object_to_db = (bpy.context.active_object.name, 0, bpy.context.active_object.data.materials[0].name)
+			cursor.execute("""INSERT INTO objects VALUES (?, ?, ?)""", object_to_db)
+
+			conn.commit()
+			conn.close()
 
 		if td.checker_method == '0':
 			#Clear All Materials and append TD_Checker Material
