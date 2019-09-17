@@ -749,17 +749,28 @@ class Checker_Assign(Operator):
 			except:
 				print("Table materials exist")
 			
-			for obj in bpy.context.selected_objects:
-				for mat in range(len(obj.data.materials)):
-					if obj.data.materials[mat] == None:
-						object_to_db = (obj.name, mat, 'None')
-					else:
-						object_to_db = (obj.name, mat, obj.data.materials[mat].name)
-					cursor.execute("""INSERT INTO objects VALUES (?, ?, ?)""", object_to_db)
+			objects_in_db = cursor.execute("""SELECT DISTINCT objectName FROM objects""")
+			
+			conn.commit()
 
-				for poly in range(len(obj.data.polygons)):
-					polygon_to_db = (obj.name, poly, obj.data.polygons[poly].material_index)
-					cursor.execute("""INSERT INTO materials VALUES (?, ?, ?)""", polygon_to_db)
+			#Checking not work yet
+			for obj in bpy.context.selected_objects:
+				appent_this_object = True
+				for db_obj in objects_in_db:
+					if obj.name == db_obj[0]:
+						appent_this_object = False
+
+				if obj.type == 'MESH' and appent_this_object:
+					for mat in range(len(obj.data.materials)):
+						if obj.data.materials[mat] == None:
+							object_to_db = (obj.name, mat, 'None')
+						else:
+							object_to_db = (obj.name, mat, obj.data.materials[mat].name)
+						cursor.execute("""INSERT INTO objects VALUES (?, ?, ?)""", object_to_db)
+
+					for poly in range(len(obj.data.polygons)):
+						polygon_to_db = (obj.name, poly, obj.data.polygons[poly].material_index)
+						cursor.execute("""INSERT INTO materials VALUES (?, ?, ?)""", polygon_to_db)
 
 			conn.commit()
 			conn.close()
