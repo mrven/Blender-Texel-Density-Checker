@@ -732,8 +732,6 @@ class Checker_Assign(Operator):
 			Links.new(TexNode.outputs["Color"], Nodes['Principled BSDF'].inputs['Base Color'])
 		
 		bpy.ops.object.mode_set(mode = 'OBJECT')
-		start_active_obj = bpy.context.active_object
-		start_selected_obj = bpy.context.selected_objects
 
 		if td.checker_method == '1':
 			if len(bpy.data.filepath) == 0:
@@ -743,8 +741,8 @@ class Checker_Assign(Operator):
 				td.db_path = bpy.path.abspath('//TD_Objects.db')
 
 			conn = sqlite3.connect(td.db_path)
-
 			cursor = conn.cursor()
+			
 			try:
 				cursor.execute("""CREATE TABLE objects(objectName text, materialID int, materialName text)""")
 			except:
@@ -809,10 +807,50 @@ class Checker_Restore(Operator):
 	def execute(self, context):
 		td = context.scene.td
 
+		start_active_obj = bpy.context.active_object
+		start_selected_obj = bpy.context.selected_objects
 
+		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.select_all(action='DESELECT')
+
+		conn = sqlite3.connect(td.db_path)
+		cursor = conn.cursor()
+
+		#Select Stored Object
+		objects_in_db = cursor.execute("""SELECT DISTINCT objectName FROM objects""")
+			
+		db_obj_list = []
+		for db_obj in objects_in_db:
+			db_obj_list.append(db_obj[0])
+			try:
+				bpy.data.objects[db_obj[0]].select_set(True)
+				bpy.context.view_layer.objects.active = bpy.data.objects[db_obj[0]]
+			except:
+				print("Object " + db_obj[0] + " no more exist")
+
+		#Again Delete All materials
+		for o in bpy.context.selected_objects:
+			if o.type == 'MESH' and len(o.data.materials) > 0:
+				for q in reversed(range(len(o.data.materials))):
+					bpy.context.object.active_material_index = q
+					o.data.materials.pop(index = q, update_data=True)
+
+		#Assign Stored Materials to Material Slots. If material not exist - skip that, use empty material slot
+
+
+		#Assign Materials to Polygons. Maybe Get Object PolyCount and use that? It's helpful if object's geometry was changed.
+
+		#Delete DB
 
 		td.show_restore_mats_btn = False
 
+		conn.commit()
+		conn.close()
+		
+		bpy.ops.object.select_all(action='DESELECT')
+		for x in start_selected_obj:
+			x.select_set(True)
+		bpy.context.view_layer.objects.active = start_active_obj
 		print("Restore Saved Materials")
 				
 		return {'FINISHED'}
