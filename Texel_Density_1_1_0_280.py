@@ -836,7 +836,17 @@ class Checker_Restore(Operator):
 					o.data.materials.pop(index = q, update_data=True)
 
 		#Assign Stored Materials to Material Slots. If material not exist - skip that, use empty material slot
-
+		for obj in db_obj_list:
+			obj_mats_in_db = cursor.execute("""SELECT materialName, materialID FROM objects WHERE objectName = '"""+ obj +"""' ORDER BY materialID""")
+			for obj_mat in obj_mats_in_db:
+				if not obj_mat == 'None':
+					try:
+						bpy.data.objects[obj].data.materials.append(bpy.data.materials[obj_mat[0]])
+					except:
+						print("Can not append material " + obj_mat[0] + " to Slot " + str(obj_mat[1]) + " Object" + obj)
+						bpy.ops.object.material_slot_add()
+				else:
+					bpy.ops.object.material_slot_add()
 
 		#Assign Materials to Polygons. Maybe Get Object PolyCount and use that? It's helpful if object's geometry was changed.
 
