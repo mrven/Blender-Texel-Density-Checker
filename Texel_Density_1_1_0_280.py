@@ -751,16 +751,17 @@ class Checker_Assign(Operator):
 			
 			objects_in_db = cursor.execute("""SELECT DISTINCT objectName FROM objects""")
 			
-			conn.commit()
+			db_obj_list = []
+			for db_obj in objects_in_db:
+				db_obj_list.append(db_obj[0])
 
-			#Checking not work yet
 			for obj in bpy.context.selected_objects:
-				appent_this_object = True
-				for db_obj in objects_in_db:
-					if obj.name == db_obj[0]:
-						appent_this_object = False
-
-				if obj.type == 'MESH' and appent_this_object:
+				append_this_object = True
+				for list_obj in db_obj_list:
+					if list_obj == obj.name:
+						append_this_object = False
+				
+				if obj.type == 'MESH' and append_this_object:
 					for mat in range(len(obj.data.materials)):
 						if obj.data.materials[mat] == None:
 							object_to_db = (obj.name, mat, 'None')
