@@ -743,10 +743,23 @@ class Checker_Assign(Operator):
 				cursor.execute("""CREATE TABLE objects(objectName text, materialID int, materialName text)""")
 			except:
 				print("Table objects exist")
+
+			try:
+				cursor.execute("""CREATE TABLE materials(objectName text, polygonID int, materialID int)""")
+			except:
+				print("Table materials exist")
 			
-			#Test work with db
-			object_to_db = (bpy.context.active_object.name, 0, bpy.context.active_object.data.materials[0].name)
-			cursor.execute("""INSERT INTO objects VALUES (?, ?, ?)""", object_to_db)
+			for obj in bpy.context.selected_objects:
+				for mat in range(len(obj.data.materials)):
+					if obj.data.materials[mat] == None:
+						object_to_db = (obj.name, mat, 'None')
+					else:
+						object_to_db = (obj.name, mat, obj.data.materials[mat].name)
+					cursor.execute("""INSERT INTO objects VALUES (?, ?, ?)""", object_to_db)
+
+				for poly in range(len(obj.data.polygons)):
+					polygon_to_db = (obj.name, poly, obj.data.polygons[poly].material_index)
+					cursor.execute("""INSERT INTO materials VALUES (?, ?, ?)""", polygon_to_db)
 
 			conn.commit()
 			conn.close()
