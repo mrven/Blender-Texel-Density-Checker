@@ -13,6 +13,7 @@ import bmesh
 import math
 import tempfile
 import sqlite3
+import time
 
 from bpy.types import (
         Operator,
@@ -692,11 +693,13 @@ class Checker_Assign(Operator):
 			except:
 				checker_rexolution_x = 1024
 				message = "Width value is wrong. Height will be set to 1024"
+				self.report({'INFO'}, message)
 			try:
 				checker_rexolution_y = int(td.custom_height)
 			except:
 				checker_rexolution_y = 1024
 				message = "Height value is wrong. Height will be set to 1024"
+				self.report({'INFO'}, message)
 
 		#Check exist texture image
 		flag_exist_texture = False
@@ -734,9 +737,12 @@ class Checker_Assign(Operator):
 
 		if td.checker_method == '1':
 			if len(bpy.data.filepath) == 0:
-				conn = sqlite3.connect(tempfile.gettempdir() + '//TD_Objects.db')
+				td.db_path = tempfile.gettempdir() + '//TD_Objects_' + str(time.time()) + '.db' 
+				self.report({'INFO'}, "Used Temporary Storage!")
 			else:
-				conn = sqlite3.connect(bpy.path.abspath('//TD_Objects.db'))
+				td.db_path = bpy.path.abspath('//TD_Objects.db')
+
+			conn = sqlite3.connect(td.db_path)
 
 			cursor = conn.cursor()
 			try:
@@ -776,17 +782,20 @@ class Checker_Assign(Operator):
 			conn.commit()
 			conn.close()
 
-		if td.checker_method == '0':
+		if td.checker_method == '0' or td.checker_method == '1':
 			#Clear All Materials and append TD_Checker Material
 			for o in bpy.context.selected_objects:
 				if o.type == 'MESH' and len(o.data.materials) > 0:
 					for q in reversed(range(len(o.data.materials))):
 						bpy.context.object.active_material_index = q
 						o.data.materials.pop(index = q, update_data=True)
-				if o.type == 'MESH':
-					o.data.materials.append(bpy.data.materials['TD_Checker'])
 
-		print("Assign Checker Material")
+		for o in bpy.context.selected_objects:
+			if o.type == 'MESH':
+				o.data.materials.append(bpy.data.materials['TD_Checker'])
+
+		if td.checker_method == '1':
+			td.show_restore_mats_btn = True
 				
 		return {'FINISHED'}
 
@@ -799,6 +808,11 @@ class Checker_Restore(Operator):
 	
 	def execute(self, context):
 		td = context.scene.td
+
+
+
+		td.show_restore_mats_btn = False
+
 		print("Restore Saved Materials")
 				
 		return {'FINISHED'}
@@ -835,16 +849,16 @@ def Change_Texture_Size(self, context):
 			except:
 				checker_rexolution_x = 1024
 				message = "Width value is wrong. Height will be set to 1024"
+				self.report({'INFO'}, message)
 			try:
 				checker_rexolution_y = int(td.custom_height)
 			except:
 				checker_rexolution_y = 1024
 				message = "Height value is wrong. Height will be set to 1024"
+				self.report({'INFO'}, message)
 
 		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
 		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
-
-	print("Texture Size Changed")
 
 #-------------------------------------------------------
 #FUNCTIONS
@@ -935,7 +949,8 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		row = layout.row()
 		row.operator("object.checker_assign", text="Assign Checker Material")
 		row = layout.row()
-		row.operator("object.checker_restore", text="Restore Materials")
+		if td.show_restore_mats_btn:
+			row.operator("object.checker_restore", text="Restore Materials")
 		
 
 		if context.object.mode == 'EDIT':
@@ -1140,6 +1155,15 @@ class TD_Addon_Props(PropertyGroup):
 	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''), ('2','Append to Existing',''))
 	checker_method: EnumProperty(name="", items = checker_method_list)
 
+	show_restore_mats_btn: BoolProperty(
+		name="Show Restore Materials Button",
+		description="",
+		default = False)
+
+	db_path: StringProperty(
+		name="DB Path",
+		description="Path to DB",
+		default="")
 #-------------------------------------------------------
 classes = (
     VIEW3D_PT_texel_density_checker,
