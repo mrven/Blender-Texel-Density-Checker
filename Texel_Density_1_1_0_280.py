@@ -14,6 +14,7 @@ import math
 import tempfile
 import sqlite3
 import time
+import os
 
 from bpy.types import (
         Operator,
@@ -738,7 +739,9 @@ class Checker_Assign(Operator):
 				td.db_path = tempfile.gettempdir() + '//TD_Objects_' + str(time.time()) + '.db' 
 				self.report({'INFO'}, "Used Temporary Storage!")
 			else:
-				td.db_path = bpy.path.abspath('//TD_Objects.db')
+				filename = bpy.path.basename(bpy.data.filepath)
+				filename = os.path.splitext(filename)[0]
+				td.db_path = bpy.path.abspath('//TD_Objects_'+ filename +'.db')
 
 			conn = sqlite3.connect(td.db_path)
 			cursor = conn.cursor()
@@ -766,12 +769,16 @@ class Checker_Assign(Operator):
 						append_this_object = False
 				
 				if obj.type == 'MESH' and append_this_object:
-					for mat in range(len(obj.data.materials)):
-						if obj.data.materials[mat] == None:
-							object_to_db = (obj.name, mat, 'None')
-						else:
-							object_to_db = (obj.name, mat, obj.data.materials[mat].name)
+					if len(obj.data.materials) == 0:
+						object_to_db = (obj.name, 0, 'Without mats')
 						cursor.execute("""INSERT INTO objects VALUES (?, ?, ?)""", object_to_db)
+					else:
+						for mat in range(len(obj.data.materials)):
+							if obj.data.materials[mat] == None:
+								object_to_db = (obj.name, mat, 'None')
+							else:
+								object_to_db = (obj.name, mat, obj.data.materials[mat].name)
+							cursor.execute("""INSERT INTO objects VALUES (?, ?, ?)""", object_to_db)
 
 					for poly in range(len(obj.data.polygons)):
 						polygon_to_db = (obj.name, poly, obj.data.polygons[poly].material_index)
@@ -780,13 +787,11 @@ class Checker_Assign(Operator):
 			conn.commit()
 			conn.close()
 
-		if td.checker_method == '0' or td.checker_method == '1':
-			#Clear All Materials and append TD_Checker Material
-			for o in bpy.context.selected_objects:
-				if o.type == 'MESH' and len(o.data.materials) > 0:
-					for q in reversed(range(len(o.data.materials))):
-						bpy.context.object.active_material_index = q
-						o.data.materials.pop(index = q, update_data=True)
+		for o in bpy.context.selected_objects:
+			if o.type == 'MESH' and len(o.data.materials) > 0:
+				for q in reversed(range(len(o.data.materials))):
+					bpy.context.object.active_material_index = q
+					o.data.materials.pop(index = q, update_data=True)
 
 		for o in bpy.context.selected_objects:
 			if o.type == 'MESH':
@@ -836,17 +841,26 @@ class Checker_Restore(Operator):
 					o.data.materials.pop(index = q, update_data=True)
 
 		#Assign Stored Materials to Material Slots. If material not exist - skip that, use empty material slot
-		for obj in db_obj_list:
-			obj_mats_in_db = cursor.execute("""SELECT materialName, materialID FROM objects WHERE objectName = '"""+ obj +"""' ORDER BY materialID""")
+		for obj in bpy.context.selected_objects:
+			bpy.ops.object.select_all(action='DESELECT')
+			obj.select_set(True)
+			bpy.context.view_layer.objects.active = obj
+
+			obj_mats_in_db = cursor.execute("""SELECT materialName, materialID FROM objects WHERE objectName = '"""+ obj.name +"""' ORDER BY materialID""")
+			
 			for obj_mat in obj_mats_in_db:
-				if not obj_mat == 'None':
-					try:
-						bpy.data.objects[obj].data.materials.append(bpy.data.materials[obj_mat[0]])
-					except:
-						print("Can not append material " + obj_mat[0] + " to Slot " + str(obj_mat[1]) + " Object" + obj)
-						bpy.ops.object.material_slot_add()
-				else:
-					bpy.ops.object.material_slot_add()
+				if not obj_mat[0] == "Without mats":
+					if not obj_mat[0] == "None":
+						try:
+							obj.data.materials.append(bpy.data.materials[obj_mat[0]])
+						except:
+							print("Can not append material " + obj_mat[0] + " to Slot " + str(obj_mat[1]) + " of Object" + obj.name)
+							obj.data.materials.append(bpy.data.materials["TD_Checker"])
+							obj.data.materials[obj_mat[1]] = None
+					elif obj_mat[0] == "None":
+						#Don't Ask me why
+						obj.data.materials.append(bpy.data.materials["TD_Checker"])
+						obj.data.materials[obj_mat[1]] = None
 
 		#Assign Materials to Polygons. Maybe Get Object PolyCount and use that? It's helpful if object's geometry was changed.
 
@@ -1200,7 +1214,7 @@ class TD_Addon_Props(PropertyGroup):
 	set_method_list = (('0','Each',''),('1','Average',''))
 	set_method: EnumProperty(name="", items = set_method_list)
 
-	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''), ('2','Append to Existing',''))
+	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''))
 	checker_method: EnumProperty(name="", items = checker_method_list)
 
 	show_restore_mats_btn: BoolProperty(
