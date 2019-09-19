@@ -787,17 +787,41 @@ class Checker_Assign(Operator):
 			conn.commit()
 			conn.close()
 
-		for o in bpy.context.selected_objects:
-			if o.type == 'MESH' and len(o.data.materials) > 0:
-				for q in reversed(range(len(o.data.materials))):
-					bpy.context.object.active_material_index = q
-					o.data.materials.pop(index = q, update_data=True)
+		if td.checker_method == '0':
+			for o in bpy.context.selected_objects:
+				if o.type == 'MESH' and len(o.data.materials) > 0:
+					for q in reversed(range(len(o.data.materials))):
+						bpy.context.object.active_material_index = q
+						o.data.materials.pop(index = q, update_data=True)
 
-		for o in bpy.context.selected_objects:
-			if o.type == 'MESH':
-				o.data.materials.append(bpy.data.materials['TD_Checker'])
+			for o in bpy.context.selected_objects:
+				if o.type == 'MESH':
+					o.data.materials.append(bpy.data.materials['TD_Checker'])
 
 		if td.checker_method == '1':
+			start_active_obj = bpy.context.active_object
+			start_selected_obj = bpy.context.selected_objects
+
+			for o in start_selected_obj:
+				bpy.ops.object.mode_set(mode = 'OBJECT')
+				bpy.ops.object.select_all(action='DESELECT')
+				if o.type == 'MESH':
+					o.select_set(True)
+					bpy.context.view_layer.objects.active = o
+					o.data.materials.append(bpy.data.materials['TD_Checker'])
+					mat_index = len(o.data.materials) - 1
+					bpy.ops.object.mode_set(mode = 'EDIT')
+					bpy.ops.mesh.reveal()
+					bpy.ops.mesh.select_all(action='SELECT')
+					bpy.context.object.active_material_index = mat_index
+					bpy.ops.object.material_slot_assign()
+					bpy.ops.object.mode_set(mode = 'OBJECT')
+
+			for j in start_selected_obj:
+				j.select_set(True)
+
+			bpy.context.view_layer.objects.active = start_active_obj
+
 			td.show_restore_mats_btn = True
 				
 		return {'FINISHED'}
