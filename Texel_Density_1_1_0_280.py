@@ -302,6 +302,10 @@ class Texel_Density_Set(Operator):
 			message = "Try Calculate TD before"
 			enSetTD = False
 		densityCurrentValue = float(td.density)
+		
+		if densityCurrentValue < 0.0001:
+			densityCurrentValue = 0.0001
+		
 		try:
 			densityNewValue = float(destiny_set_filtered)
 		except:
@@ -309,6 +313,9 @@ class Texel_Density_Set(Operator):
 			message = "Density value is wrong"
 		if enSetTD:
 			if (densityNewValue != 0):
+				if densityNewValue < 0.0001:
+					densityNewValue = 0.0001
+
 				if (bpy.context.object.mode == 'EDIT') and (td.selected_faces == True):
 					scaleFac = densityNewValue/densityCurrentValue
 					#check opened image editor window
@@ -946,6 +953,14 @@ def Change_Texture_Size(self, context):
 		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
 		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
 
+		bpy.ops.object.texel_density_check()
+
+#-------------------------------------------------------
+
+def Change_Units(self, context):
+	td = context.scene.td
+	bpy.ops.object.texel_density_check()
+
 #-------------------------------------------------------
 #FUNCTIONS
 def Vector2dMultiple(A, B, C):
@@ -1228,7 +1243,7 @@ class TD_Addon_Props(PropertyGroup):
 		update = Change_Texture_Size)
 	
 	units_list = (('0','px/cm',''),('1','px/m',''), ('2','px/in',''), ('3','px/ft',''))
-	units: EnumProperty(name="", items = units_list)
+	units: EnumProperty(name="", items = units_list, update = Change_Units)
 	
 	select_td_threshold: StringProperty(
 		name="",
