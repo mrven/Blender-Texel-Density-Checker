@@ -893,7 +893,15 @@ class Checker_Restore(Operator):
 						obj.data.materials.append(bpy.data.materials["TD_Checker"])
 						obj.data.materials[obj_mat[1]] = None
 
-		#Assign Materials to Polygons. Maybe Get Object PolyCount and use that? It's helpful if object's geometry was changed.
+			#Assign Materials to Polygons. Maybe Get Object PolyCount and use that? It's helpful if object's geometry was changed.
+			polys_in_db = cursor.execute("""SELECT polygonID, materialID FROM materials WHERE objectName = '"""+ obj.name +"""' ORDER BY polygonID""")
+
+			db_polys_list = []
+			for db_poly in polys_in_db: 
+				db_polys_list.append(db_poly[1])
+
+			for polyID in range(len(obj.data.polygons)):
+				obj.data.polygons[polyID].material_index = db_polys_list[polyID]
 
 
 		conn.commit()
@@ -1072,8 +1080,6 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		if td.show_restore_mats_btn:
 			row = layout.row()
 			row.operator("object.checker_restore", text="Restore Materials")
-			row = layout.row()
-			row.operator("object.clear_object_list", text="Clear List of Objects")
 		
 
 		if context.object.mode == 'EDIT':
@@ -1226,6 +1232,11 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			c = split.column()
 			c.prop(td, "select_td_threshold")
 			#----
+
+		if td.show_restore_mats_btn:
+			layout.separator()
+			row = layout.row()
+			row.operator("object.clear_object_list", text="Clear List of Objects")
 
 
 class TD_Addon_Props(PropertyGroup):
