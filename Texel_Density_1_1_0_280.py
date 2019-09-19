@@ -895,12 +895,12 @@ class Checker_Restore(Operator):
 
 		#Assign Materials to Polygons. Maybe Get Object PolyCount and use that? It's helpful if object's geometry was changed.
 
-		#Delete DB
-
-		td.show_restore_mats_btn = False
 
 		conn.commit()
 		conn.close()
+
+		#Delete DB
+		bpy.ops.object.clear_object_list()
 		
 		bpy.ops.object.select_all(action='DESELECT')
 		for x in start_selected_obj:
@@ -910,6 +910,27 @@ class Checker_Restore(Operator):
 				
 		return {'FINISHED'}
 
+#-------------------------------------------------------
+class Clear_Object_List(Operator):
+	"""Clear List of stored objects"""
+	bl_idname = "object.clear_object_list"
+	bl_label = "Clear List of Stored Objects"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	def execute(self, context):
+		td = context.scene.td
+		
+		if len(td.db_path) > 0:
+			try:
+				os.remove(td.db_path)
+			except:
+				print("Can\'t Delete DB")
+		
+		td.show_restore_mats_btn = False
+
+		return {'FINISHED'}
+
+#-------------------------------------------------------
 def Change_Texture_Size(self, context):
 	td = context.scene.td
 
@@ -953,10 +974,9 @@ def Change_Texture_Size(self, context):
 		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
 		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
 
-		bpy.ops.object.texel_density_check()
+	bpy.ops.object.texel_density_check()
 
 #-------------------------------------------------------
-
 def Change_Units(self, context):
 	td = context.scene.td
 	bpy.ops.object.texel_density_check()
@@ -1049,9 +1069,11 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		row.prop(td, 'checker_method', expand=False)
 		row = layout.row()
 		row.operator("object.checker_assign", text="Assign Checker Material")
-		row = layout.row()
 		if td.show_restore_mats_btn:
+			row = layout.row()
 			row.operator("object.checker_restore", text="Restore Materials")
+			row = layout.row()
+			row.operator("object.clear_object_list", text="Clear List of Objects")
 		
 
 		if context.object.mode == 'EDIT':
@@ -1277,6 +1299,7 @@ classes = (
 	Select_Same_TD,
 	Checker_Assign,
 	Checker_Restore,
+	Clear_Object_List,
 )	
 def register():
 	for cls in classes:
