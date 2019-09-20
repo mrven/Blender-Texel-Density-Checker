@@ -750,7 +750,12 @@ class Checker_Assign(Operator):
 				filename = os.path.splitext(filename)[0]
 				td.db_path = bpy.path.abspath('//TD_Objects_'+ filename +'.db')
 
-			conn = sqlite3.connect(td.db_path)
+			try:
+				conn = sqlite3.connect(td.db_path)
+			except:
+				self.report({'WARNING'}, "Can\'t connect to DB")
+				return{'CANCELLED'}
+
 			cursor = conn.cursor()
 			
 			try:
@@ -838,7 +843,7 @@ class Checker_Restore(Operator):
 	"""Restore Saved Materials"""
 	bl_idname = "object.checker_restore"
 	bl_label = "Restore Saved Materials"
-	bl_options = {'REGISTER', 'UNDO'}
+	bl_options = {'REGISTER'}
 	
 	def execute(self, context):
 		td = context.scene.td
@@ -849,12 +854,29 @@ class Checker_Restore(Operator):
 		bpy.ops.object.mode_set(mode = 'OBJECT')
 		bpy.ops.object.select_all(action='DESELECT')
 
-		conn = sqlite3.connect(td.db_path)
+		if not os.path.exists(td.db_path):
+			self.report({'WARNING'}, "DB not exists")
+			td.show_restore_mats_btn = False
+			return{'CANCELLED'}
+
+		try:
+			conn = sqlite3.connect(td.db_path)
+		except:
+			self.report({'WARNING'}, "Can\'t connect to DB")
+			td.show_restore_mats_btn = False
+			return{'CANCELLED'}
+			
+
 		cursor = conn.cursor()
 
 		#Select Stored Object
-		objects_in_db = cursor.execute("""SELECT DISTINCT objectName FROM objects""")
-			
+		try:
+			objects_in_db = cursor.execute("""SELECT DISTINCT objectName FROM objects""")
+		except:
+			self.report({'WARNING'}, "DB is Empty")
+			td.show_restore_mats_btn = False
+			return{'CANCELLED'}
+
 		db_obj_list = []
 		for db_obj in objects_in_db:
 			db_obj_list.append(db_obj[0])
@@ -893,7 +915,6 @@ class Checker_Restore(Operator):
 						obj.data.materials.append(bpy.data.materials["TD_Checker"])
 						obj.data.materials[obj_mat[1]] = None
 
-			#Assign Materials to Polygons. Maybe Get Object PolyCount and use that? It's helpful if object's geometry was changed.
 			polys_in_db = cursor.execute("""SELECT polygonID, materialID FROM materials WHERE objectName = '"""+ obj.name +"""' ORDER BY polygonID""")
 
 			db_polys_list = []
