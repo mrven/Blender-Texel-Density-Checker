@@ -900,8 +900,14 @@ class Checker_Restore(Operator):
 			for db_poly in polys_in_db: 
 				db_polys_list.append(db_poly[1])
 
-			for polyID in range(len(obj.data.polygons)):
-				obj.data.polygons[polyID].material_index = db_polys_list[polyID]
+			polycount = len(obj.data.polygons)
+			db_polycount = len(db_polys_list)
+
+			if polycount < db_polycount:
+				self.report({'INFO'}, 'Can\'t restore object' + obj.name)
+			else:
+				for polyID in range(db_polycount):
+					obj.data.polygons[polyID].material_index = db_polys_list[polyID]
 
 
 		conn.commit()
