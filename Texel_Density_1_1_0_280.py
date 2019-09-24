@@ -35,6 +35,7 @@ class Texel_Density_Check(Operator):
 	bl_idname = "object.texel_density_check"
 	bl_label = "Check Texel Density"
 	bl_options = {'REGISTER', 'UNDO'}
+	Panel: StringProperty()
 	
 	def execute(self, context):
 		td = context.scene.td
@@ -285,6 +286,7 @@ class Texel_Density_Set(Operator):
 	bl_idname = "object.texel_density_set"
 	bl_label = "Set Texel Density"
 	bl_options = {'REGISTER', 'UNDO'}
+	Panel: StringProperty()
 
 	def execute(self, context):
 		td = context.scene.td
@@ -493,6 +495,7 @@ class Preset_Set(Operator):
 	bl_label = "Set Texel Density"
 	bl_options = {'REGISTER', 'UNDO'}
 	TDValue: StringProperty()
+	Panel: StringProperty()
 	
 	def execute(self, context):
 		td = context.scene.td
@@ -508,6 +511,7 @@ class Select_Same_TD(Operator):
 	bl_idname = "object.select_same_texel"
 	bl_label = "Select Faces with same TD"
 	bl_options = {'REGISTER', 'UNDO'}
+	Panel: StringProperty()
 
 	def execute(self, context):
 		td = context.scene.td
@@ -1035,7 +1039,7 @@ def Vector3dMultiple(A, B, C):
 	return result
 
 #-------------------------------------------------------
-# Panel 
+# Panel in 3D View
 class VIEW3D_PT_texel_density_checker(Panel):
 	bl_label = "Texel Density Checker"
 	bl_space_type = "VIEW_3D"
@@ -1136,7 +1140,7 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		if td.units == '3':
 			c.label(text="px/ft")
 		row.enabled = False
-		layout.operator("object.texel_density_check", text="Calculate TD")
+		layout.operator("object.texel_density_check", text="Calculate TD").Panel="3D"
 		layout.operator("object.calculate_to_set", text="Calc -> Set Value")
 		layout.separator()
 		layout.label(text="Set Texel Density")
@@ -1169,7 +1173,7 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			c.label(text="px/in")
 		if td.units == '3':
 			c.label(text="px/ft")
-		layout.operator("object.texel_density_set", text="Set My TD")
+		layout.operator("object.texel_density_set", text="Set My TD").Panel="3D"
 		
 		#--Aligner Preset Buttons----
 		row = layout.row()
@@ -1178,33 +1182,57 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		split = row.split(factor=0.33, align=True)
 		c = split.column()
 		if td.units == '0':
-			c.operator("object.preset_set", text="20.48").TDValue="20.48"
+			operator_props = c.operator("object.preset_set", text="20.48")
+			operator_props.TDValue="20.48"
+			operator_props.Panel="3D"
 		if td.units == '1':
-			c.operator("object.preset_set", text="2048").TDValue="2048"
+			operator_props = c.operator("object.preset_set", text="2048")
+			operator_props.TDValue="2048"
+			operator_props.Panel="3D"
 		if td.units == '2':
-			c.operator("object.preset_set", text="52.0192").TDValue="52.0192"
+			operator_props = c.operator("object.preset_set", text="52.0192")
+			operator_props.TDValue="52.0192"
+			operator_props.Panel="3D"
 		if td.units == '3':
-			c.operator("object.preset_set", text="624.2304").TDValue="624.2304"
+			operator_props = c.operator("object.preset_set", text="624.2304")
+			operator_props.TDValue="624.2304"
+			operator_props.Panel="3D"
 		split = split.split(factor=0.5, align=True)
 		c = split.column()
 		if td.units == '0':
-			c.operator("object.preset_set", text="10.24").TDValue="10.24"
+			operator_props = c.operator("object.preset_set", text="10.24")
+			operator_props.TDValue="10.24"
+			operator_props.Panel="3D"
 		if td.units == '1':
-			c.operator("object.preset_set", text="1024").TDValue="1024"
+			operator_props = c.operator("object.preset_set", text="1024")
+			operator_props.TDValue="1024"
+			operator_props.Panel="3D"
 		if td.units == '2':
-			c.operator("object.preset_set", text="26.0096").TDValue="26.0096"
+			operator_props = c.operator("object.preset_set", text="26.0096")
+			operator_props.TDValue="26.0096"
+			operator_props.Panel="3D"
 		if td.units == '3':
-			c.operator("object.preset_set", text="312.1152").TDValue="312.1152"
+			operator_props = c.operator("object.preset_set", text="312.1152")
+			operator_props.TDValue="312.1152"
+			operator_props.Panel="3D"
 		split = split.split()
 		c = split.column()
 		if td.units == '0':
-			c.operator("object.preset_set", text="5.12").TDValue="5.12"
+			operator_props = c.operator("object.preset_set", text="5.12")
+			operator_props.TDValue="5.12"
+			operator_props.Panel="3D"
 		if td.units == '1':
-			c.operator("object.preset_set", text="512").TDValue="512"
+			operator_props = c.operator("object.preset_set", text="512")
+			operator_props.TDValue="512"
+			operator_props.Panel="3D"
 		if td.units == '2':
-			c.operator("object.preset_set", text="13.0048").TDValue="13.0048"
+			operator_props = c.operator("object.preset_set", text="13.0048")
+			operator_props.TDValue="13.0048"
+			operator_props.Panel="3D"
 		if td.units == '3':
-			c.operator("object.preset_set", text="156.0576").TDValue="156.0576"
+			operator_props = c.operator("object.preset_set", text="156.0576")
+			operator_props.TDValue="156.0576"
+			operator_props.Panel="3D"
 			
 		#--Aligner Preset Buttons----
 		row = layout.row()
@@ -1213,33 +1241,57 @@ class VIEW3D_PT_texel_density_checker(Panel):
 		split = row.split(factor=0.33, align=True)
 		c = split.column()
 		if td.units == '0':
-			c.operator("object.preset_set", text="2.56").TDValue="2.56"
+			operator_props = c.operator("object.preset_set", text="2.56")
+			operator_props.TDValue="2.56"
+			operator_props.Panel="3D"
 		if td.units == '1':
-			c.operator("object.preset_set", text="256").TDValue="256"
+			operator_props = c.operator("object.preset_set", text="256")
+			operator_props.TDValue="256"
+			operator_props.Panel="3D"
 		if td.units == '2':
-			c.operator("object.preset_set", text="6.5024").TDValue="6.5024"
+			operator_props = c.operator("object.preset_set", text="6.5024")
+			operator_props.TDValue="6.5024"
+			operator_props.Panel="3D"
 		if td.units == '3':
-			c.operator("object.preset_set", text="78.0288").TDValue="78.0288"
+			operator_props = c.operator("object.preset_set", text="78.0288")
+			operator_props.TDValue="78.0288"
+			operator_props.Panel="3D"
 		split = split.split(factor=0.5, align=True)
 		c = split.column()
 		if td.units == '0':
-			c.operator("object.preset_set", text="1.28").TDValue="1.28"
+			operator_props = c.operator("object.preset_set", text="1.28")
+			operator_props.TDValue="1.28"
+			operator_props.Panel="3D"
 		if td.units == '1':
-			c.operator("object.preset_set", text="128").TDValue="128"
+			operator_props = c.operator("object.preset_set", text="128")
+			operator_props.TDValue="128"
+			operator_props.Panel="3D"
 		if td.units == '2':
-			c.operator("object.preset_set", text="3.2512").TDValue="3.2512"
+			operator_props = c.operator("object.preset_set", text="3.2512")
+			operator_props.TDValue="3.2512"
+			operator_props.Panel="3D"
 		if td.units == '3':
-			c.operator("object.preset_set", text="39.0144").TDValue="39.0144"
+			operator_props = c.operator("object.preset_set", text="39.0144")
+			operator_props.TDValue="39.0144"
+			operator_props.Panel="3D"
 		split = split.split()
 		c = split.column()
 		if td.units == '0':
-			c.operator("object.preset_set", text="0.64").TDValue="0.64"
+			operator_props = c.operator("object.preset_set", text="0.64")
+			operator_props.TDValue="0.64"
+			operator_props.Panel="3D"
 		if td.units == '1':
-			c.operator("object.preset_set", text="64").TDValue="64"
+			operator_props = c.operator("object.preset_set", text="64")
+			operator_props.TDValue="64"
+			operator_props.Panel="3D"
 		if td.units == '2':
-			c.operator("object.preset_set", text="1.6256").TDValue="1.6256"
+			operator_props = c.operator("object.preset_set", text="1.6256")
+			operator_props.TDValue="1.6256"
+			operator_props.Panel="3D"
 		if td.units == '3':
-			c.operator("object.preset_set", text="19.5072").TDValue="19.5072"
+			operator_props = c.operator("object.preset_set", text="19.5072")
+			operator_props.TDValue="19.5072"
+			operator_props.Panel="3D"
 		
 		if context.object.mode == 'OBJECT':
 			layout.separator()
@@ -1247,7 +1299,7 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			
 		if context.object.mode == 'EDIT':
 			layout.separator()
-			layout.operator("object.select_same_texel", text="Select Faces with same TD")
+			layout.operator("object.select_same_texel", text="Select Faces with same TD").Panel="3D"
 			#Split row
 			row = layout.row()
 			c = row.column()
@@ -1265,6 +1317,259 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			row = layout.row()
 			row.operator("object.clear_object_list", text="Clear List of Objects")
 
+#-------------------------------------------------------
+# Panel in UV Editor
+class UI_PT_texel_density_checker(Panel):
+	bl_label = "Texel Density Checker"
+	bl_space_type = "IMAGE_EDITOR"
+	bl_region_type = "UI"
+	bl_category = "Texel Density"
+
+	@classmethod
+	def poll(self, context):
+		return (context.object is not None)
+
+	def draw(self, context):
+		td = context.scene.td
+		
+		if context.object.mode == 'EDIT':
+			layout = self.layout
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Units:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'units', expand=False)
+			#----
+
+			layout.label(text="Texture Size:")
+
+			row = layout.row()
+			row.prop(td, 'texture_size', expand=False)
+
+			if td.texture_size == '4':
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.35, align=True)
+				c = split.column()
+				c.label(text="Width:")
+				split = split.split(factor=0.65, align=True)
+				c = split.column()
+				c.prop(td, "custom_width")
+				split = split.split()
+				c = split.column()
+				c.label(text="px")
+
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.35, align=True)
+				c = split.column()
+				c.label(text="Height:")
+				split = split.split(factor=0.65, align=True)
+				c = split.column()
+				c.prop(td, "custom_height")
+				split = split.split()
+				c = split.column()
+				c.label(text="px")	
+
+			layout.separator()
+			layout.prop(td, "selected_faces", text="Selected Faces")
+			
+			layout.separator()
+			layout.label(text="Filled UV Space:")
+			row = layout.row()
+			row.prop(td, "uv_space")
+			row.enabled = False
+			layout.label(text="Texel Density:")
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.65, align=True)
+			c = split.column()
+			c.prop(td, "density")
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				c.label(text="px/cm")
+			if td.units == '1':
+				c.label(text="px/m")
+			if td.units == '2':
+				c.label(text="px/in")
+			if td.units == '3':
+				c.label(text="px/ft")
+			row.enabled = False
+			layout.operator("object.texel_density_check", text="Calculate TD").Panel="UI"
+			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
+			layout.separator()
+			layout.label(text="Set Texel Density")
+			
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Set Method:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'set_method', expand=False)
+			#----
+
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.65, align=True)
+			c = split.column()
+			c.prop(td, "density_set")
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				c.label(text="px/cm")
+			if td.units == '1':
+				c.label(text="px/m")
+			if td.units == '2':
+				c.label(text="px/in")
+			if td.units == '3':
+				c.label(text="px/ft")
+			layout.operator("object.texel_density_set", text="Set My TD").Panel="UI"
+			
+			#--Aligner Preset Buttons----
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.33, align=True)
+			c = split.column()
+			if td.units == '0':
+				operator_props = c.operator("object.preset_set", text="20.48")
+				operator_props.TDValue="20.48"
+				operator_props.Panel="UI"
+			if td.units == '1':
+				operator_props = c.operator("object.preset_set", text="2048")
+				operator_props.TDValue="2048"
+				operator_props.Panel="UI"
+			if td.units == '2':
+				operator_props = c.operator("object.preset_set", text="52.0192")
+				operator_props.TDValue="52.0192"
+				operator_props.Panel="UI"
+			if td.units == '3':
+				operator_props = c.operator("object.preset_set", text="624.2304")
+				operator_props.TDValue="624.2304"
+				operator_props.Panel="UI"
+			split = split.split(factor=0.5, align=True)
+			c = split.column()
+			if td.units == '0':
+				operator_props = c.operator("object.preset_set", text="10.24")
+				operator_props.TDValue="10.24"
+				operator_props.Panel="UI"
+			if td.units == '1':
+				operator_props = c.operator("object.preset_set", text="1024")
+				operator_props.TDValue="1024"
+				operator_props.Panel="UI"
+			if td.units == '2':
+				operator_props = c.operator("object.preset_set", text="26.0096")
+				operator_props.TDValue="26.0096"
+				operator_props.Panel="UI"
+			if td.units == '3':
+				operator_props = c.operator("object.preset_set", text="312.1152")
+				operator_props.TDValue="312.1152"
+				operator_props.Panel="UI"
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				operator_props = c.operator("object.preset_set", text="5.12")
+				operator_props.TDValue="5.12"
+				operator_props.Panel="UI"
+			if td.units == '1':
+				operator_props = c.operator("object.preset_set", text="512")
+				operator_props.TDValue="512"
+				operator_props.Panel="UI"
+			if td.units == '2':
+				operator_props = c.operator("object.preset_set", text="13.0048")
+				operator_props.TDValue="13.0048"
+				operator_props.Panel="UI"
+			if td.units == '3':
+				operator_props = c.operator("object.preset_set", text="156.0576")
+				operator_props.TDValue="156.0576"
+				operator_props.Panel="UI"
+				
+			#--Aligner Preset Buttons----
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.33, align=True)
+			c = split.column()
+			if td.units == '0':
+				operator_props = c.operator("object.preset_set", text="2.56")
+				operator_props.TDValue="2.56"
+				operator_props.Panel="UI"
+			if td.units == '1':
+				operator_props = c.operator("object.preset_set", text="256")
+				operator_props.TDValue="256"
+				operator_props.Panel="UI"
+			if td.units == '2':
+				operator_props = c.operator("object.preset_set", text="6.5024")
+				operator_props.TDValue="6.5024"
+				operator_props.Panel="UI"
+			if td.units == '3':
+				operator_props = c.operator("object.preset_set", text="78.0288")
+				operator_props.TDValue="78.0288"
+				operator_props.Panel="UI"
+			split = split.split(factor=0.5, align=True)
+			c = split.column()
+			if td.units == '0':
+				operator_props = c.operator("object.preset_set", text="1.28")
+				operator_props.TDValue="1.28"
+				operator_props.Panel="UI"
+			if td.units == '1':
+				operator_props = c.operator("object.preset_set", text="128")
+				operator_props.TDValue="128"
+				operator_props.Panel="UI"
+			if td.units == '2':
+				operator_props = c.operator("object.preset_set", text="3.2512")
+				operator_props.TDValue="3.2512"
+				operator_props.Panel="UI"
+			if td.units == '3':
+				operator_props = c.operator("object.preset_set", text="39.0144")
+				operator_props.TDValue="39.0144"
+				operator_props.Panel="UI"
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				operator_props = c.operator("object.preset_set", text="0.64")
+				operator_props.TDValue="0.64"
+				operator_props.Panel="UI"
+			if td.units == '1':
+				operator_props = c.operator("object.preset_set", text="64")
+				operator_props.TDValue="64"
+				operator_props.Panel="UI"
+			if td.units == '2':
+				operator_props = c.operator("object.preset_set", text="1.6256")
+				operator_props.TDValue="1.6256"
+				operator_props.Panel="UI"
+			if td.units == '3':
+				operator_props = c.operator("object.preset_set", text="19.5072")
+				operator_props.TDValue="19.5072"
+				operator_props.Panel="UI"
+				
+			layout.separator()
+			layout.operator("object.select_same_texel", text="Select Faces with same TD").Panel="UI"
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.6, align=True)
+			c = split.column()
+			c.label(text="Select Threshold:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, "select_td_threshold")
+			#----
 
 class TD_Addon_Props(PropertyGroup):
 	uv_space: StringProperty(
@@ -1328,6 +1633,7 @@ class TD_Addon_Props(PropertyGroup):
 #-------------------------------------------------------
 classes = (
     VIEW3D_PT_texel_density_checker,
+    UI_PT_texel_density_checker,
 	TD_Addon_Props,
 	Texel_Density_Check,
 	Texel_Density_Set,
@@ -1353,3 +1659,43 @@ def unregister():
 
 if __name__ == "__main__":
 	register()
+
+
+
+#Draft Get Selected in UV faces
+'''
+import bpy
+import bmesh
+
+#get bmesh from active object
+me = bpy.context.active_object.data
+
+bm = bmesh.from_edit_mesh(me)
+bm.faces.ensure_lookup_table()
+
+
+if len(bm.loops.layers.uv) == 0:
+    self.report({'INFO'}, 'Object doesn\'t have UV')
+    return {'CANCELLED'}
+
+uv_layer = bm.loops.layers.uv.active
+
+uv_selected_faces = []
+
+#get faces and round this
+face_count = len(bm.faces)
+for faceid in range (face_count):
+    face_is_selected = True
+    for loop in bm.faces[faceid].loops:
+        if not(loop[uv_layer].select):
+            face_is_selected = False
+            
+    if face_is_selected:
+        uv_selected_faces.append(faceid)
+        
+for id in uv_selected_faces:
+    print(id)
+    
+print("------------END-----------")   
+
+'''
