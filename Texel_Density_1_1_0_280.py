@@ -44,6 +44,8 @@ class Texel_Density_Check(Operator):
 		#save current mode and active object
 		actObj = bpy.context.active_object
 		current_selected_obj = bpy.context.selected_objects
+		
+
 		try:
 			actObjType = actObj.type
 			start_mode = bpy.context.object.mode
@@ -54,6 +56,45 @@ class Texel_Density_Check(Operator):
 		
 		#proceed if active object is mesh
 		if (actObjType == 'MESH' and len(actObj.data.uv_layers) > 0):
+			#save start selected in 3d view faces
+			start_selected_faces = []
+			for faceid in range (0, len(actObj.data.polygons)):
+				if bpy.context.active_object.data.polygons[faceid].select == True:
+					start_selected_faces.append(faceid)
+
+			if self.Panel == "UV" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
+				mesh = bpy.context.active_object.data
+
+				bm = bmesh.from_edit_mesh(mesh)
+				bm.faces.ensure_lookup_table()
+
+				uv_layer = bm.loops.layers.uv.active
+
+				uv_selected_faces = []
+
+				#get faces and round this
+				face_count = len(bm.faces)
+				for faceid in range (face_count):
+					face_is_selected = True
+					for loop in bm.faces[faceid].loops:
+						if not(loop[uv_layer].select):
+							face_is_selected = False
+				
+					if face_is_selected:
+						uv_selected_faces.append(faceid) 
+
+				for face in bm.faces:
+					if td.selected_faces:
+						face.select_set(False)
+					else:
+						face.select_set(True)
+				    
+				for id in uv_selected_faces:
+					bm.faces[id].select_set(True)
+
+				bmesh.update_edit_mesh(mesh, False, False)
+
+
 			if (bpy.context.object.mode == 'EDIT') and (td.selected_faces == True):
 				bpy.ops.object.mode_set(mode='OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')
@@ -272,6 +313,11 @@ class Texel_Density_Check(Operator):
 				
 				bpy.ops.object.mode_set(mode=start_mode)
 			
+			bpy.ops.object.mode_set(mode='OBJECT')
+			for faceid in start_selected_faces:
+				bpy.context.active_object.data.polygons[faceid].select = True
+			bpy.ops.object.mode_set(mode=start_mode)
+
 			self.report({'INFO'}, message)
 			
 		else:
@@ -314,6 +360,45 @@ class Texel_Density_Set(Operator):
 			densityNewValue = densityCurrentValue
 			message = "Density value is wrong"
 		if enSetTD:
+			'''
+			#save start selected in 3d view faces
+			start_selected_faces = []
+			for faceid in range (0, len(actObj.data.polygons)):
+				if bpy.context.active_object.data.polygons[faceid].select == True:
+					start_selected_faces.append(faceid)
+
+			if self.Panel == "UV" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
+				mesh = bpy.context.active_object.data
+
+				bm = bmesh.from_edit_mesh(mesh)
+				bm.faces.ensure_lookup_table()
+
+				uv_layer = bm.loops.layers.uv.active
+
+				uv_selected_faces = []
+
+				#get faces and round this
+				face_count = len(bm.faces)
+				for faceid in range (face_count):
+					face_is_selected = True
+					for loop in bm.faces[faceid].loops:
+						if not(loop[uv_layer].select):
+							face_is_selected = False
+				
+					if face_is_selected:
+						uv_selected_faces.append(faceid) 
+
+				for face in bm.faces:
+					if td.selected_faces:
+						face.select_set(False)
+					else:
+						face.select_set(True)
+				    
+				for id in uv_selected_faces:
+					bm.faces[id].select_set(True)
+
+				bmesh.update_edit_mesh(mesh, False, False)
+			'''
 			if (densityNewValue != 0):
 				if densityNewValue < 0.0001:
 					densityNewValue = 0.0001
@@ -361,9 +446,9 @@ class Texel_Density_Set(Operator):
 							IE_area = area
 							flag_exist_area = True
 							bpy.context.screen.areas[area].type = 'CONSOLE'
-							
-					start_mode = bpy.context.object.mode
 					
+					start_mode = bpy.context.object.mode
+
 					if start_mode == 'OBJECT':
 						bpy.ops.object.mode_set(mode='EDIT')
 					
@@ -391,6 +476,14 @@ class Texel_Density_Set(Operator):
 					
 					if flag_exist_area == True:
 						bpy.context.screen.areas[IE_area].type = 'IMAGE_EDITOR'
+
+				'''
+				bpy.ops.object.mode_set(mode='OBJECT')
+				for faceid in start_selected_faces:
+					bpy.context.active_object.data.polygons[faceid].select = True
+				bpy.ops.object.mode_set(mode=start_mode)
+				'''
+
 			else:
 				message = "Density must be greater than 0"
 		self.report({'INFO'}, message)
@@ -1332,7 +1425,7 @@ class UI_PT_texel_density_checker(Panel):
 	def draw(self, context):
 		td = context.scene.td
 		
-		if context.object.mode == 'EDIT':
+		if context.object.mode == 'EDIT' and context.space_data.mode == 'UV' and len(context.active_object.data.uv_layers) > 0:
 			layout = self.layout
 			#Split row
 			row = layout.row()
@@ -1404,7 +1497,7 @@ class UI_PT_texel_density_checker(Panel):
 			if td.units == '3':
 				c.label(text="px/ft")
 			row.enabled = False
-			layout.operator("object.texel_density_check", text="Calculate TD").Panel="UI"
+			layout.operator("object.texel_density_check", text="Calculate TD").Panel="UV"
 			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
 			layout.separator()
 			layout.label(text="Set Texel Density")
@@ -1437,7 +1530,7 @@ class UI_PT_texel_density_checker(Panel):
 				c.label(text="px/in")
 			if td.units == '3':
 				c.label(text="px/ft")
-			layout.operator("object.texel_density_set", text="Set My TD").Panel="UI"
+			layout.operator("object.texel_density_set", text="Set My TD").Panel="UV"
 			
 			#--Aligner Preset Buttons----
 			row = layout.row()
@@ -1448,55 +1541,55 @@ class UI_PT_texel_density_checker(Panel):
 			if td.units == '0':
 				operator_props = c.operator("object.preset_set", text="20.48")
 				operator_props.TDValue="20.48"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '1':
 				operator_props = c.operator("object.preset_set", text="2048")
 				operator_props.TDValue="2048"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '2':
 				operator_props = c.operator("object.preset_set", text="52.0192")
 				operator_props.TDValue="52.0192"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '3':
 				operator_props = c.operator("object.preset_set", text="624.2304")
 				operator_props.TDValue="624.2304"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
 			if td.units == '0':
 				operator_props = c.operator("object.preset_set", text="10.24")
 				operator_props.TDValue="10.24"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '1':
 				operator_props = c.operator("object.preset_set", text="1024")
 				operator_props.TDValue="1024"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '2':
 				operator_props = c.operator("object.preset_set", text="26.0096")
 				operator_props.TDValue="26.0096"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '3':
 				operator_props = c.operator("object.preset_set", text="312.1152")
 				operator_props.TDValue="312.1152"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			split = split.split()
 			c = split.column()
 			if td.units == '0':
 				operator_props = c.operator("object.preset_set", text="5.12")
 				operator_props.TDValue="5.12"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '1':
 				operator_props = c.operator("object.preset_set", text="512")
 				operator_props.TDValue="512"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '2':
 				operator_props = c.operator("object.preset_set", text="13.0048")
 				operator_props.TDValue="13.0048"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '3':
 				operator_props = c.operator("object.preset_set", text="156.0576")
 				operator_props.TDValue="156.0576"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 				
 			#--Aligner Preset Buttons----
 			row = layout.row()
@@ -1507,58 +1600,58 @@ class UI_PT_texel_density_checker(Panel):
 			if td.units == '0':
 				operator_props = c.operator("object.preset_set", text="2.56")
 				operator_props.TDValue="2.56"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '1':
 				operator_props = c.operator("object.preset_set", text="256")
 				operator_props.TDValue="256"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '2':
 				operator_props = c.operator("object.preset_set", text="6.5024")
 				operator_props.TDValue="6.5024"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '3':
 				operator_props = c.operator("object.preset_set", text="78.0288")
 				operator_props.TDValue="78.0288"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
 			if td.units == '0':
 				operator_props = c.operator("object.preset_set", text="1.28")
 				operator_props.TDValue="1.28"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '1':
 				operator_props = c.operator("object.preset_set", text="128")
 				operator_props.TDValue="128"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '2':
 				operator_props = c.operator("object.preset_set", text="3.2512")
 				operator_props.TDValue="3.2512"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '3':
 				operator_props = c.operator("object.preset_set", text="39.0144")
 				operator_props.TDValue="39.0144"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			split = split.split()
 			c = split.column()
 			if td.units == '0':
 				operator_props = c.operator("object.preset_set", text="0.64")
 				operator_props.TDValue="0.64"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '1':
 				operator_props = c.operator("object.preset_set", text="64")
 				operator_props.TDValue="64"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '2':
 				operator_props = c.operator("object.preset_set", text="1.6256")
 				operator_props.TDValue="1.6256"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 			if td.units == '3':
 				operator_props = c.operator("object.preset_set", text="19.5072")
 				operator_props.TDValue="19.5072"
-				operator_props.Panel="UI"
+				operator_props.Panel="UV"
 				
 			layout.separator()
-			layout.operator("object.select_same_texel", text="Select Faces with same TD").Panel="UI"
+			layout.operator("object.select_same_texel", text="Select Faces with same TD").Panel="UV"
 			#Split row
 			row = layout.row()
 			c = row.column()
@@ -1659,43 +1752,3 @@ def unregister():
 
 if __name__ == "__main__":
 	register()
-
-
-
-#Draft Get Selected in UV faces
-'''
-import bpy
-import bmesh
-
-#get bmesh from active object
-me = bpy.context.active_object.data
-
-bm = bmesh.from_edit_mesh(me)
-bm.faces.ensure_lookup_table()
-
-
-if len(bm.loops.layers.uv) == 0:
-    self.report({'INFO'}, 'Object doesn\'t have UV')
-    return {'CANCELLED'}
-
-uv_layer = bm.loops.layers.uv.active
-
-uv_selected_faces = []
-
-#get faces and round this
-face_count = len(bm.faces)
-for faceid in range (face_count):
-    face_is_selected = True
-    for loop in bm.faces[faceid].loops:
-        if not(loop[uv_layer].select):
-            face_is_selected = False
-            
-    if face_is_selected:
-        uv_selected_faces.append(faceid)
-        
-for id in uv_selected_faces:
-    print(id)
-    
-print("------------END-----------")   
-
-'''
