@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Tools for for checking Texel Density and wasting of uv space",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
-	"version": (1, 1, 0),
+	"version": (2, 0, 0),
 	"blender": (2, 80, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
@@ -39,79 +39,77 @@ class Texel_Density_Check(Operator):
 	def execute(self, context):
 		td = context.scene.td
 		
-		message = "TD is calculated"
+		#message = "TD is calculated"
+		
 		#save current mode and active object
-		actObj = bpy.context.active_object
-		current_selected_obj = bpy.context.selected_objects
+		start_active_obj = bpy.context.active_object
+		start_selected_obj = bpy.context.selected_objects
+		start_mode = bpy.context.object.mode
+
+		#set default values
+		Area=0
+		gmArea = 0
+		textureSizeCurX = 1024
+		textureSizeCurY = 1024
 		
-		try:
-			actObjType = actObj.type
-			start_mode = bpy.context.object.mode
-		except:
-			actObjType = 'None'
-			start_mode = 'OBJECT'
-		current_mode = start_mode
-		
-		#proceed if active object is mesh
-		if (actObjType == 'MESH' and len(actObj.data.uv_layers) > 0):
-			#save start selected in 3d view faces
-			
-			start_selected_faces = []
-			bpy.ops.object.mode_set(mode='OBJECT')
-			for faceid in range (0, len(actObj.data.polygons)):
-				if bpy.context.active_object.data.polygons[faceid].select == True:
-					start_selected_faces.append(faceid)
-			bpy.ops.object.mode_set(mode=start_mode)
-			
-			if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
-				SyncUVSelection()
-			
-			if (bpy.context.object.mode == 'EDIT') and (td.selected_faces == True):
-				bpy.ops.object.mode_set(mode='OBJECT')
-				bpy.ops.object.select_all(action='DESELECT')
-				actObj.select_set(True)
+		#Get texture size from panel
+		if td.texture_size == '0':
+			textureSizeCurX = 512
+			textureSizeCurY = 512
+		if td.texture_size == '1':
+			textureSizeCurX = 1024
+			textureSizeCurY = 1024
+		if td.texture_size == '2':
+			textureSizeCurX = 2048
+			textureSizeCurY = 2048
+		if td.texture_size == '3':
+			textureSizeCurX = 4096
+			textureSizeCurY = 4096
+		if td.texture_size == '4':
+			try:
+				textureSizeCurX = int(td.custom_width)
+			except:
+				textureSizeCurX = 1024
+			try:
+				textureSizeCurY = int(td.custom_height)
+			except:
+				textureSizeCurY = 1024
+
+		if textureSizeCurX < 1 or textureSizeCurY < 1:
+			textureSizeCurX = 1024
+			textureSizeCurY = 1024
+
+		bpy.ops.object.mode_set(mode='OBJECT')
+
+		for o in start_selected_obj:
+			bpy.ops.object.select_all(action='DESELECT')
+			if o.type == 'MESH' and len(o.data.uv_layers) > 0:
+				o.select_set(True)
+				bpy.context.view_layer.objects.active = o
+				#Duplicate and Triangulate Object
 				bpy.ops.object.duplicate()
 				bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 				bpy.ops.object.mode_set(mode='EDIT')
 				bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-				#set default values
-				Area=0
-				gmArea = 0
-				textureSizeCurX = 1024
-				textureSizeCurY = 1024
-				
-				#Get texture size from panel
-				if td.texture_size == '0':
-					textureSizeCurX = 512
-					textureSizeCurY = 512
-				if td.texture_size == '1':
-					textureSizeCurX = 1024
-					textureSizeCurY = 1024
-				if td.texture_size == '2':
-					textureSizeCurX = 2048
-					textureSizeCurY = 2048
-				if td.texture_size == '3':
-					textureSizeCurX = 4096
-					textureSizeCurY = 4096
-				if td.texture_size == '4':
-					try:
-						textureSizeCurX = int(td.custom_width)
-					except:
-						textureSizeCurX = 1024
-						message = "Width value is wrong. Height will be set to 1024"
-					try:
-						textureSizeCurY = int(td.custom_height)
-					except:
-						textureSizeCurY = 1024
-						message = "Height value is wrong. Height will be set to 1024"
-				#get bmesh from active object
+
+				#Select All Polygons if Calculate TD per Object
+				if start_mode == 'OBJECT' or td.selected_faces == False:
+					bpy.ops.object.mode_set(mode='EDIT')
+					bpy.ops.mesh.reveal()
+					bpy.ops.mesh.select_all(action='SELECT')
+
+				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
+					SyncUVSelection()
+
+				#Get selected list of selected polygons
 				bpy.ops.object.mode_set(mode='OBJECT')
 				face_count = len(bpy.context.active_object.data.polygons)
 				selected_faces = []
 				for faceid in range (0, face_count):
 					if bpy.context.active_object.data.polygons[faceid].select == True:
 						selected_faces.append(faceid)
-						
+				
+				#get bmesh from active object		
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
 				bm.faces.ensure_lookup_table()
@@ -120,7 +118,7 @@ class Texel_Density_Check(Operator):
 					multiVector = 0
 					gmmultiVector = 0
 					#UV Area calculating
-					#get uv-coordinates of vertexes of current triangle
+					#get uv-coordinates of verteces of current triangle
 					loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
 					loopB = bm.faces[x].loops[1][bm.loops.layers.uv.active].uv
 					loopC = bm.faces[x].loops[2][bm.loops.layers.uv.active].uv
@@ -130,7 +128,7 @@ class Texel_Density_Check(Operator):
 					Area+=0.5*multiVector
 
 					#Phisical Area calculating
-					#get world coordinates of vertexes of current triangle
+					#get world coordinates of verteces of current triangle
 					gmloopA = bm.faces[x].loops[0].vert.co
 					gmloopB = bm.faces[x].loops[1].vert.co
 					gmloopC = bm.faces[x].loops[2].vert.co
@@ -138,164 +136,45 @@ class Texel_Density_Check(Operator):
 					gmmultiVector = Vector3dMultiple(gmloopA, gmloopB, gmloopC)
 					#Increment area of current tri to total phisical area
 					gmArea += 0.5*gmmultiVector
-					
-				bpy.ops.object.mode_set(mode='OBJECT')
-				
-				if len(selected_faces) > 0:
-					#UV Area in percents
-					UVspace = Area * 100
-					
-					aspectRatio = textureSizeCurX / textureSizeCurY;
-					if aspectRatio < 1:
-						aspectRatio = 1 / aspectRatio
-					largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
-					#TexelDensity calculating from selected in panel texture size
-					TexelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
 
-					#show calculated values on panel
-					td.uv_space = '%.3f' % round(UVspace, 3) + ' %'
-					if td.units == '0':
-						td.density = '%.3f' % round(TexelDensity, 3)
-					if td.units == '1':
-						td.density = '%.3f' % round(TexelDensity*100, 3)
-					if td.units == '2':
-						td.density = '%.3f' % round(TexelDensity*2.54, 3)
-					if td.units == '3':
-						td.density = '%.3f' % round(TexelDensity*30.48, 3)
-				else:
-					self.report({'INFO'}, 'No faces selected')
-				
 				#delete duplicated object
-				bpy.ops.object.delete()
-				#select saved object
-				for x in current_selected_obj:
-					x.select_set(True)
-				actObj.select_set(True)
-				bpy.context.view_layer.objects.active = actObj
-				bpy.ops.object.mode_set(mode='EDIT')
-			#--------------------------------------------------
-			#Calculating for all mesh
-			else:
-				#if start mode = edit, change to object mode
-				if current_mode == 'EDIT':
-					bpy.ops.object.mode_set(mode='OBJECT')
-					current_mode = 'OBJECT'
-				#Duplicate active object and triangulate mesh
-				if current_mode == 'OBJECT':
-					bpy.ops.object.select_all(action='DESELECT')
-					actObj.select_set(True)
-					bpy.ops.object.duplicate()
-					bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-					bpy.ops.object.mode_set(mode='EDIT')
-					bpy.ops.mesh.reveal()
-					bpy.ops.mesh.select_all(action='DESELECT')
-					bpy.ops.mesh.select_all(action='SELECT')
-					bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-
-				#set default values
-				Area=0
-				gmArea = 0
-				textureSizeCurX = 1024
-				textureSizeCurY = 1024
-				
-				#Get texture size from panel
-				if td.texture_size == '0':
-					textureSizeCurX = 512
-					textureSizeCurY = 512
-				if td.texture_size == '1':
-					textureSizeCurX = 1024
-					textureSizeCurY = 1024
-				if td.texture_size == '2':
-					textureSizeCurX = 2048
-					textureSizeCurY = 2048
-				if td.texture_size == '3':
-					textureSizeCurX = 4096
-					textureSizeCurY = 4096
-				if td.texture_size == '4':
-					try:
-						textureSizeCurX = int(td.custom_width)
-					except:
-						textureSizeCurX = 1024
-						message = "Width value is wrong. Height will be set to 1024"
-					try:
-						textureSizeCurY = int(td.custom_height)
-					except:
-						textureSizeCurY = 1024
-						message = "Height value is wrong. Height will be set to 1024"
-				
-				#get bmesh from active object
-				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
-				bm.faces.ensure_lookup_table()
-
-				#get faces and round this
-				face_count = len(bm.faces)
-				for faceid in range (0, face_count):
-					#set default values for multiplication of vectors (uv and physical area of object)
-					multiVector = 0
-					gmmultiVector = 0
-					#UV Area calculating
-					#get uv-coordinates of vertexes of current triangle
-					loopA = bm.faces[faceid].loops[0][bm.loops.layers.uv.active].uv
-					loopB = bm.faces[faceid].loops[1][bm.loops.layers.uv.active].uv
-					loopC = bm.faces[faceid].loops[2][bm.loops.layers.uv.active].uv
-					#get multiplication of vectors of current triangle
-					multiVector = Vector2dMultiple(loopA, loopB, loopC)
-					#Increment area of current tri to total uv area
-					Area+=0.5*multiVector
-
-					#Phisical Area calculating
-					#get world coordinates of vertexes of current triangle
-					gmloopA = bm.faces[faceid].loops[0].vert.co
-					gmloopB = bm.faces[faceid].loops[1].vert.co
-					gmloopC = bm.faces[faceid].loops[2].vert.co
-					#get multiplication of vectors of current triangle
-					gmmultiVector = Vector3dMultiple(gmloopA, gmloopB, gmloopC)
-					#Increment area of current tri to total physical area
-					gmArea += 0.5*gmmultiVector
-					
-				#UV Area in percents
-				UVspace = Area * 100
-				
-				aspectRatio = textureSizeCurX / textureSizeCurY;
-				if aspectRatio < 1:
-					aspectRatio = 1 / aspectRatio
-				largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
-				#TexelDensity calculating from selected in panel texture size
-				TexelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
-				
-				#show calculated values on panel
-				td.uv_space = '%.3f' % round(UVspace, 3) + ' %'
-				if td.units == '0':
-					td.density = '%.3f' % round(TexelDensity, 3)
-				if td.units == '1':
-					td.density = '%.3f' % round(TexelDensity*100, 3)
-				if td.units == '2':
-					td.density = '%.3f' % round(TexelDensity*2.54, 3)
-				if td.units == '3':
-					td.density = '%.3f' % round(TexelDensity*30.48, 3)
-				#set object mode and delete duplicated object
 				bpy.ops.object.mode_set(mode='OBJECT')
 				bpy.ops.object.delete()
-				#select saved object and return into initial mode
-				for x in current_selected_obj:
-					x.select_set(True)
-				actObj.select_set(True)
-				bpy.context.view_layer.objects.active = actObj
-				
-				bpy.ops.object.mode_set(mode=start_mode)
-			
-			
-			bpy.ops.object.mode_set(mode='OBJECT')
-			for faceid in start_selected_faces:
-				bpy.context.active_object.data.polygons[faceid].select = True
-			bpy.ops.object.mode_set(mode=start_mode)
 
-			self.report({'INFO'}, message)
+		#Calculate TD and Display Value
+		if Area > 0:
+			#UV Area in percents
+			UVspace = Area * 100
 			
+			aspectRatio = textureSizeCurX / textureSizeCurY;
+			if aspectRatio < 1:
+				aspectRatio = 1 / aspectRatio
+			largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
+			#TexelDensity calculating from selected in panel texture size
+			TexelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
+
+			#show calculated values on panel
+			td.uv_space = '%.3f' % round(UVspace, 3) + ' %'
+			if td.units == '0':
+				td.density = '%.3f' % round(TexelDensity, 3)
+			if td.units == '1':
+				td.density = '%.3f' % round(TexelDensity*100, 3)
+			if td.units == '2':
+				td.density = '%.3f' % round(TexelDensity*2.54, 3)
+			if td.units == '3':
+				td.density = '%.3f' % round(TexelDensity*30.48, 3)
+
+			self.report({'INFO'}, "TD is Calculated")
+
 		else:
-			
-			self.report({'ERROR'}, 'Active object isn''t a mesh or doesn\'t have UV')
-		
+			self.report({'INFO'}, "No faces selected")
+
+		#Select Objects Again
+		for x in start_selected_obj:
+			x.select_set(True)
+		bpy.context.view_layer.objects.active = start_active_obj
+		bpy.ops.object.mode_set(mode=start_mode)
+
 		return {'FINISHED'}
 
 #-------------------------------------------------------
@@ -1172,236 +1051,237 @@ class VIEW3D_PT_texel_density_checker(Panel):
 
 	def draw(self, context):
 		td = context.scene.td
-	
-		layout = self.layout
-
-		#Split row
-		row = layout.row()
-		c = row.column()
-		row = c.row()
-		split = row.split(factor=0.5, align=True)
-		c = split.column()
-		c.label(text="Units:")
-		split = split.split()
-		c = split.column()
-		c.prop(td, 'units', expand=False)
-		#----
-
-		layout.label(text="Texture Size:")
-
-		row = layout.row()
-		row.prop(td, 'texture_size', expand=False)
-
-		if td.texture_size == '4':
-			row = layout.row()
-			c = row.column()
-			row = c.row()
-			split = row.split(factor=0.35, align=True)
-			c = split.column()
-			c.label(text="Width:")
-			split = split.split(factor=0.65, align=True)
-			c = split.column()
-			c.prop(td, "custom_width")
-			split = split.split()
-			c = split.column()
-			c.label(text="px")
-
-			row = layout.row()
-			c = row.column()
-			row = c.row()
-			split = row.split(factor=0.35, align=True)
-			c = split.column()
-			c.label(text="Height:")
-			split = split.split(factor=0.65, align=True)
-			c = split.column()
-			c.prop(td, "custom_height")
-			split = split.split()
-			c = split.column()
-			c.label(text="px")
-	
-
-		layout.separator()
-		row = layout.row()
-		row.label(text="Checker Material Method:")
-		row = layout.row()
-		row.prop(td, 'checker_method', expand=False)
-		row = layout.row()
-		row.operator("object.checker_assign", text="Assign Checker Material")
-		if td.show_restore_mats_btn:
-			row = layout.row()
-			row.operator("object.checker_restore", text="Restore Materials")
 		
+		if context.active_object.type == 'MESH' and len(context.active_object.data.uv_layers) > 0:
+			layout = self.layout
 
-		if context.object.mode == 'EDIT':
-			layout.separator()
-			layout.prop(td, "selected_faces", text="Selected Faces")
-		
-		layout.separator()
-		layout.label(text="Filled UV Space:")
-		row = layout.row()
-		row.prop(td, "uv_space")
-		row.enabled = False
-		layout.label(text="Texel Density:")
-		row = layout.row()
-		c = row.column()
-		row = c.row()
-		split = row.split(factor=0.65, align=True)
-		c = split.column()
-		c.prop(td, "density")
-		split = split.split()
-		c = split.column()
-		if td.units == '0':
-			c.label(text="px/cm")
-		if td.units == '1':
-			c.label(text="px/m")
-		if td.units == '2':
-			c.label(text="px/in")
-		if td.units == '3':
-			c.label(text="px/ft")
-		row.enabled = False
-		layout.operator("object.texel_density_check", text="Calculate TD")
-		layout.operator("object.calculate_to_set", text="Calc -> Set Value")
-		layout.separator()
-		layout.label(text="Set Texel Density")
-		
-		#Split row
-		row = layout.row()
-		c = row.column()
-		row = c.row()
-		split = row.split(factor=0.5, align=True)
-		c = split.column()
-		c.label(text="Set Method:")
-		split = split.split()
-		c = split.column()
-		c.prop(td, 'set_method', expand=False)
-		#----
-
-		row = layout.row()
-		c = row.column()
-		row = c.row()
-		split = row.split(factor=0.65, align=True)
-		c = split.column()
-		c.prop(td, "density_set")
-		split = split.split()
-		c = split.column()
-		if td.units == '0':
-			c.label(text="px/cm")
-		if td.units == '1':
-			c.label(text="px/m")
-		if td.units == '2':
-			c.label(text="px/in")
-		if td.units == '3':
-			c.label(text="px/ft")
-		layout.operator("object.texel_density_set", text="Set My TD")
-		
-		#--Aligner Preset Buttons----
-		row = layout.row()
-		c = row.column()
-		row = c.row()
-
-		split = row.split(factor=0.33, align=True)
-		c = split.column()
-		if td.units == '0':
-			c.operator("object.preset_set", text="20.48").TDValue="20.48"
-		if td.units == '1':
-			c.operator("object.preset_set", text="2048").TDValue="2048"
-		if td.units == '2':
-			c.operator("object.preset_set", text="52.0192").TDValue="52.0192"
-		if td.units == '3':
-			c.operator("object.preset_set", text="624.2304").TDValue="624.2304"
-		
-		split = split.split(factor=0.5, align=True)
-		c = split.column()
-		if td.units == '0':
-			c.operator("object.preset_set", text="10.24").TDValue="10.24"
-		if td.units == '1':
-			c.operator("object.preset_set", text="1024").TDValue="1024"
-		if td.units == '2':
-			c.operator("object.preset_set", text="26.0096").TDValue="26.0096"
-		if td.units == '3':
-			c.operator("object.preset_set", text="312.1152").TDValue="312.1152"
-
-		split = split.split()
-		c = split.column()
-		if td.units == '0':
-			c.operator("object.preset_set", text="5.12").TDValue="5.12"
-		if td.units == '1':
-			c.operator("object.preset_set", text="512").TDValue="512"
-		if td.units == '2':
-			c.operator("object.preset_set", text="13.0048").TDValue="13.0048"
-		if td.units == '3':
-			c.operator("object.preset_set", text="156.0576").TDValue="156.0576"
-			
-		#--Aligner Preset Buttons----
-		row = layout.row()
-		c = row.column()
-		row = c.row()
-		split = row.split(factor=0.33, align=True)
-		c = split.column()
-		if td.units == '0':
-			c.operator("object.preset_set", text="2.56").TDValue="2.56"
-			
-		if td.units == '1':
-			c.operator("object.preset_set", text="256").TDValue="256"
-			
-		if td.units == '2':
-			c.operator("object.preset_set", text="6.5024").TDValue="6.5024"
-			
-		if td.units == '3':
-			c.operator("object.preset_set", text="78.0288").TDValue="78.0288"
-			
-		split = split.split(factor=0.5, align=True)
-		c = split.column()
-		if td.units == '0':
-			c.operator("object.preset_set", text="1.28").TDValue="1.28"
-			
-		if td.units == '1':
-			c.operator("object.preset_set", text="128").TDValue="128"
-			
-		if td.units == '2':
-			c.operator("object.preset_set", text="3.2512").TDValue="3.2512"
-			
-		if td.units == '3':
-			c.operator("object.preset_set", text="39.0144").TDValue="39.0144"
-			
-		split = split.split()
-		c = split.column()
-		if td.units == '0':
-			c.operator("object.preset_set", text="0.64").TDValue="0.64"
-			
-		if td.units == '1':
-			c.operator("object.preset_set", text="64").TDValue="64"
-			
-		if td.units == '2':
-			c.operator("object.preset_set", text="1.6256").TDValue="1.6256"
-			
-		if td.units == '3':
-			c.operator("object.preset_set", text="19.5072").TDValue="19.5072"
-			
-		
-		if context.object.mode == 'OBJECT':
-			layout.separator()
-			layout.operator("object.texel_density_copy", text="TD from Active to Others")
-			
-		if context.object.mode == 'EDIT':
-			layout.separator()
-			layout.operator("object.select_same_texel", text="Select Faces with same TD")
 			#Split row
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.6, align=True)
+			split = row.split(factor=0.5, align=True)
 			c = split.column()
-			c.label(text="Select Threshold:")
+			c.label(text="Units:")
 			split = split.split()
 			c = split.column()
-			c.prop(td, "select_td_threshold")
+			c.prop(td, 'units', expand=False)
 			#----
 
-		if td.show_restore_mats_btn:
+			layout.label(text="Texture Size:")
+
+			row = layout.row()
+			row.prop(td, 'texture_size', expand=False)
+
+			if td.texture_size == '4':
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.35, align=True)
+				c = split.column()
+				c.label(text="Width:")
+				split = split.split(factor=0.65, align=True)
+				c = split.column()
+				c.prop(td, "custom_width")
+				split = split.split()
+				c = split.column()
+				c.label(text="px")
+
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.35, align=True)
+				c = split.column()
+				c.label(text="Height:")
+				split = split.split(factor=0.65, align=True)
+				c = split.column()
+				c.prop(td, "custom_height")
+				split = split.split()
+				c = split.column()
+				c.label(text="px")
+		
+
 			layout.separator()
 			row = layout.row()
-			row.operator("object.clear_object_list", text="Clear List of Objects")
+			row.label(text="Checker Material Method:")
+			row = layout.row()
+			row.prop(td, 'checker_method', expand=False)
+			row = layout.row()
+			row.operator("object.checker_assign", text="Assign Checker Material")
+			if td.show_restore_mats_btn:
+				row = layout.row()
+				row.operator("object.checker_restore", text="Restore Materials")
+			
+
+			if context.object.mode == 'EDIT':
+				layout.separator()
+				layout.prop(td, "selected_faces", text="Selected Faces")
+			
+			layout.separator()
+			layout.label(text="Filled UV Space:")
+			row = layout.row()
+			row.prop(td, "uv_space")
+			row.enabled = False
+			layout.label(text="Texel Density:")
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.65, align=True)
+			c = split.column()
+			c.prop(td, "density")
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				c.label(text="px/cm")
+			if td.units == '1':
+				c.label(text="px/m")
+			if td.units == '2':
+				c.label(text="px/in")
+			if td.units == '3':
+				c.label(text="px/ft")
+			row.enabled = False
+			layout.operator("object.texel_density_check", text="Calculate TD")
+			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
+			layout.separator()
+			layout.label(text="Set Texel Density")
+			
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Set Method:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'set_method', expand=False)
+			#----
+
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.65, align=True)
+			c = split.column()
+			c.prop(td, "density_set")
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				c.label(text="px/cm")
+			if td.units == '1':
+				c.label(text="px/m")
+			if td.units == '2':
+				c.label(text="px/in")
+			if td.units == '3':
+				c.label(text="px/ft")
+			layout.operator("object.texel_density_set", text="Set My TD")
+			
+			#--Aligner Preset Buttons----
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+
+			split = row.split(factor=0.33, align=True)
+			c = split.column()
+			if td.units == '0':
+				c.operator("object.preset_set", text="20.48").TDValue="20.48"
+			if td.units == '1':
+				c.operator("object.preset_set", text="2048").TDValue="2048"
+			if td.units == '2':
+				c.operator("object.preset_set", text="52.0192").TDValue="52.0192"
+			if td.units == '3':
+				c.operator("object.preset_set", text="624.2304").TDValue="624.2304"
+			
+			split = split.split(factor=0.5, align=True)
+			c = split.column()
+			if td.units == '0':
+				c.operator("object.preset_set", text="10.24").TDValue="10.24"
+			if td.units == '1':
+				c.operator("object.preset_set", text="1024").TDValue="1024"
+			if td.units == '2':
+				c.operator("object.preset_set", text="26.0096").TDValue="26.0096"
+			if td.units == '3':
+				c.operator("object.preset_set", text="312.1152").TDValue="312.1152"
+
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				c.operator("object.preset_set", text="5.12").TDValue="5.12"
+			if td.units == '1':
+				c.operator("object.preset_set", text="512").TDValue="512"
+			if td.units == '2':
+				c.operator("object.preset_set", text="13.0048").TDValue="13.0048"
+			if td.units == '3':
+				c.operator("object.preset_set", text="156.0576").TDValue="156.0576"
+				
+			#--Aligner Preset Buttons----
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.33, align=True)
+			c = split.column()
+			if td.units == '0':
+				c.operator("object.preset_set", text="2.56").TDValue="2.56"
+				
+			if td.units == '1':
+				c.operator("object.preset_set", text="256").TDValue="256"
+				
+			if td.units == '2':
+				c.operator("object.preset_set", text="6.5024").TDValue="6.5024"
+				
+			if td.units == '3':
+				c.operator("object.preset_set", text="78.0288").TDValue="78.0288"
+				
+			split = split.split(factor=0.5, align=True)
+			c = split.column()
+			if td.units == '0':
+				c.operator("object.preset_set", text="1.28").TDValue="1.28"
+				
+			if td.units == '1':
+				c.operator("object.preset_set", text="128").TDValue="128"
+				
+			if td.units == '2':
+				c.operator("object.preset_set", text="3.2512").TDValue="3.2512"
+				
+			if td.units == '3':
+				c.operator("object.preset_set", text="39.0144").TDValue="39.0144"
+				
+			split = split.split()
+			c = split.column()
+			if td.units == '0':
+				c.operator("object.preset_set", text="0.64").TDValue="0.64"
+				
+			if td.units == '1':
+				c.operator("object.preset_set", text="64").TDValue="64"
+				
+			if td.units == '2':
+				c.operator("object.preset_set", text="1.6256").TDValue="1.6256"
+				
+			if td.units == '3':
+				c.operator("object.preset_set", text="19.5072").TDValue="19.5072"
+				
+			
+			if context.object.mode == 'OBJECT':
+				layout.separator()
+				layout.operator("object.texel_density_copy", text="TD from Active to Others")
+				
+			if context.object.mode == 'EDIT':
+				layout.separator()
+				layout.operator("object.select_same_texel", text="Select Faces with same TD")
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.6, align=True)
+				c = split.column()
+				c.label(text="Select Threshold:")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "select_td_threshold")
+				#----
+
+			if td.show_restore_mats_btn:
+				layout.separator()
+				row = layout.row()
+				row.operator("object.clear_object_list", text="Clear List of Objects")
 
 #-------------------------------------------------------
 # Panel in UV Editor
