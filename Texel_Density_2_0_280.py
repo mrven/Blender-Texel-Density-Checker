@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Tools for for checking Texel Density and wasting of uv space",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
-	"version": (2, 0, 0),
+	"version": (2, 0),
 	"blender": (2, 80, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
@@ -38,8 +38,6 @@ class Texel_Density_Check(Operator):
 	
 	def execute(self, context):
 		td = context.scene.td
-		
-		#message = "TD is calculated"
 		
 		#save current mode and active object
 		start_active_obj = bpy.context.active_object
@@ -186,133 +184,99 @@ class Texel_Density_Set(Operator):
 
 	def execute(self, context):
 		td = context.scene.td
-		
-		message = "TD is changed"
-		enSetTD = True
-		actObj = bpy.context.active_object
-		current_selected_obj = bpy.context.selected_objects
-		
-		destiny_set_filtered = td.density_set.replace(',', '.')
 
+		#save current mode and active object
+		start_active_obj = bpy.context.active_object
+		start_selected_obj = bpy.context.selected_objects
 		start_mode = bpy.context.object.mode
-		
-		try:
-			bpy.ops.object.texel_density_check()
-		except:
-			message = "Try Calculate TD before"
-			enSetTD = False
-		densityCurrentValue = float(td.density)
-		
-		if densityCurrentValue < 0.0001:
-			densityCurrentValue = 0.0001
-		
+
+		#Get Value for TD Set
+		destiny_set_filtered = td.density_set.replace(',', '.')
 		try:
 			densityNewValue = float(destiny_set_filtered)
+			if densityNewValue < 0.0001:
+				densityNewValue = 0.0001
 		except:
-			densityNewValue = densityCurrentValue
-			message = "Density value is wrong"
-		if enSetTD:
-			#save start selected in 3d view faces
-			start_selected_faces = []
-			bpy.ops.object.mode_set(mode='OBJECT')
-			for faceid in range (0, len(actObj.data.polygons)):
-				if bpy.context.active_object.data.polygons[faceid].select == True:
-					start_selected_faces.append(faceid)
-			bpy.ops.object.mode_set(mode=start_mode)
+			self.report({'INFO'}, "Density value is wrong")
+			return {'CANCELLED'}
 
-			if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
-				SyncUVSelection()
-			
-			if (densityNewValue != 0):
-				if densityNewValue < 0.0001:
-					densityNewValue = 0.0001
+		bpy.ops.object.mode_set(mode='OBJECT')
 
-				if (bpy.context.object.mode == 'EDIT') and (td.selected_faces == True):
-					scaleFac = densityNewValue/densityCurrentValue
-					#check opened image editor window
-					IE_area = 0
-					flag_exist_area = False
-					for area in range(len(bpy.context.screen.areas)):
-						if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR':
-							IE_area = area
-							flag_exist_area = True
-							bpy.context.screen.areas[area].type = 'CONSOLE'
-					
-					bpy.context.area.type = 'IMAGE_EDITOR'
-					
-					if bpy.context.area.spaces[0].image != None:
-						if bpy.context.area.spaces[0].image.name == 'Render Result':
-							bpy.context.area.spaces[0].image = None
-					
-					if bpy.context.space_data.mode != 'UV':
-						bpy.context.space_data.mode = 'UV'
-					
-					if bpy.context.scene.tool_settings.use_uv_select_sync == False:
-						bpy.ops.uv.select_all(action = 'SELECT')
-					
-					bpy.ops.transform.resize(value=(scaleFac, scaleFac, 1))
-					if td.set_method == '0':
-						bpy.ops.uv.average_islands_scale()
-					bpy.context.area.type = 'VIEW_3D'
-					
-					bpy.ops.object.texel_density_check()
-					
-					if flag_exist_area == True:
-						bpy.context.screen.areas[IE_area].type = 'IMAGE_EDITOR'
+		for o in start_selected_obj:
+			bpy.ops.object.select_all(action='DESELECT')
+			if o.type == 'MESH' and len(o.data.uv_layers) > 0:
+				o.select_set(True)
+				bpy.context.view_layer.objects.active = o
 
-				else:
-					scaleFac = densityNewValue/densityCurrentValue
-					#check opened image editor window
-					IE_area = 0
-					flag_exist_area = False
-					for area in range(len(bpy.context.screen.areas)):
-						if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR':
-							IE_area = area
-							flag_exist_area = True
-							bpy.context.screen.areas[area].type = 'CONSOLE'
+				#save start selected in 3d view faces
+				start_selected_faces = []
+				for faceid in range (0, len(o.data.polygons)):
+					if bpy.context.active_object.data.polygons[faceid].select == True:
+						start_selected_faces.append(faceid)
 
-					if start_mode == 'OBJECT':
-						bpy.ops.object.mode_set(mode='EDIT')
-					
-					bpy.ops.mesh.reveal()
-					bpy.ops.mesh.select_all(action='DESELECT')
-					bpy.ops.mesh.select_all(action='SELECT')
-					
-					bpy.context.area.type = 'IMAGE_EDITOR'
-					
-					if bpy.context.area.spaces[0].image != None:
-						if bpy.context.area.spaces[0].image.name == 'Render Result':
-							bpy.context.area.spaces[0].image = None
-							
-					if bpy.context.space_data.mode != 'UV':
-						bpy.context.space_data.mode = 'UV'
-					
-					bpy.ops.uv.select_all(action = 'SELECT')
-					bpy.ops.transform.resize(value=(scaleFac, scaleFac, 1))
-					if td.set_method == '0':
-						bpy.ops.uv.average_islands_scale()
-					bpy.context.area.type = 'VIEW_3D'
-					bpy.ops.object.mode_set(mode=start_mode)
-					
-					bpy.ops.object.texel_density_check()
-					
-					if flag_exist_area == True:
-						bpy.context.screen.areas[IE_area].type = 'IMAGE_EDITOR'
-
+				bpy.ops.object.mode_set(mode='EDIT')
 				
+				#If Set TD from UV Editor sync selection
+				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
+					SyncUVSelection()
+
+				#Select All Polygons if Calculate TD per Object
+				if start_mode == 'OBJECT' or td.selected_faces == False:	
+					bpy.ops.mesh.reveal()
+					bpy.ops.mesh.select_all(action='SELECT')
+
+				#Get current TD Value from object or faces
+				bpy.ops.object.texel_density_check()
+				densityCurrentValue = float(td.density)
+				if densityCurrentValue < 0.0001:
+					densityCurrentValue = 0.0001
+
+				scaleFac = densityNewValue/densityCurrentValue
+				#check opened image editor window
+				IE_area = 0
+				flag_exist_area = False
+				for area in range(len(bpy.context.screen.areas)):
+					if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR':
+						IE_area = area
+						flag_exist_area = True
+						bpy.context.screen.areas[area].type = 'CONSOLE'
+				
+				bpy.context.area.type = 'IMAGE_EDITOR'
+				
+				if bpy.context.area.spaces[0].image != None:
+					if bpy.context.area.spaces[0].image.name == 'Render Result':
+						bpy.context.area.spaces[0].image = None
+				
+				if bpy.context.space_data.mode != 'UV':
+					bpy.context.space_data.mode = 'UV'
+				
+				if bpy.context.scene.tool_settings.use_uv_select_sync == False:
+					bpy.ops.uv.select_all(action = 'SELECT')
+				
+				bpy.ops.transform.resize(value=(scaleFac, scaleFac, 1))
+				if td.set_method == '0':
+					bpy.ops.uv.average_islands_scale()
+				bpy.context.area.type = 'VIEW_3D'
+				
+				if flag_exist_area == True:
+					bpy.context.screen.areas[IE_area].type = 'IMAGE_EDITOR'
+
+				bpy.ops.mesh.select_all(action='DESELECT')
+
 				bpy.ops.object.mode_set(mode='OBJECT')
 				for faceid in start_selected_faces:
 					bpy.context.active_object.data.polygons[faceid].select = True
-				bpy.ops.object.mode_set(mode=start_mode)
 
-			else:
-				message = "Density must be greater than 0"
-		self.report({'INFO'}, message)
-		
-		for x in current_selected_obj:
+		#Select Objects Again
+		for x in start_selected_obj:
 			x.select_set(True)
-		actObj.select_set(True)
-		bpy.context.view_layer.objects.active = actObj		
+		bpy.context.view_layer.objects.active = start_active_obj
+		bpy.ops.object.mode_set(mode=start_mode)
+
+		bpy.ops.object.texel_density_check()
+
+		self.report({'INFO'}, "Density value is wrong")
+
 		return {'FINISHED'}
 		
 #-------------------------------------------------------
