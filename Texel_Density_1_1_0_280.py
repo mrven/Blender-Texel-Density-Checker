@@ -460,7 +460,7 @@ class Texel_Density_Copy(Operator):
 		if enCopyTD:
 			for x in current_selected_obj:
 				bpy.ops.object.select_all(action='DESELECT')
-				if (x.type == 'MESH' and len(x.data.uv_layers) > 0):
+				if (x.type == 'MESH' and len(x.data.uv_layers) > 0) and not x == actObj:
 					x.select_set(True)
 					bpy.context.view_layer.objects.active = x
 					bpy.ops.object.texel_density_check()
@@ -504,6 +504,7 @@ class Texel_Density_Copy(Operator):
 		
 		actObj.select_set(True)
 		bpy.context.view_layer.objects.active = actObj
+		bpy.ops.object.texel_density_check()
 		
 		self.report({'INFO'}, message)
 		
