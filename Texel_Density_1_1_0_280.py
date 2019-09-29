@@ -45,7 +45,6 @@ class Texel_Density_Check(Operator):
 		actObj = bpy.context.active_object
 		current_selected_obj = bpy.context.selected_objects
 		
-
 		try:
 			actObjType = actObj.type
 			start_mode = bpy.context.object.mode
@@ -57,44 +56,17 @@ class Texel_Density_Check(Operator):
 		#proceed if active object is mesh
 		if (actObjType == 'MESH' and len(actObj.data.uv_layers) > 0):
 			#save start selected in 3d view faces
+			
 			start_selected_faces = []
+			bpy.ops.object.mode_set(mode='OBJECT')
 			for faceid in range (0, len(actObj.data.polygons)):
 				if bpy.context.active_object.data.polygons[faceid].select == True:
 					start_selected_faces.append(faceid)
-
+			bpy.ops.object.mode_set(mode=start_mode)
+			
 			if self.Panel == "UV" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
-				mesh = bpy.context.active_object.data
-
-				bm = bmesh.from_edit_mesh(mesh)
-				bm.faces.ensure_lookup_table()
-
-				uv_layer = bm.loops.layers.uv.active
-
-				uv_selected_faces = []
-
-				#get faces and round this
-				face_count = len(bm.faces)
-				for faceid in range (face_count):
-					face_is_selected = True
-					for loop in bm.faces[faceid].loops:
-						if not(loop[uv_layer].select):
-							face_is_selected = False
-				
-					if face_is_selected:
-						uv_selected_faces.append(faceid) 
-
-				for face in bm.faces:
-					if td.selected_faces:
-						face.select_set(False)
-					else:
-						face.select_set(True)
-				    
-				for id in uv_selected_faces:
-					bm.faces[id].select_set(True)
-
-				bmesh.update_edit_mesh(mesh, False, False)
-
-
+				SyncUVSelection()
+			
 			if (bpy.context.object.mode == 'EDIT') and (td.selected_faces == True):
 				bpy.ops.object.mode_set(mode='OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')
@@ -313,6 +285,7 @@ class Texel_Density_Check(Operator):
 				
 				bpy.ops.object.mode_set(mode=start_mode)
 			
+			
 			bpy.ops.object.mode_set(mode='OBJECT')
 			for faceid in start_selected_faces:
 				bpy.context.active_object.data.polygons[faceid].select = True
@@ -343,9 +316,11 @@ class Texel_Density_Set(Operator):
 		current_selected_obj = bpy.context.selected_objects
 		
 		destiny_set_filtered = td.density_set.replace(',', '.')
+
+		start_mode = bpy.context.object.mode
 		
 		try:
-			bpy.ops.object.texel_density_check()
+			bpy.ops.object.texel_density_check(Panel = self.Panel)
 		except:
 			message = "Try Calculate TD before"
 			enSetTD = False
@@ -360,45 +335,17 @@ class Texel_Density_Set(Operator):
 			densityNewValue = densityCurrentValue
 			message = "Density value is wrong"
 		if enSetTD:
-			'''
 			#save start selected in 3d view faces
 			start_selected_faces = []
+			bpy.ops.object.mode_set(mode='OBJECT')
 			for faceid in range (0, len(actObj.data.polygons)):
 				if bpy.context.active_object.data.polygons[faceid].select == True:
 					start_selected_faces.append(faceid)
+			bpy.ops.object.mode_set(mode=start_mode)
 
 			if self.Panel == "UV" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
-				mesh = bpy.context.active_object.data
-
-				bm = bmesh.from_edit_mesh(mesh)
-				bm.faces.ensure_lookup_table()
-
-				uv_layer = bm.loops.layers.uv.active
-
-				uv_selected_faces = []
-
-				#get faces and round this
-				face_count = len(bm.faces)
-				for faceid in range (face_count):
-					face_is_selected = True
-					for loop in bm.faces[faceid].loops:
-						if not(loop[uv_layer].select):
-							face_is_selected = False
-				
-					if face_is_selected:
-						uv_selected_faces.append(faceid) 
-
-				for face in bm.faces:
-					if td.selected_faces:
-						face.select_set(False)
-					else:
-						face.select_set(True)
-				    
-				for id in uv_selected_faces:
-					bm.faces[id].select_set(True)
-
-				bmesh.update_edit_mesh(mesh, False, False)
-			'''
+				SyncUVSelection()
+			
 			if (densityNewValue != 0):
 				if densityNewValue < 0.0001:
 					densityNewValue = 0.0001
@@ -431,7 +378,7 @@ class Texel_Density_Set(Operator):
 						bpy.ops.uv.average_islands_scale()
 					bpy.context.area.type = 'VIEW_3D'
 					
-					bpy.ops.object.texel_density_check()
+					bpy.ops.object.texel_density_check(Panel = '3D')
 					
 					if flag_exist_area == True:
 						bpy.context.screen.areas[IE_area].type = 'IMAGE_EDITOR'
@@ -446,8 +393,6 @@ class Texel_Density_Set(Operator):
 							IE_area = area
 							flag_exist_area = True
 							bpy.context.screen.areas[area].type = 'CONSOLE'
-					
-					start_mode = bpy.context.object.mode
 
 					if start_mode == 'OBJECT':
 						bpy.ops.object.mode_set(mode='EDIT')
@@ -472,17 +417,16 @@ class Texel_Density_Set(Operator):
 					bpy.context.area.type = 'VIEW_3D'
 					bpy.ops.object.mode_set(mode=start_mode)
 					
-					bpy.ops.object.texel_density_check()
+					bpy.ops.object.texel_density_check(Panel = '3D')
 					
 					if flag_exist_area == True:
 						bpy.context.screen.areas[IE_area].type = 'IMAGE_EDITOR'
 
-				'''
+				
 				bpy.ops.object.mode_set(mode='OBJECT')
 				for faceid in start_selected_faces:
 					bpy.context.active_object.data.polygons[faceid].select = True
 				bpy.ops.object.mode_set(mode=start_mode)
-				'''
 
 			else:
 				message = "Density must be greater than 0"
@@ -509,7 +453,7 @@ class Texel_Density_Copy(Operator):
 		current_selected_obj = bpy.context.selected_objects
 		actObj = bpy.context.active_object
 		try:
-			bpy.ops.object.texel_density_check()
+			bpy.ops.object.texel_density_check(Panel = '3D')
 		except:
 			message = "Try Calculate TD before"
 			enCopyTD = False
@@ -521,7 +465,7 @@ class Texel_Density_Copy(Operator):
 				if (x.type == 'MESH' and len(x.data.uv_layers) > 0):
 					x.select_set(True)
 					bpy.context.view_layer.objects.active = x
-					bpy.ops.object.texel_density_check()
+					bpy.ops.object.texel_density_check(Panel = '3D')
 					densityCurrentValue = float(td.density)
 					scaleFac = densitySourceObject/densityCurrentValue
 				
@@ -594,7 +538,7 @@ class Preset_Set(Operator):
 		td = context.scene.td
 		
 		td.density_set = self.TDValue
-		bpy.ops.object.texel_density_set()
+		bpy.ops.object.texel_density_set(Panel = self.Panel)
 				
 		return {'FINISHED'}
 		
@@ -617,22 +561,51 @@ class Select_Same_TD(Operator):
 		if (len(actObj.data.uv_layers) > 0):	
 			#select mode faces
 			bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+
+			start_selected_faces = []
+			bpy.ops.object.mode_set(mode='OBJECT')
+			for faceid in range (0, len(actObj.data.polygons)):
+				if bpy.context.active_object.data.polygons[faceid].select == True:
+					start_selected_faces.append(faceid)
+			bpy.ops.object.mode_set(mode='EDIT')
+
 			#check number of faces
 			selected_faces = 0
 			face_count = len(bpy.context.active_object.data.polygons)
 			
-			bpy.ops.object.mode_set(mode='OBJECT')
-			for x in range(0, face_count):
-				if bpy.context.active_object.data.polygons[x].select == True:
-					selected_faces += 1 
-			bpy.ops.object.mode_set(mode='EDIT')
+			if self.Panel == 'UV'and bpy.context.scene.tool_settings.use_uv_select_sync == False:
+				mesh = bpy.context.active_object.data
+
+				bm = bmesh.from_edit_mesh(mesh)
+				bm.faces.ensure_lookup_table()
+
+				uv_layer = bm.loops.layers.uv.active
+
+				#get faces and round this
+				face_count = len(bm.faces)
+				for faceid in range (face_count):
+					face_is_selected = True
+					for loop in bm.faces[faceid].loops:
+						if not(loop[uv_layer].select):
+							face_is_selected = False
+					if face_is_selected:
+						selected_faces += 1
+			else:
+				bpy.ops.object.mode_set(mode='OBJECT')
+				for x in range(0, face_count):
+					if bpy.context.active_object.data.polygons[x].select == True:
+						selected_faces += 1 
+				bpy.ops.object.mode_set(mode='EDIT')
 			
 			if selected_faces > 1 or selected_faces < 1:
 				message = "Select only one faces"
 			else:
+				if self.Panel == "UV" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
+					SyncUVSelection()
+
 				selected_faces_mode_state = td.selected_faces
 				td.selected_faces = True
-				bpy.ops.object.texel_density_check()
+				bpy.ops.object.texel_density_check(Panel = self.Panel)
 				search_td_value = float(td.density)
 				
 				#proceed if active object is mesh
@@ -751,11 +724,29 @@ class Select_Same_TD(Operator):
 				
 				bpy.ops.object.mode_set(mode='EDIT')
 				bpy.ops.mesh.select_all(action='DESELECT')
-				bpy.ops.object.mode_set(mode='OBJECT')
 				
-				for faceid in searched_faces:
-					bpy.context.active_object.data.polygons[faceid].select = True
-				bpy.ops.object.mode_set(mode='EDIT')
+				if self.Panel == 'UV'and bpy.context.scene.tool_settings.use_uv_select_sync == False:	
+					mesh = bpy.context.active_object.data
+
+					bm = bmesh.from_edit_mesh(mesh)
+					bm.faces.ensure_lookup_table()
+
+					uv_layer = bm.loops.layers.uv.active
+
+					for id in searched_faces:
+						for loop in bm.faces[id].loops:
+							loop[uv_layer].select = True
+
+					bpy.ops.object.mode_set(mode='OBJECT')
+					for faceid in start_selected_faces:
+						bpy.context.active_object.data.polygons[faceid].select = True
+					bpy.ops.object.mode_set(mode='EDIT')
+
+				else:
+					bpy.ops.object.mode_set(mode='OBJECT')
+					for faceid in searched_faces:
+						bpy.context.active_object.data.polygons[faceid].select = True
+					bpy.ops.object.mode_set(mode='EDIT')
 				
 				message = "Faces Selected"
 				td.selected_faces = selected_faces_mode_state
@@ -1063,6 +1054,7 @@ class Clear_Object_List(Operator):
 		return {'FINISHED'}
 
 #-------------------------------------------------------
+#FUNCTIONS
 def Change_Texture_Size(self, context):
 	td = context.scene.td
 
@@ -1108,13 +1100,10 @@ def Change_Texture_Size(self, context):
 
 	bpy.ops.object.texel_density_check()
 
-#-------------------------------------------------------
 def Change_Units(self, context):
 	td = context.scene.td
 	bpy.ops.object.texel_density_check()
 
-#-------------------------------------------------------
-#FUNCTIONS
 def Vector2dMultiple(A, B, C):
 	return abs((B[0]- A[0])*(C[1]- A[1])-(B[1]- A[1])*(C[0]- A[0]))
 
@@ -1130,6 +1119,34 @@ def Vector3dMultiple(A, B, C):
 	
 	result = math.sqrt(math.pow(vectorX, 2) + math.pow(vectorY, 2) + math.pow(vectorZ, 2))
 	return result
+
+def SyncUVSelection():
+	mesh = bpy.context.active_object.data
+	bm = bmesh.from_edit_mesh(mesh)
+	bm.faces.ensure_lookup_table()
+	uv_layer = bm.loops.layers.uv.active
+	uv_selected_faces = []
+	face_count = len(bm.faces)
+
+	for faceid in range (face_count):
+		face_is_selected = True
+		for loop in bm.faces[faceid].loops:
+			if not(loop[uv_layer].select):
+				face_is_selected = False
+	
+		if face_is_selected:
+			uv_selected_faces.append(faceid) 
+
+	for face in bm.faces:
+		if bpy.context.scene.td.selected_faces:
+			face.select_set(False)
+		else:
+			face.select_set(True)
+	    
+	for id in uv_selected_faces:
+		bm.faces[id].select_set(True)
+
+	bmesh.update_edit_mesh(mesh, False, False)
 
 #-------------------------------------------------------
 # Panel in 3D View
