@@ -767,6 +767,8 @@ class Checker_Assign(Operator):
 	def execute(self, context):
 		td = context.scene.td
 
+		start_mode = bpy.context.object.mode
+
 		checker_rexolution_x = 1024
 		checker_rexolution_y = 1024
 		
@@ -923,6 +925,8 @@ class Checker_Assign(Operator):
 			bpy.context.view_layer.objects.active = start_active_obj
 
 			td.show_restore_mats_btn = True
+
+		bpy.ops.object.mode_set(mode = start_mode)
 				
 		return {'FINISHED'}
 
@@ -1057,7 +1061,7 @@ class Clear_Object_List(Operator):
 #FUNCTIONS
 def Change_Texture_Size(self, context):
 	td = context.scene.td
-
+	
 	#Check exist texture image
 	flag_exist_texture = False
 	for t in range(len(bpy.data.images)):
@@ -1134,8 +1138,16 @@ def SyncUVSelection():
 			if not(loop[uv_layer].select):
 				face_is_selected = False
 	
-		if face_is_selected:
-			uv_selected_faces.append(faceid) 
+		if face_is_selected and bm.faces[faceid].select:
+			uv_selected_faces.append(faceid)
+	
+	for faceid in range (face_count):
+		for loop in bm.faces[faceid].loops:
+			loop[uv_layer].select = False
+
+	for faceid in uv_selected_faces:
+		for loop in bm.faces[faceid].loops:
+			loop[uv_layer].select = True
 
 	for face in bm.faces:
 		if bpy.context.scene.td.selected_faces:
