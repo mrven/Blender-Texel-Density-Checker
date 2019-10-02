@@ -1,6 +1,6 @@
 # Blender Addon: Texel Density Checker
 
-![Header](/images/header.png)
+![Header](/images/00_Header_TD_2_1920.png)
 
 **[Russian README](/README_ru.md)**
 
@@ -16,50 +16,37 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 ***Download latest version:***
 
 * ***[Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
-* ***[Blender 2.80](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_280.zip)***
+* ***[Blender 2.80](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280.zip)***
 
 If you want to support me you can buy this addon:
 * ***[Gumroad (Pay what you want)](https://gumroad.com/l/CEIOR)***
 * ***[Blender Market (10$)](https://blendermarket.com/products/texel-density-checker)***
 
-***Units*** – Different Texel Density units: **px/cm**, **px/m**, **px/in**, **px/ft**.
+![Different Units](/images/EN-en/01_Units_EN.png)
 
-![Different Units](/images/units.gif)
+![Texture Size](/images/EN-en/02_Texture_Size_1_EN.png)
+![Texture Size](/images/EN-en/03_Texture_Size_2_EN.png)
 
-***Texture Size*** – Texture Size for calculation Texel Density. Parameter have presets for squared textures. Also you can set custom size (select "Custom"). Supports any aspect ratio.
+![Checker Material](/images/EN-en/04_Checker_Material_EN.png)
 
-![Texture Size](/images/texture_size_1.png)
-![Texture Size](/images/texture_size_2.png)
+![Filled UV Space](/images/EN-en/05_Filled_UV_EN.png)
 
-***Texel Density*** – Current Texel's value. This value calculate with click button "Calculate TD". It is average value all or selected UV islands.
+![Calculate TD Object](/images/EN-en/06_Calculate_Obj_EN.png)
 
-![Calculate TD](/images/calculate_td.gif)
+![Calculate TD Edit](/images/EN-en/07_Calculate_Edit_EN.png)
 
-***Set Texel Density*** – Set the Texel Density. Addon calculates the current TD value and rescale UV islands for get entered TD value.
+![Calc To Set](/images/EN-en/08_Calc_to_Set_EN.png)
 
-![Set TD](/images/set_td.gif)
+![Set TD Object](/images/EN-en/09_Set_TD_Obj_EN.png)
 
-***Set Method*** – Set TD Methods. **Each** - Each island will be rescale individually; **Average** - All islands will be rescale proportionally.
+![Set TD Edit](/images/EN-en/10_Set_TD_Edit_EN.png)
 
-![Set TD Method](/images/set_td_method.gif)
+![Set TD Method](/images/EN-en/11_Set_Method_EN.png)
 
-***Calc -> Set Value*** – Copy Value from “Calculate TD” to “Set TD” text field.
+![Peset Buttons](/images/EN-en/12_Presets_EN.png)
 
-![Calc To Set](/images/copy_calc_to_set.gif)
+![Copy TD](/images/EN-en/13_Copy_TD_EN.png)
 
+![Select Faces Same TD](/images/EN-en/14_Select_Same_TD_EN.png)
 
-***Preset Buttons*** for Quick Set Texel Density.
-
-![Peset Buttons](/images/presets.gif)
-
-***TD from Active to Others*** – Copy TD Value from Active to Selected Objects.
-
-![Copy TD](/images/copy_td.gif)
-
-***Filled UV Space*** – The percentage of filling UV Space. This value can be greater than 100%. This value is for reference only.
-
-![Filled UV Space](/images/filled_uv.png)
-
-***Select Faces with same TD*** – Select Faces with same Texel Density. Select only one face and click Button. With “Select Threshold” value you can change  sensitivity of selection.
-
-![Select Faces](/images/select_same_td.gif)
+![Modes](/images/EN-en/15_Modes_EN.png)
