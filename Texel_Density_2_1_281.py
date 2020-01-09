@@ -12,7 +12,6 @@ import bpy
 import bmesh
 import math
 import tempfile
-import sqlite3
 import time
 import os
 
@@ -591,23 +590,30 @@ class Checker_Assign(Operator):
 			for o in start_selected_obj:
 				bpy.ops.object.mode_set(mode = 'OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')
+
 				if o.type == 'MESH':
 					o.select_set(True)
 					bpy.context.view_layer.objects.active = o
-					o.data.materials.append(bpy.data.materials['TD_Checker'])
-					mat_index = len(o.data.materials) - 1
-					bpy.ops.object.mode_set(mode = 'EDIT')
-					bpy.ops.mesh.reveal()
-					bpy.ops.mesh.select_all(action='SELECT')
-					bpy.context.object.active_material_index = mat_index
-					bpy.ops.object.material_slot_assign()
-					bpy.ops.object.mode_set(mode = 'OBJECT')
+
+					is_assign_td_mat = True
+					for q in reversed(range(len(o.data.materials))):
+						if obj.active_material != None:
+							if obj.active_material.name_full == 'TD_Checker':
+								is_assign_td_mat = False
+
+					if is_assign_td_mat:
+						o.data.materials.append(bpy.data.materials['TD_Checker'])
+						mat_index = len(o.data.materials) - 1
+						bpy.ops.object.mode_set(mode = 'EDIT')
+						bpy.ops.mesh.reveal()
+						bpy.ops.mesh.select_all(action='SELECT')
+						bpy.context.object.active_material_index = mat_index
+						bpy.ops.object.material_slot_assign()
+						bpy.ops.object.mode_set(mode = 'OBJECT')
 
 			for j in start_selected_obj:
 				j.select_set(True)
 			bpy.context.view_layer.objects.active = start_active_obj
-
-			td.show_restore_mats_btn = True
 
 		bpy.ops.object.mode_set(mode = start_mode)
 				
@@ -621,103 +627,50 @@ class Checker_Restore(Operator):
 	bl_options = {'REGISTER'}
 	
 	def execute(self, context):
-		td = context.scene.td
+		start_mode = bpy.context.object.mode
 
 		start_active_obj = bpy.context.active_object
 		start_selected_obj = bpy.context.selected_objects
 
-		bpy.ops.object.mode_set(mode = 'OBJECT')
-		bpy.ops.object.select_all(action='DESELECT')
+		for obj in start_selected_obj:
+				bpy.ops.object.mode_set(mode = 'OBJECT')
+				bpy.ops.object.select_all(action='DESELECT')
+				if obj.type == 'MESH':
+					obj.select_set(True)
+					bpy.context.view_layer.objects.active = obj
+					#Restore Material Assignments and Delete FaceMaps
+					if len(obj.face_maps) > 0:
+						bpy.ops.object.mode_set(mode = 'EDIT')
+						bpy.ops.mesh.reveal()
+						for fm_index in reversed(range(len(obj.face_maps))):
+							if obj.face_maps[fm_index].name.startswith('TD_'):
+								obj.face_maps.active_index = fm_index
+								if obj.face_maps[fm_index].name[3:] == 'NoMats':
+									bpy.ops.object.face_map_remove()
+								else:
+									bpy.ops.mesh.select_all(action='DESELECT')
+									mat_index_fm = int(obj.face_maps[fm_index].name[3:][:2])
+									bpy.context.object.active_material_index = mat_index_fm
+									bpy.ops.object.face_map_select()
+									bpy.ops.object.material_slot_assign()
+									bpy.ops.object.face_map_remove()
+						bpy.ops.object.mode_set(mode = 'OBJECT')
+						
+					#Delete Checker Material
+					if len(obj.data.materials) > 0:
+						for q in reversed(range(len(obj.data.materials))):
+							obj.active_material_index = q
+							if obj.active_material != None:
+								if obj.active_material.name_full == 'TD_Checker':
+									obj.data.materials.pop(index = q)
 
-		if not os.path.exists(td.db_path):
-			self.report({'WARNING'}, "DB not exists")
-			td.show_restore_mats_btn = False
-			return{'CANCELLED'}
-
-		try:
-			conn = sqlite3.connect(td.db_path)
-		except:
-			self.report({'WARNING'}, "Can\'t connect to DB")
-			td.show_restore_mats_btn = False
-			return{'CANCELLED'}
-			
-
-		cursor = conn.cursor()
-
-		#Select Stored Object
-		try:
-			objects_in_db = cursor.execute("""SELECT DISTINCT objectName FROM objects""")
-		except:
-			self.report({'WARNING'}, "DB is Empty")
-			td.show_restore_mats_btn = False
-			return{'CANCELLED'}
-
-		db_obj_list = []
-		for db_obj in objects_in_db:
-			db_obj_list.append(db_obj[0])
-			try:
-				bpy.data.objects[db_obj[0]].select_set(True)
-				bpy.context.view_layer.objects.active = bpy.data.objects[db_obj[0]]
-			except:
-				print("Object " + db_obj[0] + " no more exist")
-
-		#Again Delete All materials
-		for o in bpy.context.selected_objects:
-			if o.type == 'MESH' and len(o.data.materials) > 0:
-				for q in reversed(range(len(o.data.materials))):
-					bpy.context.object.active_material_index = q
-					o.data.materials.pop(index = q)
-
-		#Assign Stored Materials to Material Slots. If material not exist - skip that, use empty material slot
-		for obj in bpy.context.selected_objects:
-			bpy.ops.object.select_all(action='DESELECT')
-			obj.select_set(True)
-			bpy.context.view_layer.objects.active = obj
-
-			obj_mats_in_db = cursor.execute("""SELECT materialName, materialID FROM objects WHERE objectName = '"""+ obj.name +"""' ORDER BY materialID""")
-			
-			for obj_mat in obj_mats_in_db:
-				if not obj_mat[0] == "Without mats":
-					if not obj_mat[0] == "None":
-						try:
-							obj.data.materials.append(bpy.data.materials[obj_mat[0]])
-						except:
-							print("Can not append material " + obj_mat[0] + " to Slot " + str(obj_mat[1]) + " of Object" + obj.name)
-							obj.data.materials.append(bpy.data.materials["TD_Checker"])
-							obj.data.materials[obj_mat[1]] = None
-					elif obj_mat[0] == "None":
-						#Don't Ask me why
-						obj.data.materials.append(bpy.data.materials["TD_Checker"])
-						obj.data.materials[obj_mat[1]] = None
-
-			polys_in_db = cursor.execute("""SELECT polygonID, materialID FROM materials WHERE objectName = '"""+ obj.name +"""' ORDER BY polygonID""")
-
-			db_polys_list = []
-			for db_poly in polys_in_db: 
-				db_polys_list.append(db_poly[1])
-
-			polycount = len(obj.data.polygons)
-			db_polycount = len(db_polys_list)
-
-			if polycount < db_polycount:
-				self.report({'INFO'}, 'Can\'t restore object' + obj.name)
-			else:
-				for polyID in range(db_polycount):
-					obj.data.polygons[polyID].material_index = db_polys_list[polyID]
-
-
-		conn.commit()
-		conn.close()
-
-		#Delete DB
-		bpy.ops.object.clear_object_list()
-		
 		bpy.ops.object.select_all(action='DESELECT')
 		for x in start_selected_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
-		print("Restore Saved Materials")
-				
+
+		bpy.ops.object.mode_set(mode = start_mode)
+
 		return {'FINISHED'}
 
 #-------------------------------------------------------
@@ -730,13 +683,6 @@ class Clear_Object_List(Operator):
 	def execute(self, context):
 		td = context.scene.td
 		
-		if len(td.db_path) > 0:
-			try:
-				os.remove(td.db_path)
-			except:
-				print("Can\'t Delete DB")
-		
-		td.show_restore_mats_btn = False
 
 		return {'FINISHED'}
 
@@ -915,10 +861,9 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			row.prop(td, 'checker_method', expand=False)
 			row = layout.row()
 			row.operator("object.checker_assign", text="Assign Checker Material")
-			if td.show_restore_mats_btn:
-				row = layout.row()
-				row.operator("object.checker_restore", text="Restore Materials")
-			
+
+			row = layout.row()
+			row.operator("object.checker_restore", text="Restore Materials")
 
 			if context.object.mode == 'EDIT':
 				layout.separator()
@@ -1086,10 +1031,9 @@ class VIEW3D_PT_texel_density_checker(Panel):
 				c.prop(td, "select_td_threshold")
 				#----
 
-			if td.show_restore_mats_btn:
-				layout.separator()
-				row = layout.row()
-				row.operator("object.clear_object_list", text="Clear List of Objects")
+			layout.separator()
+			row = layout.row()
+			row.operator("object.clear_object_list", text="Clear List of Objects")
 
 #-------------------------------------------------------
 # Panel in UV Editor
@@ -1371,15 +1315,6 @@ class TD_Addon_Props(PropertyGroup):
 	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''))
 	checker_method: EnumProperty(name="", items = checker_method_list)
 
-	show_restore_mats_btn: BoolProperty(
-		name="Show Restore Materials Button",
-		description="",
-		default = False)
-
-	db_path: StringProperty(
-		name="DB Path",
-		description="Path to DB",
-		default="")
 #-------------------------------------------------------
 classes = (
     VIEW3D_PT_texel_density_checker,
