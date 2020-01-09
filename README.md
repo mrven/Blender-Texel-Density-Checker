@@ -16,10 +16,9 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 ***Download latest version:***
 
 * ***[Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
-* ***[Blender 2.80](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280.zip)***
+* ***[Blender 2.80 (Windows, Linux)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280.zip)***
 * ***[Blender 2.80 (MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280_MacOS.zip)***
-* ***[Blender 2.81](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_281.zip)***
-* ***[Blender 2.81 (MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_281_MacOS.zip)***
+* ***[Blender 2.81 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_1_281.zip)***
 
 If you want to support me you can buy this addon:
 * ***[Gumroad (Pay what you want)](https://gumroad.com/l/CEIOR)***
