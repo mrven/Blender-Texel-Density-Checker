@@ -11,9 +11,6 @@ bl_info = {
 import bpy
 import bmesh
 import math
-import tempfile
-import time
-import os
 
 from bpy.types import (
         Operator,
@@ -569,7 +566,7 @@ class Checker_Assign(Operator):
 								if obj.data.materials[mat] == None:
 									face_map_composed_name += 'None'
 								else:
-									face_map_composed_name += obj.data.materials[mat].name
+									face_map_composed_name += '_' + obj.data.materials[mat].name
 								obj.face_maps.active.name = face_map_composed_name
 							bpy.ops.object.mode_set(mode = 'OBJECT')
 
@@ -681,8 +678,30 @@ class Clear_Object_List(Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
-		td = context.scene.td
-		
+		start_mode = bpy.context.object.mode
+
+		start_active_obj = bpy.context.active_object
+		start_selected_obj = bpy.context.selected_objects
+
+		for obj in start_selected_obj:
+				bpy.ops.object.mode_set(mode = 'OBJECT')
+				bpy.ops.object.select_all(action='DESELECT')
+				if obj.type == 'MESH':
+					obj.select_set(True)
+					bpy.context.view_layer.objects.active = obj
+					#Delete FaceMaps
+					if len(obj.face_maps) > 0:
+						for fm_index in reversed(range(len(obj.face_maps))):
+							if obj.face_maps[fm_index].name.startswith('TD_'):
+								obj.face_maps.active_index = fm_index
+								bpy.ops.object.face_map_remove()
+
+		bpy.ops.object.select_all(action='DESELECT')
+		for x in start_selected_obj:
+			x.select_set(True)
+		bpy.context.view_layer.objects.active = start_active_obj
+
+		bpy.ops.object.mode_set(mode = start_mode)
 
 		return {'FINISHED'}
 
@@ -1033,7 +1052,7 @@ class VIEW3D_PT_texel_density_checker(Panel):
 
 			layout.separator()
 			row = layout.row()
-			row.operator("object.clear_object_list", text="Clear List of Objects")
+			row.operator("object.clear_object_list", text="Clear Stored Face Maps")
 
 #-------------------------------------------------------
 # Panel in UV Editor
