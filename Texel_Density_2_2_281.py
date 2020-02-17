@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Tools for for checking Texel Density and wasting of uv space",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
-	"version": (2, 1),
+	"version": (2, 2),
 	"blender": (2, 81, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
@@ -706,6 +706,145 @@ class Clear_Object_List(Operator):
 		return {'FINISHED'}
 
 #-------------------------------------------------------
+class Bake_TD_to_VC(Operator):
+	"""Bake Texel Density to Vertex Color"""
+	bl_idname = "object.bake_td_to_vc"
+	bl_label = "Bake TD to Vertex Color"
+	bl_options = {'REGISTER', 'UNDO'}
+	TDValue: StringProperty()
+	
+	def execute(self, context):
+		td = context.scene.td
+		
+		#save current mode and active object
+		start_active_obj = bpy.context.active_object
+		start_selected_obj = bpy.context.selected_objects
+		start_mode = bpy.context.object.mode
+
+		bake_vc_min_td_filtered = td.bake_vc_min_td.replace(',', '.')
+		try:
+			bake_vc_min_td = float(bake_vc_min_td_filtered)
+		except:
+			bake_vc_min_td = 0.1
+			td.bake_vc_min_td = "0.1"
+
+		bake_vc_max_td_filtered = td.bake_vc_max_td.replace(',', '.')
+		try:
+			bake_vc_max_td = float(bake_vc_max_td_filtered)
+		except:
+			bake_vc_max_td = 0.1
+			td.bake_vc_max_td = "0.1"
+		
+		if (bake_vc_min_td == bake_vc_max_td):
+			self.report({'INFO'}, "Value Range is wrong")
+			return {'CANCELLED'}
+
+
+		if (bake_vc_min_td<0.01):
+			bake_vc_min_td = 0.01
+			td.bake_vc_min_td = "0.01"
+
+		if (bake_vc_max_td<0.01):
+			bake_vc_max_td = 0.01
+			td.bake_vc_min_td = "0.01"	
+
+		bpy.ops.object.mode_set(mode='OBJECT')
+		for x in start_selected_obj:
+			bpy.ops.object.select_all(action='DESELECT')
+			if (x.type == 'MESH' and len(x.data.uv_layers) > 0):
+				x.select_set(True)
+				bpy.context.view_layer.objects.active = x
+								
+				face_count = len(bpy.context.active_object.data.polygons)
+
+				face_list = []
+				face_list = Calculate_TD_To_List()
+
+				remaped_face_list = []
+
+				for faceid in range(0, face_count):
+					remaped_td = (face_list[faceid][1] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
+					remaped_td = max(min(remaped_td, 1), 0)
+
+					face_class = [faceid, remaped_td]
+					remaped_face_list.append(face_class)
+				
+				bpy.ops.object.mode_set(mode='OBJECT')
+
+				shouldAddVC = True
+				for vc in x.data.vertex_colors:
+					if vc.name == "td_vis":
+						shouldAddVC = False
+
+				if shouldAddVC:
+					bpy.ops.mesh.vertex_color_add()
+					x.data.vertex_colors.active.name = "td_vis"
+
+				x.data.vertex_colors["td_vis"].active = True
+
+				for faceid in range(0, face_count):
+					td = remaped_face_list[faceid][1]
+					color = (0, 0, 0)
+					if td < 0.5 or td == 0.5:
+						color = (0, Saturate(td * 2.5), Saturate(1 - td * 2.5))
+					else:
+						color = (Saturate((td - 0.5) * 2.5), Saturate(1 - (td - 0.5) * 2.5), 0)
+
+					bpy.ops.object.mode_set(mode='EDIT')
+					bpy.ops.mesh.select_all(action='DESELECT')
+					bpy.ops.object.mode_set(mode='OBJECT')
+					bpy.context.active_object.data.polygons[faceid].select = True
+					bpy.ops.object.mode_set(mode='VERTEX_PAINT')
+					bpy.context.object.data.use_paint_mask = True
+					bpy.data.brushes["Draw"].color = color
+					bpy.ops.paint.vertex_color_set()
+					bpy.ops.object.mode_set(mode='OBJECT')
+
+		bpy.ops.object.select_all(action='DESELECT')
+		for x in start_selected_obj:
+			x.select_set(True)
+		bpy.context.view_layer.objects.active = start_active_obj
+		bpy.ops.object.mode_set(mode = start_mode)
+		bpy.context.space_data.shading.color_type = 'VERTEX'
+
+		return {'FINISHED'}
+
+#-------------------------------------------------------
+class Clear_TD_VC(Operator):
+	"""Clear TD Baked into Vertex Color"""
+	bl_idname = "object.clear_td_vc"
+	bl_label = "Clear Vertex Color from TD"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	def execute(self, context):
+		start_mode = bpy.context.object.mode
+
+		start_active_obj = bpy.context.active_object
+		start_selected_obj = bpy.context.selected_objects
+
+		for obj in start_selected_obj:
+				bpy.ops.object.mode_set(mode = 'OBJECT')
+				bpy.ops.object.select_all(action='DESELECT')
+				if obj.type == 'MESH':
+					obj.select_set(True)
+					bpy.context.view_layer.objects.active = obj
+					#Delete FaceMaps
+					if len(obj.data.vertex_colors) > 0:
+						for vc in obj.data.vertex_colors:
+							if vc.name == "td_vis":
+								vc.active = True
+								bpy.ops.mesh.vertex_color_remove()
+
+		bpy.ops.object.select_all(action='DESELECT')
+		for x in start_selected_obj:
+			x.select_set(True)
+		bpy.context.view_layer.objects.active = start_active_obj
+
+		bpy.ops.object.mode_set(mode = start_mode)
+
+		return {'FINISHED'}
+
+#-------------------------------------------------------
 #FUNCTIONS
 def Change_Texture_Size(self, context):
 	td = context.scene.td
@@ -757,8 +896,129 @@ def Change_Units(self, context):
 	td = context.scene.td
 	bpy.ops.object.texel_density_check()
 
+#-------------------------------------------------------
+def Calculate_TD_To_List():
+	td = bpy.context.scene.td
+	calculated_obj_td = []
+
+	#save current mode and active object
+	start_active_obj = bpy.context.active_object
+	start_mode = bpy.context.object.mode
+
+	#set default values
+	Area=0
+	gmArea = 0
+	textureSizeCurX = 1024
+	textureSizeCurY = 1024
+	
+	#Get texture size from panel
+	if td.texture_size == '0':
+		textureSizeCurX = 512
+		textureSizeCurY = 512
+	if td.texture_size == '1':
+		textureSizeCurX = 1024
+		textureSizeCurY = 1024
+	if td.texture_size == '2':
+		textureSizeCurX = 2048
+		textureSizeCurY = 2048
+	if td.texture_size == '3':
+		textureSizeCurX = 4096
+		textureSizeCurY = 4096
+	if td.texture_size == '4':
+		try:
+			textureSizeCurX = int(td.custom_width)
+		except:
+			textureSizeCurX = 1024
+		try:
+			textureSizeCurY = int(td.custom_height)
+		except:
+			textureSizeCurY = 1024
+
+	if textureSizeCurX < 1 or textureSizeCurY < 1:
+		textureSizeCurX = 1024
+		textureSizeCurY = 1024
+
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	face_count = len(bpy.context.active_object.data.polygons)
+
+	#Duplicate and Triangulate Object
+	bpy.ops.object.duplicate()
+	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+	bpy.ops.object.mode_set(mode='EDIT')
+	bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+
+	uvAreaList = []
+	gmAreaList = []
+
+	#get bmesh from active object		
+	bpy.ops.object.mode_set(mode='EDIT')
+	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+	bm.faces.ensure_lookup_table()
+	for x in range(0, face_count):
+		#set default values for multiplication of vectors (uv and physical area of object)
+		multiVector = 0
+		gmmultiVector = 0
+		#UV Area calculating
+		#get uv-coordinates of verteces of current triangle
+		loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
+		loopB = bm.faces[x].loops[1][bm.loops.layers.uv.active].uv
+		loopC = bm.faces[x].loops[2][bm.loops.layers.uv.active].uv
+		#get multiplication of vectors of current triangle
+		multiVector = Vector2dMultiple(loopA, loopB, loopC)
+		#Increment area of current tri to total uv area
+		Area = 0.5 * multiVector
+		uvAreaList.append(Area)
+
+		#Phisical Area calculating
+		#get world coordinates of verteces of current triangle
+		gmloopA = bm.faces[x].loops[0].vert.co
+		gmloopB = bm.faces[x].loops[1].vert.co
+		gmloopC = bm.faces[x].loops[2].vert.co
+		#get multiplication of vectors of current triangle
+		gmmultiVector = Vector3dMultiple(gmloopA, gmloopB, gmloopC)
+		#Increment area of current tri to total phisical area
+		gmArea = 0.5 * gmmultiVector
+		gmAreaList.append(gmArea)
+
+	#delete duplicated object
+	bpy.ops.object.mode_set(mode='OBJECT')
+	bpy.ops.object.delete()
+
+	aspectRatio = textureSizeCurX / textureSizeCurY;
+	if aspectRatio < 1:
+		aspectRatio = 1 / aspectRatio
+	largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
+
+	for faceID in range(0, face_count):
+		#TexelDensity calculating from selected in panel texture size
+		texelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(uvAreaList[faceID]))/(math.sqrt(gmAreaList[faceID])*100) / bpy.context.scene.unit_settings.scale_length
+
+		#show calculated values on panel
+		if td.units == '0':
+			texelDensity = '%.3f' % round(texelDensity, 3)
+		if td.units == '1':
+			texelDensity = '%.3f' % round(texelDensity*100, 3)
+		if td.units == '2':
+			texelDensity = '%.3f' % round(texelDensity*2.54, 3)
+		if td.units == '3':
+			texelDensity = '%.3f' % round(texelDensity*30.48, 3)
+
+		faceData = [faceID, float(texelDensity)]
+		calculated_obj_td.append(faceData)
+
+	bpy.context.view_layer.objects.active = start_active_obj
+	bpy.ops.object.mode_set(mode=start_mode)
+
+	return calculated_obj_td
+
+#-------------------------------------------------------
+
 def Vector2dMultiple(A, B, C):
 	return abs((B[0]- A[0])*(C[1]- A[1])-(B[1]- A[1])*(C[0]- A[0]))
+
+def Saturate(val):
+	return max(min(val, 1), 0)
 
 def Vector3dMultiple(A, B, C):
 	result = 0
@@ -1054,6 +1314,30 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			row = layout.row()
 			row.operator("object.clear_object_list", text="Clear Stored Face Maps")
 
+			if context.object.mode == 'OBJECT':
+				layout.separator()
+				row = layout.row()
+				row.label(text="Texel Density to Vertex Colors:")
+				row = layout.row()
+				row.label(text="Min/Max TD Values:")
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.5, align=True)
+				c = split.column()
+				c.prop(td, "bake_vc_min_td")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "bake_vc_max_td")
+				#----
+				layout.separator()
+				row = layout.row()
+				row.operator("object.bake_td_to_vc", text="TD to Vertex Color")
+				layout.separator()
+				row = layout.row()
+				row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
+
 #-------------------------------------------------------
 # Panel in UV Editor
 class UI_PT_texel_density_checker(Panel):
@@ -1334,6 +1618,16 @@ class TD_Addon_Props(PropertyGroup):
 	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''))
 	checker_method: EnumProperty(name="", items = checker_method_list)
 
+	bake_vc_min_td: StringProperty(
+		name="",
+		description="Min TD",
+		default="0.64")
+
+	bake_vc_max_td: StringProperty(
+		name="",
+		description="Max TD",
+		default="10.24")
+
 #-------------------------------------------------------
 classes = (
     VIEW3D_PT_texel_density_checker,
@@ -1348,6 +1642,8 @@ classes = (
 	Checker_Assign,
 	Checker_Restore,
 	Clear_Object_List,
+	Bake_TD_to_VC,
+	Clear_TD_VC,
 )	
 def register():
 	for cls in classes:
