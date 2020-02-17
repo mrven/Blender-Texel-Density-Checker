@@ -1317,7 +1317,7 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			if context.object.mode == 'OBJECT':
 				layout.separator()
 				row = layout.row()
-				row.label(text="Texel Density to Vertex Colors:")
+				row.label(text="TD to Vertex Colors")
 				row = layout.row()
 				row.label(text="Min/Max TD Values:")
 				#Split row
@@ -1334,7 +1334,6 @@ class VIEW3D_PT_texel_density_checker(Panel):
 				layout.separator()
 				row = layout.row()
 				row.operator("object.bake_td_to_vc", text="TD to Vertex Color")
-				layout.separator()
 				row = layout.row()
 				row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
 
