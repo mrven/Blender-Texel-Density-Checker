@@ -505,10 +505,11 @@ class Checker_Assign(Operator):
 				
 		# create or not texture
 		if flag_exist_texture == False:
-			bpy.ops.image.new(name='TD_Checker', width = checker_rexolution_x, height = checker_rexolution_y, generated_type='COLOR_GRID')
+			bpy.ops.image.new(name='TD_Checker', width = checker_rexolution_x, height = checker_rexolution_y, generated_type=td.checker_type)
 		else:
 			bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
 			bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
+			bpy.data.images['TD_Checker'].generated_type=td.checker_type
 
 		#Check exist TD_Checker_mat
 		flag_exist_material = False
@@ -522,10 +523,21 @@ class Checker_Assign(Operator):
 			td_checker_mat.use_nodes = True
 			Nodes = td_checker_mat.node_tree.nodes
 			Links = td_checker_mat.node_tree.links
+			MixNode = Nodes.new(type="ShaderNodeMixRGB")
+			MixNode.location = (-200,200)
+			MixNode.blend_type = 'COLOR'
+			MixNode.inputs['Fac'].default_value = 1
+			Links.new(MixNode.outputs["Color"], Nodes['Principled BSDF'].inputs['Base Color'])
+
 			TexNode = Nodes.new('ShaderNodeTexImage')
-			TexNode.location = (-500,0)
+			TexNode.location = (-500,300)
 			TexNode.image = bpy.data.images['TD_Checker']
-			Links.new(TexNode.outputs["Color"], Nodes['Principled BSDF'].inputs['Base Color'])
+			Links.new(TexNode.outputs["Color"], MixNode.inputs['Color1'])
+
+			VcNode = Nodes.new(type="ShaderNodeAttribute")
+			VcNode.location = (-500, 0)
+			VcNode.attribute_name = "td_vis"
+			Links.new(VcNode.outputs["Color"], MixNode.inputs['Color2'])			
 		
 		bpy.ops.object.mode_set(mode = 'OBJECT')
 
@@ -900,12 +912,25 @@ def Change_Texture_Size(self, context):
 
 		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
 		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
+		bpy.data.images['TD_Checker'].generated_type=td.checker_type
 
 	bpy.ops.object.texel_density_check()
 
 def Change_Units(self, context):
 	td = context.scene.td
 	bpy.ops.object.texel_density_check()
+
+def Change_Texture_Type(self, context):
+	td = context.scene.td
+	
+	#Check exist texture image
+	flag_exist_texture = False
+	for t in range(len(bpy.data.images)):
+		if bpy.data.images[t].name == 'TD_Checker':
+			flag_exist_texture = True
+			
+	if flag_exist_texture:
+		bpy.data.images['TD_Checker'].generated_type=td.checker_type
 
 #-------------------------------------------------------
 def Calculate_TD_To_List():
@@ -1149,6 +1174,10 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			row.label(text="Checker Material Method:")
 			row = layout.row()
 			row.prop(td, 'checker_method', expand=False)
+			row = layout.row()
+			row.label(text="Checker Type:")
+			row = layout.row()
+			row.prop(td, 'checker_type', expand=False)
 			row = layout.row()
 			row.operator("object.checker_assign", text="Assign Checker Material")
 
@@ -1627,6 +1656,9 @@ class TD_Addon_Props(PropertyGroup):
 
 	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''))
 	checker_method: EnumProperty(name="", items = checker_method_list)
+
+	checker_type_list = (('COLOR_GRID','Color Grid',''),('UV_GRID','UV Grid',''))
+	checker_type: EnumProperty(name="", items = checker_type_list, update = Change_Texture_Type)
 
 	bake_vc_min_td: StringProperty(
 		name="",
