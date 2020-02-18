@@ -11,6 +11,7 @@ bl_info = {
 import bpy
 import bmesh
 import math
+import colorsys
 
 from bpy.types import (
         Operator,
@@ -739,7 +740,6 @@ class Bake_TD_to_VC(Operator):
 			self.report({'INFO'}, "Value Range is wrong")
 			return {'CANCELLED'}
 
-
 		if (bake_vc_min_td<0.01):
 			bake_vc_min_td = 0.01
 			td.bake_vc_min_td = "0.01"
@@ -757,6 +757,12 @@ class Bake_TD_to_VC(Operator):
 								
 				face_count = len(bpy.context.active_object.data.polygons)
 
+				start_selected_faces = []
+				if start_mode == "EDIT":
+					for f in bpy.context.active_object.data.polygons:
+						if f.select:
+							start_selected_faces.append(f.index)
+
 				face_list = []
 				face_list = Calculate_TD_To_List()
 
@@ -764,7 +770,7 @@ class Bake_TD_to_VC(Operator):
 
 				for faceid in range(0, face_count):
 					remaped_td = (face_list[faceid][1] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
-					remaped_td = max(min(remaped_td, 1), 0)
+					remaped_td = Saturate(remaped_td)
 
 					face_class = [faceid, remaped_td]
 					remaped_face_list.append(face_class)
@@ -784,11 +790,9 @@ class Bake_TD_to_VC(Operator):
 
 				for faceid in range(0, face_count):
 					td = remaped_face_list[faceid][1]
-					color = (0, 0, 0)
-					if td < 0.5 or td == 0.5:
-						color = (0, Saturate(td * 2.5), Saturate(1 - td * 2.5))
-					else:
-						color = (Saturate((td - 0.5) * 2.5), Saturate(1 - (td - 0.5) * 2.5), 0)
+					hue = (1 - td) * 0.67
+
+					color = colorsys.hsv_to_rgb(hue, 1, 1)
 
 					bpy.ops.object.mode_set(mode='EDIT')
 					bpy.ops.mesh.select_all(action='DESELECT')
@@ -799,6 +803,13 @@ class Bake_TD_to_VC(Operator):
 					bpy.data.brushes["Draw"].color = color
 					bpy.ops.paint.vertex_color_set()
 					bpy.ops.object.mode_set(mode='OBJECT')
+
+				if start_mode == "EDIT":
+					bpy.ops.object.mode_set(mode='EDIT')
+					bpy.ops.mesh.select_all(action='DESELECT')
+					bpy.ops.object.mode_set(mode='OBJECT')
+					for faceid in start_selected_faces:
+						bpy.context.active_object.data.polygons[faceid].select = True
 
 		bpy.ops.object.select_all(action='DESELECT')
 		for x in start_selected_obj:
@@ -1314,28 +1325,28 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			row = layout.row()
 			row.operator("object.clear_object_list", text="Clear Stored Face Maps")
 
-			if context.object.mode == 'OBJECT':
-				layout.separator()
-				row = layout.row()
-				row.label(text="TD to Vertex Colors")
-				row = layout.row()
-				row.label(text="Min/Max TD Values:")
-				#Split row
-				row = layout.row()
-				c = row.column()
-				row = c.row()
-				split = row.split(factor=0.5, align=True)
-				c = split.column()
-				c.prop(td, "bake_vc_min_td")
-				split = split.split()
-				c = split.column()
-				c.prop(td, "bake_vc_max_td")
-				#----
-				layout.separator()
-				row = layout.row()
-				row.operator("object.bake_td_to_vc", text="TD to Vertex Color")
-				row = layout.row()
-				row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
+			
+			layout.separator()
+			row = layout.row()
+			row.label(text="TD to Vertex Colors")
+			row = layout.row()
+			row.label(text="Min/Max TD Values:")
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.prop(td, "bake_vc_min_td")
+			split = split.split()
+			c = split.column()
+			c.prop(td, "bake_vc_max_td")
+			#----
+			layout.separator()
+			row = layout.row()
+			row.operator("object.bake_td_to_vc", text="TD to Vertex Color")
+			row = layout.row()
+			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
 
 #-------------------------------------------------------
 # Panel in UV Editor
