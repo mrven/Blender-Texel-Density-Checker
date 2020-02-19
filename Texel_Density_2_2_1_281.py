@@ -74,6 +74,11 @@ class Texel_Density_Check(Operator):
 			textureSizeCurX = 1024
 			textureSizeCurY = 1024
 
+		aspectRatio = textureSizeCurX / textureSizeCurY;
+		if aspectRatio < 1:
+			aspectRatio = 1 / aspectRatio
+		largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
+
 		bpy.ops.object.mode_set(mode='OBJECT')
 
 		for o in start_selected_obj:
@@ -84,9 +89,9 @@ class Texel_Density_Check(Operator):
 				#Duplicate and Triangulate Object
 				bpy.ops.object.duplicate()
 				bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-				bpy.ops.object.mode_set(mode='EDIT')
-				bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
 
+				bpy.ops.object.mode_set(mode='EDIT')
+				
 				#Select All Polygons if Calculate TD per Object
 				if start_mode == 'OBJECT' or td.selected_faces == False:
 					bpy.ops.object.mode_set(mode='EDIT')
@@ -110,27 +115,20 @@ class Texel_Density_Check(Operator):
 				bm.faces.ensure_lookup_table()
 				for x in selected_faces:
 					#set default values for multiplication of vectors (uv and physical area of object)
-					multiVector = 0
-					gmmultiVector = 0
+					localArea = 0
 					#UV Area calculating
 					#get uv-coordinates of verteces of current triangle
-					loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
-					loopB = bm.faces[x].loops[1][bm.loops.layers.uv.active].uv
-					loopC = bm.faces[x].loops[2][bm.loops.layers.uv.active].uv
-					#get multiplication of vectors of current triangle
-					multiVector = Vector2dMultiple(loopA, loopB, loopC)
-					#Increment area of current tri to total uv area
-					Area+=0.5*multiVector
+					for trisIndex in range(0, len(bm.faces[x].loops) - 2):
+						loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
+						loopB = bm.faces[x].loops[trisIndex + 1][bm.loops.layers.uv.active].uv
+						loopC = bm.faces[x].loops[trisIndex + 2][bm.loops.layers.uv.active].uv
+						#get multiplication of vectors of current triangle
+						multiVector = Vector2dMultiple(loopA, loopB, loopC)
+						#Increment area of current tri to total uv area
+						localArea += 0.5 * multiVector
 
-					#Phisical Area calculating
-					#get world coordinates of verteces of current triangle
-					gmloopA = bm.faces[x].loops[0].vert.co
-					gmloopB = bm.faces[x].loops[1].vert.co
-					gmloopC = bm.faces[x].loops[2].vert.co
-					#get multiplication of vectors of current triangle
-					gmmultiVector = Vector3dMultiple(gmloopA, gmloopB, gmloopC)
-					#Increment area of current tri to total phisical area
-					gmArea += 0.5*gmmultiVector
+					gmArea += bpy.context.active_object.data.polygons[x].area
+					Area += localArea
 
 				#delete duplicated object
 				bpy.ops.object.mode_set(mode='OBJECT')
@@ -141,12 +139,11 @@ class Texel_Density_Check(Operator):
 			#UV Area in percents
 			UVspace = Area * 100
 			
-			aspectRatio = textureSizeCurX / textureSizeCurY;
-			if aspectRatio < 1:
-				aspectRatio = 1 / aspectRatio
-			largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
 			#TexelDensity calculating from selected in panel texture size
-			TexelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
+			if gmArea > 0:
+				TexelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
+			else:
+				TexelDensity = 0.001
 
 			#show calculated values on panel
 			td.uv_space = '%.3f' % round(UVspace, 3) + ' %'
