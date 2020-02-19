@@ -790,21 +790,19 @@ class Bake_TD_to_VC(Operator):
 				x.data.vertex_colors["td_vis"].active = True
 
 				bpy.ops.object.mode_set(mode='EDIT')
-				bpy.ops.mesh.select_all(action='DESELECT')
-				bpy.ops.object.mode_set(mode='VERTEX_PAINT')
+				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+				bm.faces.ensure_lookup_table()
 
 				for faceid in range(0, face_count):
 					remaped_td = (face_list[faceid] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
 					remaped_td = Saturate(remaped_td)
 					hue = (1 - remaped_td) * 0.67
 					color = colorsys.hsv_to_rgb(hue, 1, 1)
+					color4 = (color[0], color[1], color[2], 1)
 					
-					bpy.context.object.data.use_paint_mask = True
-					bpy.data.brushes["Draw"].color = color
-					bpy.context.active_object.data.polygons[faceid].select = True
-					bpy.ops.paint.vertex_color_set()
-					bpy.context.active_object.data.polygons[faceid].select = False
-				
+					for loop in bm.faces[faceid].loops:
+						loop[bm.loops.layers.color.active] = color4
+
 				bpy.ops.object.mode_set(mode='OBJECT')
 					
 				if start_mode == "EDIT":
@@ -972,8 +970,6 @@ def Calculate_TD_To_List():
 	#Duplicate and Triangulate Object
 	bpy.ops.object.duplicate()
 	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-	bpy.ops.object.mode_set(mode='EDIT')
-	bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
 
 	aspectRatio = textureSizeCurX / textureSizeCurY;
 	if aspectRatio < 1:
@@ -984,23 +980,27 @@ def Calculate_TD_To_List():
 	bpy.ops.object.mode_set(mode='EDIT')
 	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
 	bm.faces.ensure_lookup_table()
+	
 	for x in range(0, face_count):
-		#set default values for multiplication of vectors (uv and physical area of object)
-		multiVector = 0
-		gmmultiVector = 0
+		Area = 0
 		#UV Area calculating
 		#get uv-coordinates of verteces of current triangle
-		loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
-		loopB = bm.faces[x].loops[1][bm.loops.layers.uv.active].uv
-		loopC = bm.faces[x].loops[2][bm.loops.layers.uv.active].uv
-		#get multiplication of vectors of current triangle
-		multiVector = Vector2dMultiple(loopA, loopB, loopC)
-		#Increment area of current tri to total uv area
-		Area = 0.5 * multiVector
-		gmArea = 0.5 * bpy.context.active_object.data.polygons[x].area
+		for trisIndex in range(0, len(bm.faces[x].loops) - 2):
+			loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
+			loopB = bm.faces[x].loops[trisIndex + 1][bm.loops.layers.uv.active].uv
+			loopC = bm.faces[x].loops[trisIndex + 2][bm.loops.layers.uv.active].uv
+			#get multiplication of vectors of current triangle
+			multiVector = Vector2dMultiple(loopA, loopB, loopC)
+			#Increment area of current tri to total uv area
+			Area += 0.5 * multiVector
+
+		gmArea = bpy.context.active_object.data.polygons[x].area
 
 		#TexelDensity calculating from selected in panel texture size
-		texelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
+		if gmArea > 0 and Area > 0:
+			texelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
+		else:
+			texelDensity = 0.001
 
 		#show calculated values on panel
 		if td.units == '0':
@@ -1016,9 +1016,10 @@ def Calculate_TD_To_List():
 
 	#delete duplicated object
 	bpy.ops.object.mode_set(mode='OBJECT')
+	
 	bpy.ops.object.delete()
-
 	bpy.context.view_layer.objects.active = start_active_obj
+	
 	bpy.ops.object.mode_set(mode=start_mode)
 
 	return calculated_obj_td
