@@ -385,6 +385,9 @@ class Select_Same_TD(Operator):
 							start_selected_faces.append(id)
 					bpy.ops.object.mode_set(mode='EDIT')
 
+					td_for_all_faces = []
+					td_for_all_faces = Calculate_TD_To_List()
+
 					for faceid in start_selected_faces:
 						mesh = bpy.context.active_object.data
 						bm_local = bmesh.from_edit_mesh(mesh)
@@ -398,9 +401,7 @@ class Select_Same_TD(Operator):
 						for loop in bm_local.faces[faceid].loops:
 							loop[uv_layer].select = True
 						
-						bpy.ops.object.texel_density_check()
-						
-						current_poly_td_value = float(td.density)
+						current_poly_td_value = float(td_for_all_faces[faceid])
 						if (current_poly_td_value > (search_td_value - threshold_td_value)) and (current_poly_td_value < (search_td_value + threshold_td_value)):
 							searched_faces.append(faceid)
 					
@@ -423,6 +424,9 @@ class Select_Same_TD(Operator):
 				
 				else:
 					
+					td_for_all_faces = []
+					td_for_all_faces = Calculate_TD_To_List()
+
 					for faceid in range(0, face_count):
 						bpy.ops.object.mode_set(mode='EDIT')
 						bpy.ops.mesh.reveal()
@@ -430,8 +434,7 @@ class Select_Same_TD(Operator):
 						bpy.ops.object.mode_set(mode='OBJECT')
 						bpy.context.active_object.data.polygons[faceid].select = True
 						bpy.ops.object.mode_set(mode='EDIT')
-						bpy.ops.object.texel_density_check()
-						current_poly_td_value = float(td.density)
+						current_poly_td_value = float(td_for_all_faces[faceid])
 						if (current_poly_td_value > (search_td_value - threshold_td_value)) and (current_poly_td_value < (search_td_value + threshold_td_value)):
 							searched_faces.append(faceid)
 
