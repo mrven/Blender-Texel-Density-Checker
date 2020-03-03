@@ -2,8 +2,8 @@ bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Tools for for checking Texel Density and wasting of uv space",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
-	"version": (2, 2, 1),
-	"blender": (2, 81, 0),
+	"version": (2, 3),
+	"blender": (2, 82, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }
@@ -12,6 +12,11 @@ import bpy
 import bmesh
 import math
 import colorsys
+import blf
+import bgl
+import gpu
+
+from gpu_extras.batch import batch_for_shader
 
 from bpy.types import (
         Operator,
@@ -25,6 +30,10 @@ from bpy.props import (
         BoolProperty,
         PointerProperty,
         )
+
+drawInfo = {
+	"handler": None,
+}
 
 #-------------------------------------------------------
 class Texel_Density_Check(Operator):
@@ -819,6 +828,8 @@ class Bake_TD_to_VC(Operator):
 		bpy.ops.object.mode_set(mode = start_mode)
 		bpy.context.space_data.shading.color_type = 'VERTEX'
 
+		Show_Gradient(self, context)
+
 		return {'FINISHED'}
 
 #-------------------------------------------------------
@@ -1080,6 +1091,137 @@ def SyncUVSelection():
 		bm.faces[id].select_set(True)
 
 	bmesh.update_edit_mesh(mesh, False, False)
+
+def Show_Gradient(self, context):
+	td = context.scene.td
+	if td.bake_vc_show_gradient and drawInfo["handler"] == None:
+			drawInfo["handler"] = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (None, None), 'WINDOW', 'POST_PIXEL')
+	elif (not td.bake_vc_show_gradient) and (drawInfo["handler"] != None):
+		bpy.types.SpaceView3D.draw_handler_remove(drawInfo["handler"], 'WINDOW')
+		drawInfo["handler"] = None
+
+def draw_callback_px(self, context):
+	td = bpy.context.scene.td
+	"""Draw on the viewports"""
+	#drawing routine
+	#Get Parameters
+	region = bpy.context.region
+	screenTexelX = 2/region.width
+	screenTexelY = 2/region.height
+
+	fontSize = 12
+	offsetX = int(bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetX)
+	offsetY = int(bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetY)
+	anchorPos = bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.anchorPos
+	font_id = 0
+	blf.size(font_id, fontSize, 72)
+	blf.color(font_id, 1, 1, 1, 1)
+
+	fontStartPosX = 0 + offsetX
+	fontStartPosY = 0 + offsetY
+
+	bake_vc_min_td = float(td.bake_vc_min_td)
+	bake_vc_max_td = float(td.bake_vc_max_td)
+
+	#Draw TD Values in Viewport via BLF
+	blf.position(font_id, fontStartPosX, fontStartPosY + 18, 0)
+	blf.draw(font_id, str(bake_vc_min_td))
+
+	blf.position(font_id, fontStartPosX + 115, fontStartPosY + 18, 0)
+	blf.draw(font_id, str((bake_vc_max_td - bake_vc_min_td) * 0.5 + bake_vc_min_td))
+
+	blf.position(font_id, fontStartPosX + 240, fontStartPosY + 18, 0)
+	blf.draw(font_id, str(bake_vc_max_td))
+
+	blf.position(font_id, fontStartPosX + 52, fontStartPosY - 15, 0)
+	blf.draw(font_id, str((bake_vc_max_td - bake_vc_min_td) * 0.25 + bake_vc_min_td))
+
+	blf.position(font_id, fontStartPosX + 177, fontStartPosY - 15, 0)
+	blf.draw(font_id, str((bake_vc_max_td - bake_vc_min_td) * 0.75 + bake_vc_min_td))
+
+	#Draw Gradient via shader
+	vertex_shader = '''
+	in vec2 position;
+	out vec3 pos;
+
+	void main()
+	{
+		pos = vec3(position, 0.0f);
+		gl_Position = vec4(position, 0.0f, 1.0f);
+	}
+	'''
+
+	fragment_shader = '''
+	uniform float posXMin;
+	uniform float posXMax;
+
+	in vec3 pos;
+
+	void main()
+	{
+		vec4 b = vec4(0.0f, 0.0f, 1.0f, 1.0f);
+		vec4 c = vec4(0.0f, 1.0f, 1.0f, 1.0f);
+		vec4 g = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+		vec4 y = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+		vec4 r = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+
+		float posX25 = (posXMax - posXMin) * 0.25 + posXMin;
+		float posX50 = (posXMax - posXMin) * 0.5 + posXMin;
+		float posX75 = (posXMax - posXMin) * 0.75 + posXMin;
+
+		float blendColor1 = (pos.x - posXMin)/(posX25 - posXMin);
+		float blendColor2 = (pos.x - posX25)/(posX50 - posX25);
+		float blendColor3 = (pos.x - posX50)/(posX75 - posX50);
+		float blendColor4 = (pos.x - posX75)/(posXMax - posX75);
+
+		gl_FragColor = (c * blendColor1 + b * (1 - blendColor1)) * step(pos.x, posX25) +
+						(g * blendColor2 + c * (1 - blendColor2)) * step(pos.x, posX50) * step(posX25, pos.x) +
+						(y * blendColor3 + g * (1 - blendColor3)) * step(pos.x, posX75) * step(posX50, pos.x) +
+						(r * blendColor4 + y * (1 - blendColor4)) * step(pos.x, posXMax) * step(posX75, pos.x);
+	}
+	'''
+
+	gradientXMin = screenTexelX * offsetX
+	gradientXMax = screenTexelX * (offsetX + 250)
+	gradientYMin = screenTexelY * offsetY
+	gradientYMax = screenTexelY * (offsetY + 15)
+
+	if anchorPos == 'LEFT_BOTTOM':
+		vertices = (
+			(-1.0 + gradientXMin, -1.0 + gradientYMax), (-1.0 + gradientXMax, -1.0 + gradientYMax),
+			(-1.0 + gradientXMin, -1.0 + gradientYMin), (-1.0 + gradientXMax, -1.0 + gradientYMin))
+		posXMin = -1.0 + gradientXMin
+		posXMax = -1.0 + gradientXMax
+	elif anchorPos == 'LEFT_TOP':
+		vertices = (
+			(-1.0 + gradientXMin, 1.0 - gradientYMax), (-1.0 + gradientXMax, 1.0 - gradientYMax),
+			(-1.0 + gradientXMin, 1.0 - gradientYMin), (-1.0 + gradientXMax, 1.0 - gradientYMin))
+		posXMin = -1.0 + gradientXMin
+		posXMax = -1.0 +gradientXMax
+	elif anchorPos == 'RIGHT_BOTTOM':
+		vertices = (
+			(1.0 - gradientXMin, -1.0 + gradientYMax), (1.0 - gradientXMax, -1.0 + gradientYMax),
+			(1.0 - gradientXMin, -1.0 + gradientYMin), (1.0 - gradientXMax, -1.0 + gradientYMin))
+		posXMin = 1.0 - gradientXMax
+		posXMax = 1.0 - gradientXMin
+	else:
+		vertices = (
+			(1.0 - gradientXMin, 1.0 - gradientYMax), (1.0 - gradientXMax, 1.0 - gradientYMax),
+			(1.0 - gradientXMin, 1.0 - gradientYMin), (1.0 - gradientXMax, 1.0 - gradientYMin))
+		posXMin = 1.0 - gradientXMax
+		posXMax = 1.0 - gradientXMin
+
+
+	indices = (
+    (0, 1, 2), (2, 1, 3))
+
+	shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
+	batch = batch_for_shader(shader, 'TRIS', {"position": vertices}, indices=indices)
+
+	shader.bind()
+	shader.uniform_float("posXMin", posXMin)
+	shader.uniform_float("posXMax", posXMax)
+	batch.draw(shader)
 
 #-------------------------------------------------------
 # Panel in 3D View
@@ -1347,6 +1489,9 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			c = split.column()
 			c.prop(td, "bake_vc_max_td")
 			#----
+			layout.separator()
+			row = layout.row()
+			row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
 			layout.separator()
 			row = layout.row()
 			row.operator("object.bake_td_to_vc", text="TD to Vertex Color")
@@ -1646,10 +1791,41 @@ class TD_Addon_Props(PropertyGroup):
 		description="Max TD",
 		default="10.24")
 
+	bake_vc_show_gradient: BoolProperty(
+		name="Show Gradient",
+		description="Show Gradient in Viewport",
+		default = False,
+		update = Show_Gradient)
+
+class TD_Addon_Preferences(bpy.types.AddonPreferences):
+	bl_idname = __name__
+
+	offsetX: StringProperty(
+		name="Offset X",
+		description="Offset X from Anchor",
+		default="50")
+
+	offsetY: StringProperty(
+		name="Offset Y",
+		description="Offset Y from Anchor",
+		default="50")
+
+	anchorPosList = (('LEFT_TOP','Left Top',''),('LEFT_BOTTOM','Left Bottom',''), 
+						('RIGHT_TOP','Right Top',''), ('RIGHT_BOTTOM','Right Bottom',''))
+	anchorPos: EnumProperty(name="Anchor Position", items = anchorPosList, default = 'LEFT_BOTTOM')
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label(text='Texel Density Viewport Panel:')
+		layout.prop(self, 'anchorPos', expand=False)
+		layout.prop(self, 'offsetX')
+		layout.prop(self, 'offsetY')
+
 #-------------------------------------------------------
 classes = (
     VIEW3D_PT_texel_density_checker,
     UI_PT_texel_density_checker,
+    TD_Addon_Preferences,
 	TD_Addon_Props,
 	Texel_Density_Check,
 	Texel_Density_Set,
@@ -1670,6 +1846,10 @@ def register():
 	bpy.types.Scene.td = PointerProperty(type=TD_Addon_Props)
 
 def unregister():
+	if drawInfo["handler"] != None:
+		bpy.types.SpaceView3D.draw_handler_remove(drawInfo["handler"], 'WINDOW')
+		drawInfo["handler"] = None
+
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
 		
