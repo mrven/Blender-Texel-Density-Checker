@@ -743,31 +743,12 @@ class Bake_TD_to_VC(Operator):
 		start_selected_obj = bpy.context.selected_objects
 		start_mode = bpy.context.object.mode
 
-		bake_vc_min_td_filtered = td.bake_vc_min_td.replace(',', '.')
-		try:
-			bake_vc_min_td = float(bake_vc_min_td_filtered)
-		except:
-			bake_vc_min_td = 0.1
-			td.bake_vc_min_td = "0.1"
-
-		bake_vc_max_td_filtered = td.bake_vc_max_td.replace(',', '.')
-		try:
-			bake_vc_max_td = float(bake_vc_max_td_filtered)
-		except:
-			bake_vc_max_td = 0.1
-			td.bake_vc_max_td = "0.1"
+		bake_vc_min_td = float(td.bake_vc_min_td)
+		bake_vc_max_td = float(td.bake_vc_max_td)
 		
 		if (bake_vc_min_td == bake_vc_max_td):
 			self.report({'INFO'}, "Value Range is wrong")
 			return {'CANCELLED'}
-
-		if (bake_vc_min_td<0.01):
-			bake_vc_min_td = 0.01
-			td.bake_vc_min_td = "0.01"
-
-		if (bake_vc_max_td<0.01):
-			bake_vc_max_td = 0.01
-			td.bake_vc_min_td = "0.01"	
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 		for x in start_selected_obj:
@@ -1100,6 +1081,60 @@ def Show_Gradient(self, context):
 		bpy.types.SpaceView3D.draw_handler_remove(drawInfo["handler"], 'WINDOW')
 		drawInfo["handler"] = None
 
+def Filter_Gradient_OffsetX(self, context):
+	offsetXFiltered = bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetX.replace(',', '.')
+	
+	try:
+		offsetX = int(offsetXFiltered)
+	except:
+		offsetX = 20
+
+	if (offsetX < 0):
+		offsetX = 20
+	
+	bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetX = str(offsetX)
+
+def Filter_Gradient_OffsetY(self, context):	
+	offsetYFiltered = bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetY.replace(',', '.')
+	
+	try:
+		offsetY = int(offsetYFiltered)
+	except:
+		offsetY = 20
+
+	if (offsetY < 0):
+		offsetY = 20
+
+	bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetY = str(offsetY)
+
+def Filter_Bake_VC_Min_TD(self, context):
+	td = context.scene.td
+	bake_vc_min_td_filtered = td.bake_vc_min_td.replace(',', '.')
+	
+	try:
+		bake_vc_min_td = float(bake_vc_min_td_filtered)
+	except:
+		bake_vc_min_td = 0.01
+
+	if (bake_vc_min_td<0.01):
+		bake_vc_min_td = 0.01
+
+	td.bake_vc_min_td = str(bake_vc_min_td)
+
+def Filter_Bake_VC_Max_TD(self, context):
+	td = context.scene.td
+	bake_vc_max_td_filtered = td.bake_vc_max_td.replace(',', '.')
+	
+	try:
+		bake_vc_max_td = float(bake_vc_max_td_filtered)
+	except:
+		bake_vc_max_td = 0.01
+
+	if (bake_vc_max_td<0.01):
+		bake_vc_max_td = 0.01
+
+	td.bake_vc_max_td = str(bake_vc_max_td)	
+
 def draw_callback_px(self, context):
 	td = bpy.context.scene.td
 	"""Draw on the viewports"""
@@ -1117,27 +1152,38 @@ def draw_callback_px(self, context):
 	blf.size(font_id, fontSize, 72)
 	blf.color(font_id, 1, 1, 1, 1)
 
-	fontStartPosX = 0 + offsetX
-	fontStartPosY = 0 + offsetY
-
 	bake_vc_min_td = float(td.bake_vc_min_td)
 	bake_vc_max_td = float(td.bake_vc_max_td)
 
+	#Calculate Text Position from Anchor
+	if anchorPos == 'LEFT_BOTTOM':
+		fontStartPosX = 0 + offsetX
+		fontStartPosY = 0 + offsetY
+	elif anchorPos == 'LEFT_TOP':
+		fontStartPosX = 0 + offsetX
+		fontStartPosY = region.height - offsetY - 15
+	elif anchorPos == 'RIGHT_BOTTOM':
+		fontStartPosX = region.width - offsetX - 250
+		fontStartPosY = 0 + offsetY
+	else:
+		fontStartPosX = region.width - offsetX - 250
+		fontStartPosY = region.height - offsetY - 15
+
 	#Draw TD Values in Viewport via BLF
 	blf.position(font_id, fontStartPosX, fontStartPosY + 18, 0)
-	blf.draw(font_id, str(bake_vc_min_td))
+	blf.draw(font_id, str(round(bake_vc_min_td, 3)))
 
 	blf.position(font_id, fontStartPosX + 115, fontStartPosY + 18, 0)
-	blf.draw(font_id, str((bake_vc_max_td - bake_vc_min_td) * 0.5 + bake_vc_min_td))
+	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.5 + bake_vc_min_td, 3)))
 
 	blf.position(font_id, fontStartPosX + 240, fontStartPosY + 18, 0)
-	blf.draw(font_id, str(bake_vc_max_td))
+	blf.draw(font_id, str(round(bake_vc_max_td, 3)))
 
 	blf.position(font_id, fontStartPosX + 52, fontStartPosY - 15, 0)
-	blf.draw(font_id, str((bake_vc_max_td - bake_vc_min_td) * 0.25 + bake_vc_min_td))
+	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.25 + bake_vc_min_td, 3)))
 
 	blf.position(font_id, fontStartPosX + 177, fontStartPosY - 15, 0)
-	blf.draw(font_id, str((bake_vc_max_td - bake_vc_min_td) * 0.75 + bake_vc_min_td))
+	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.75 + bake_vc_min_td, 3)))
 
 	#Draw Gradient via shader
 	vertex_shader = '''
@@ -1784,12 +1830,14 @@ class TD_Addon_Props(PropertyGroup):
 	bake_vc_min_td: StringProperty(
 		name="",
 		description="Min TD",
-		default="0.64")
+		default="0.64",
+		update = Filter_Bake_VC_Min_TD)
 
 	bake_vc_max_td: StringProperty(
 		name="",
 		description="Max TD",
-		default="10.24")
+		default="10.24",
+		update = Filter_Bake_VC_Max_TD)
 
 	bake_vc_show_gradient: BoolProperty(
 		name="Show Gradient",
@@ -1803,12 +1851,12 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 	offsetX: StringProperty(
 		name="Offset X",
 		description="Offset X from Anchor",
-		default="50")
+		default="250", update = Filter_Gradient_OffsetX)
 
 	offsetY: StringProperty(
 		name="Offset Y",
 		description="Offset Y from Anchor",
-		default="50")
+		default="20", update = Filter_Gradient_OffsetY)
 
 	anchorPosList = (('LEFT_TOP','Left Top',''),('LEFT_BOTTOM','Left Bottom',''), 
 						('RIGHT_TOP','Right Top',''), ('RIGHT_BOTTOM','Right Bottom',''))
