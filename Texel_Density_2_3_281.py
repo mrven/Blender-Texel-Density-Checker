@@ -3,7 +3,7 @@ bl_info = {
 	"description": "Tools for for checking Texel Density and wasting of uv space",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
 	"version": (2, 3),
-	"blender": (2, 82, 0),
+	"blender": (2, 81, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }
@@ -15,6 +15,8 @@ import colorsys
 import blf
 import bgl
 import gpu
+import bpy_extras.mesh_utils
+import random
 
 from gpu_extras.batch import batch_for_shader
 
@@ -728,12 +730,13 @@ class Clear_Object_List(Operator):
 		return {'FINISHED'}
 
 #-------------------------------------------------------
-class Bake_TD_to_VC(Operator):
-	"""Bake Texel Density to Vertex Color"""
-	bl_idname = "object.bake_td_to_vc"
+class Bake_TD_UV_to_VC(Operator):
+	"""Bake Texel Density/UV Islands to Vertex Color"""
+	bl_idname = "object.bake_td_uv_to_vc"
 	bl_label = "Bake TD to Vertex Color"
 	bl_options = {'REGISTER', 'UNDO'}
-	TDValue: StringProperty()
+
+	mode: StringProperty()
 	
 	def execute(self, context):
 		td = context.scene.td
@@ -746,7 +749,7 @@ class Bake_TD_to_VC(Operator):
 		bake_vc_min_td = float(td.bake_vc_min_td)
 		bake_vc_max_td = float(td.bake_vc_max_td)
 		
-		if (bake_vc_min_td == bake_vc_max_td):
+		if (bake_vc_min_td == bake_vc_max_td) and self.mode == "TD":
 			self.report({'INFO'}, "Value Range is wrong")
 			return {'CANCELLED'}
 
@@ -765,9 +768,6 @@ class Bake_TD_to_VC(Operator):
 						if f.select:
 							start_selected_faces.append(f.index)
 
-				face_list = []
-				face_list = Calculate_TD_To_List()
-
 				shouldAddVC = True
 				for vc in x.data.vertex_colors:
 					if vc.name == "td_vis":
@@ -779,19 +779,37 @@ class Bake_TD_to_VC(Operator):
 
 				x.data.vertex_colors["td_vis"].active = True
 
+				face_list = []
+				if self.mode == "TD":
+					face_list = Calculate_TD_To_List()
+				if self.mode == "UV":
+					face_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
 				bm.faces.ensure_lookup_table()
 
-				for faceid in range(0, face_count):
-					remaped_td = (face_list[faceid] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
-					remaped_td = Saturate(remaped_td)
-					hue = (1 - remaped_td) * 0.67
-					color = colorsys.hsv_to_rgb(hue, 1, 1)
-					color4 = (color[0], color[1], color[2], 1)
-					
-					for loop in bm.faces[faceid].loops:
-						loop[bm.loops.layers.color.active] = color4
+				if self.mode == "TD":
+					for faceid in range(0, face_count):
+						remaped_td = (face_list[faceid] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
+						remaped_td = Saturate(remaped_td)
+						hue = (1 - remaped_td) * 0.67
+						color = colorsys.hsv_to_rgb(hue, 1, 1)
+						color4 = (color[0], color[1], color[2], 1)
+						
+						for loop in bm.faces[faceid].loops:
+							loop[bm.loops.layers.color.active] = color4
+
+				if self.mode == "UV":
+					for uvIsland in face_list:
+						randomHue = random.randrange(0, 10, 1)/10
+						randomValue = random.randrange(4, 10, 1)/10
+						color = colorsys.hsv_to_rgb(randomHue, 1, randomValue)
+						color4 = (color[0], color[1], color[2], 1)
+
+						for faceID in uvIsland:
+							for loop in bm.faces[faceID].loops:
+								loop[bm.loops.layers.color.active] = color4
 
 				bpy.ops.object.mode_set(mode='OBJECT')
 					
@@ -1540,7 +1558,9 @@ class VIEW3D_PT_texel_density_checker(Panel):
 			row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
 			layout.separator()
 			row = layout.row()
-			row.operator("object.bake_td_to_vc", text="TD to Vertex Color")
+			row.operator("object.bake_td_uv_to_vc", text="TD to Vertex Color").mode = 'TD'
+			row = layout.row()
+			row.operator("object.bake_td_uv_to_vc", text="UV to Vertex Color").mode = 'UV'
 			row = layout.row()
 			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
 
@@ -1884,7 +1904,7 @@ classes = (
 	Checker_Assign,
 	Checker_Restore,
 	Clear_Object_List,
-	Bake_TD_to_VC,
+	Bake_TD_UV_to_VC,
 	Clear_TD_VC,
 )	
 def register():
