@@ -1098,9 +1098,10 @@ def Show_Gradient(self, context):
 	elif (not td.bake_vc_show_gradient) and (drawInfo["handler"] != None):
 		bpy.types.SpaceView3D.draw_handler_remove(drawInfo["handler"], 'WINDOW')
 		drawInfo["handler"] = None
+		
 
 def Filter_Gradient_OffsetX(self, context):
-	offsetXFiltered = bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetX.replace(',', '.')
+	offsetXFiltered = bpy.context.preferences.addons[__name__].preferences.offsetX.replace(',', '.')
 	
 	try:
 		offsetX = int(offsetXFiltered)
@@ -1110,10 +1111,10 @@ def Filter_Gradient_OffsetX(self, context):
 	if (offsetX < 0):
 		offsetX = 20
 	
-	bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetX = str(offsetX)
+	bpy.context.preferences.addons[__name__].preferences.offsetX = str(offsetX)
 
 def Filter_Gradient_OffsetY(self, context):	
-	offsetYFiltered = bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetY.replace(',', '.')
+	offsetYFiltered = bpy.context.preferences.addons[__name__].preferences.offsetY.replace(',', '.')
 	
 	try:
 		offsetY = int(offsetYFiltered)
@@ -1123,7 +1124,7 @@ def Filter_Gradient_OffsetY(self, context):
 	if (offsetY < 0):
 		offsetY = 20
 
-	bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetY = str(offsetY)
+	bpy.context.preferences.addons[__name__].preferences.offsetY = str(offsetY)
 
 def Filter_Bake_VC_Min_TD(self, context):
 	td = context.scene.td
@@ -1163,9 +1164,9 @@ def draw_callback_px(self, context):
 	screenTexelY = 2/region.height
 
 	fontSize = 12
-	offsetX = int(bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetX)
-	offsetY = int(bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.offsetY)
-	anchorPos = bpy.context.preferences.addons['Texel_Density_2_3_282'].preferences.anchorPos
+	offsetX = int(bpy.context.preferences.addons[__name__].preferences.offsetX)
+	offsetY = int(bpy.context.preferences.addons[__name__].preferences.offsetY)
+	anchorPos = bpy.context.preferences.addons[__name__].preferences.anchorPos
 	font_id = 0
 	blf.size(font_id, fontSize, 72)
 	blf.color(font_id, 1, 1, 1, 1)
