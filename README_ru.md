@@ -12,7 +12,7 @@ Texel Density Checker – Аддон для Blender, который позвол
 * ***[Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
 * ***[Blender 2.80 (Windows, Linux)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280.zip)***
 * ***[Blender 2.80 (MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280_MacOS.zip)***
-* ***[Blender 2.81 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_2_1_281.zip)***
+* ***[Blender 2.81 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_3_281.zip)***
 
 Если вы хотите поддержать меня, то можете купить аддон на следующих площадках:
 * ***[Gumroad (Свободная цена)](https://gumroad.com/l/CEIOR)***
@@ -42,6 +42,8 @@ Texel Density Checker – Аддон для Blender, который позвол
 ![Peset Buttons](/images/RU-ru/12_Presets_RU.png)
 
 ![Bake TD To VC](/images/RU-ru/16_Bake_TD_VC_RU.png)
+
+![Bake UV To VC](/images/RU-ru/17_Bake_UV_VC_RU.png)
 
 ![Copy TD](/images/RU-ru/13_Copy_TD_RU.png)
 
