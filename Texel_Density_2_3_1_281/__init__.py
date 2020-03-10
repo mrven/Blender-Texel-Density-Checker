@@ -9,12 +9,40 @@ bl_info = {
 }
 
 import bpy
+import bmesh
+import math
+import colorsys
+import blf
+import bgl
+import gpu
+import bpy_extras.mesh_utils
+import random
+
+from gpu_extras.batch import batch_for_shader
+
+from bpy.types import (
+        Operator,
+        Panel,
+        PropertyGroup,
+        )
+		
+from bpy.props import (
+		StringProperty,
+		EnumProperty,
+        BoolProperty,
+        PointerProperty,
+        )
+
 from . import core_td_operators
 from . import add_td_operators
 from . import viz_operators
 from . import ui
 from . import props
 from . import preferences
+
+draw_info = {
+	"handler": None,
+}
 
 classes = (
     VIEW3D_PT_texel_density_checker,
@@ -33,6 +61,7 @@ classes = (
 	Bake_TD_UV_to_VC,
 	Clear_TD_VC,
 )	
+
 def register():
 	for cls in classes:
 		bpy.utils.register_class(cls)
@@ -40,9 +69,9 @@ def register():
 	bpy.types.Scene.td = PointerProperty(type=TD_Addon_Props)
 
 def unregister():
-	if drawInfo["handler"] != None:
-		bpy.types.SpaceView3D.draw_handler_remove(drawInfo["handler"], 'WINDOW')
-		drawInfo["handler"] = None
+	if draw_info["handler"] != None:
+		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
+		draw_info["handler"] = None
 
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
