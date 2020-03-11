@@ -1,4 +1,118 @@
-class TD_Addon_Props(PropertyGroup):
+import bpy
+
+from bpy.props import (
+		StringProperty,
+		EnumProperty,
+        BoolProperty,
+        PointerProperty,
+        )
+
+def Change_Texture_Size(self, context):
+	td = context.scene.td
+	
+	#Check exist texture image
+	flag_exist_texture = False
+	for t in range(len(bpy.data.images)):
+		if bpy.data.images[t].name == 'TD_Checker':
+			flag_exist_texture = True
+			
+	if flag_exist_texture:
+		checker_rexolution_x = 1024
+		checker_rexolution_y = 1024
+		
+		#Get texture size from panel
+		if td.texture_size == '0':
+			checker_rexolution_x = 512
+			checker_rexolution_y = 512
+		if td.texture_size == '1':
+			checker_rexolution_x = 1024
+			checker_rexolution_y = 1024
+		if td.texture_size == '2':
+			checker_rexolution_x = 2048
+			checker_rexolution_y = 2048
+		if td.texture_size == '3':
+			checker_rexolution_x = 4096
+			checker_rexolution_y = 4096
+		if td.texture_size == '4':
+			try:
+				checker_rexolution_x = int(td.custom_width)
+			except:
+				checker_rexolution_x = 1024
+				
+			try:
+				checker_rexolution_y = int(td.custom_height)
+			except:
+				checker_rexolution_y = 1024
+				
+		if checker_rexolution_x < 1 or checker_rexolution_y < 1:
+			checker_rexolution_x = 1024
+			checker_rexolution_y = 1024
+
+		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
+		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
+		bpy.data.images['TD_Checker'].generated_type=td.checker_type
+
+	bpy.ops.object.texel_density_check()
+
+
+def Change_Units(self, context):
+	td = context.scene.td
+	bpy.ops.object.texel_density_check()
+
+
+def Change_Texture_Type(self, context):
+	td = context.scene.td
+	
+	#Check exist texture image
+	flag_exist_texture = False
+	for t in range(len(bpy.data.images)):
+		if bpy.data.images[t].name == 'TD_Checker':
+			flag_exist_texture = True
+			
+	if flag_exist_texture:
+		bpy.data.images['TD_Checker'].generated_type=td.checker_type
+
+
+def Filter_Bake_VC_Min_TD(self, context):
+	td = context.scene.td
+	bake_vc_min_td_filtered = td.bake_vc_min_td.replace(',', '.')
+	
+	try:
+		bake_vc_min_td = float(bake_vc_min_td_filtered)
+	except:
+		bake_vc_min_td = 0.01
+
+	if (bake_vc_min_td<0.01):
+		bake_vc_min_td = 0.01
+
+	td.bake_vc_min_td = str(bake_vc_min_td)
+
+
+def Filter_Bake_VC_Max_TD(self, context):
+	td = context.scene.td
+	bake_vc_max_td_filtered = td.bake_vc_max_td.replace(',', '.')
+	
+	try:
+		bake_vc_max_td = float(bake_vc_max_td_filtered)
+	except:
+		bake_vc_max_td = 0.01
+
+	if (bake_vc_max_td<0.01):
+		bake_vc_max_td = 0.01
+
+	td.bake_vc_max_td = str(bake_vc_max_td)	
+
+
+def Show_Gradient(self, context):
+	td = context.scene.td
+	if td.bake_vc_show_gradient and draw_info["handler"] == None:
+			draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (None, None), 'WINDOW', 'POST_PIXEL')
+	elif (not td.bake_vc_show_gradient) and (draw_info["handler"] != None):
+		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
+		draw_info["handler"] = None
+
+
+class TD_Addon_Props(bpy.types.PropertyGroup):
 	uv_space: StringProperty(
 		name="",
 		description="wasting of uv space",
@@ -68,3 +182,22 @@ class TD_Addon_Props(PropertyGroup):
 		description="Show Gradient in Viewport",
 		default = False,
 		update = Show_Gradient)
+
+
+classes = (
+	TD_Addon_Props,
+)	
+
+
+def register():
+	for cls in classes:
+		bpy.utils.register_class(cls)
+
+	bpy.types.Scene.td = PointerProperty(type=TD_Addon_Props)
+
+
+def unregister():
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)
+
+	del bpy.types.Scene.td

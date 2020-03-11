@@ -1,3 +1,7 @@
+import bpy
+import bmesh
+import math
+
 def Vector2dMultiple(A, B, C):
 	return abs((B[0]- A[0])*(C[1]- A[1])-(B[1]- A[1])*(C[0]- A[0]))
 
@@ -53,7 +57,7 @@ def SyncUVSelection():
 	bmesh.update_edit_mesh(mesh, False, False)
 
 
-class Texel_Density_Check(Operator):
+class Texel_Density_Check(bpy.types.Operator):
 	"""Check Density"""
 	bl_idname = "object.texel_density_check"
 	bl_label = "Check Texel Density"
@@ -196,7 +200,7 @@ class Texel_Density_Check(Operator):
 		return {'FINISHED'}
 
 
-class Texel_Density_Set(Operator):
+class Texel_Density_Set(bpy.types.Operator):
 	"""Set Density"""
 	bl_idname = "object.texel_density_set"
 	bl_label = "Set Texel Density"
@@ -296,3 +300,19 @@ class Texel_Density_Set(Operator):
 		bpy.ops.object.texel_density_check()
 
 		return {'FINISHED'}
+
+
+classes = (
+	Texel_Density_Check,
+	Texel_Density_Set,
+)	
+
+
+def register():
+	for cls in classes:
+		bpy.utils.register_class(cls)
+
+
+def unregister():
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)

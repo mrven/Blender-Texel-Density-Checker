@@ -1,101 +1,8 @@
-def Change_Texture_Size(self, context):
-	td = context.scene.td
-	
-	#Check exist texture image
-	flag_exist_texture = False
-	for t in range(len(bpy.data.images)):
-		if bpy.data.images[t].name == 'TD_Checker':
-			flag_exist_texture = True
-			
-	if flag_exist_texture:
-		checker_rexolution_x = 1024
-		checker_rexolution_y = 1024
-		
-		#Get texture size from panel
-		if td.texture_size == '0':
-			checker_rexolution_x = 512
-			checker_rexolution_y = 512
-		if td.texture_size == '1':
-			checker_rexolution_x = 1024
-			checker_rexolution_y = 1024
-		if td.texture_size == '2':
-			checker_rexolution_x = 2048
-			checker_rexolution_y = 2048
-		if td.texture_size == '3':
-			checker_rexolution_x = 4096
-			checker_rexolution_y = 4096
-		if td.texture_size == '4':
-			try:
-				checker_rexolution_x = int(td.custom_width)
-			except:
-				checker_rexolution_x = 1024
-				
-			try:
-				checker_rexolution_y = int(td.custom_height)
-			except:
-				checker_rexolution_y = 1024
-				
-		if checker_rexolution_x < 1 or checker_rexolution_y < 1:
-			checker_rexolution_x = 1024
-			checker_rexolution_y = 1024
-
-		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
-		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
-		bpy.data.images['TD_Checker'].generated_type=td.checker_type
-
-	bpy.ops.object.texel_density_check()
-
-
-def Change_Units(self, context):
-	td = context.scene.td
-	bpy.ops.object.texel_density_check()
-
-
-def Change_Texture_Type(self, context):
-	td = context.scene.td
-	
-	#Check exist texture image
-	flag_exist_texture = False
-	for t in range(len(bpy.data.images)):
-		if bpy.data.images[t].name == 'TD_Checker':
-			flag_exist_texture = True
-			
-	if flag_exist_texture:
-		bpy.data.images['TD_Checker'].generated_type=td.checker_type
-
-
-def Filter_Bake_VC_Min_TD(self, context):
-	td = context.scene.td
-	bake_vc_min_td_filtered = td.bake_vc_min_td.replace(',', '.')
-	
-	try:
-		bake_vc_min_td = float(bake_vc_min_td_filtered)
-	except:
-		bake_vc_min_td = 0.01
-
-	if (bake_vc_min_td<0.01):
-		bake_vc_min_td = 0.01
-
-	td.bake_vc_min_td = str(bake_vc_min_td)
-
-
-def Filter_Bake_VC_Max_TD(self, context):
-	td = context.scene.td
-	bake_vc_max_td_filtered = td.bake_vc_max_td.replace(',', '.')
-	
-	try:
-		bake_vc_max_td = float(bake_vc_max_td_filtered)
-	except:
-		bake_vc_max_td = 0.01
-
-	if (bake_vc_max_td<0.01):
-		bake_vc_max_td = 0.01
-
-	td.bake_vc_max_td = str(bake_vc_max_td)	
+import bpy
 
 
 # Panel in 3D View
-class VIEW3D_PT_texel_density_checker(Panel):
+class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 	bl_label = "Texel Density Checker"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
@@ -372,7 +279,7 @@ class VIEW3D_PT_texel_density_checker(Panel):
 
 
 # Panel in UV Editor
-class UI_PT_texel_density_checker(Panel):
+class UI_PT_texel_density_checker(bpy.types.Panel):
 	bl_label = "Texel Density Checker"
 	bl_space_type = "IMAGE_EDITOR"
 	bl_region_type = "UI"
@@ -599,3 +506,19 @@ class UI_PT_texel_density_checker(Panel):
 			c = split.column()
 			c.prop(td, "select_td_threshold")
 			#----
+
+
+classes = (
+    VIEW3D_PT_texel_density_checker,
+    UI_PT_texel_density_checker,
+)	
+
+
+def register():
+	for cls in classes:
+		bpy.utils.register_class(cls)
+
+
+def unregister():
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)

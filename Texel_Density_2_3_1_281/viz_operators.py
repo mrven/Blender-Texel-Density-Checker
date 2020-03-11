@@ -1,3 +1,8 @@
+import bpy
+
+from bpy.props import StringProperty
+
+
 def draw_callback_px(self, context):
 	td = bpy.context.scene.td
 	"""Draw on the viewports"""
@@ -236,20 +241,11 @@ def Calculate_TD_To_List():
 	return calculated_obj_td
 
 
-def Show_Gradient(self, context):
-	td = context.scene.td
-	if td.bake_vc_show_gradient and draw_info["handler"] == None:
-			draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (None, None), 'WINDOW', 'POST_PIXEL')
-	elif (not td.bake_vc_show_gradient) and (draw_info["handler"] != None):
-		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
-		draw_info["handler"] = None
-
-
 def Saturate(val):
 	return max(min(val, 1), 0)
 
 
-class Checker_Assign(Operator):
+class Checker_Assign(bpy.types.Operator):
 	"""Assign Checker Material"""
 	bl_idname = "object.checker_assign"
 	bl_label = "Assign Checker Material"
@@ -423,7 +419,7 @@ class Checker_Assign(Operator):
 		return {'FINISHED'}
 
 
-class Checker_Restore(Operator):
+class Checker_Restore(bpy.types.Operator):
 	"""Restore Saved Materials"""
 	bl_idname = "object.checker_restore"
 	bl_label = "Restore Saved Materials"
@@ -477,7 +473,7 @@ class Checker_Restore(Operator):
 		return {'FINISHED'}
 
 
-class Clear_Object_List(Operator):
+class Clear_Object_List(bpy.types.Operator):
 	"""Clear List of stored objects"""
 	bl_idname = "object.clear_object_list"
 	bl_label = "Clear List of Stored Objects"
@@ -512,7 +508,7 @@ class Clear_Object_List(Operator):
 		return {'FINISHED'}
 
 
-class Bake_TD_UV_to_VC(Operator):
+class Bake_TD_UV_to_VC(bpy.types.Operator):
 	"""Bake Texel Density/UV Islands to Vertex Color"""
 	bl_idname = "object.bake_td_uv_to_vc"
 	bl_label = "Bake TD to Vertex Color"
@@ -614,7 +610,7 @@ class Bake_TD_UV_to_VC(Operator):
 		return {'FINISHED'}
 
 
-class Clear_TD_VC(Operator):
+class Clear_TD_VC(bpy.types.Operator):
 	"""Clear TD Baked into Vertex Color"""
 	bl_idname = "object.clear_td_vc"
 	bl_label = "Clear Vertex Color from TD"
@@ -647,3 +643,22 @@ class Clear_TD_VC(Operator):
 		bpy.ops.object.mode_set(mode = start_mode)
 
 		return {'FINISHED'}
+
+
+classes = (
+    Checker_Assign,
+	Checker_Restore,
+	Clear_Object_List,
+	Bake_TD_UV_to_VC,
+	Clear_TD_VC,
+)	
+
+
+def register():
+	for cls in classes:
+		bpy.utils.register_class(cls)
+
+
+def unregister():
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)

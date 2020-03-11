@@ -1,4 +1,9 @@
-class Texel_Density_Copy(Operator):
+import bpy
+
+from bpy.props import StringProperty
+
+
+class Texel_Density_Copy(bpy.types.Operator):
 	"""Copy Density"""
 	bl_idname = "object.texel_density_copy"
 	bl_label = "Copy Texel Density"
@@ -34,7 +39,7 @@ class Texel_Density_Copy(Operator):
 		return {'FINISHED'}
 
 
-class Calculated_To_Set(Operator):
+class Calculated_To_Set(bpy.types.Operator):
 	"""Copy Calc to Set"""
 	bl_idname = "object.calculate_to_set"
 	bl_label = "Set Texel Density"
@@ -48,7 +53,7 @@ class Calculated_To_Set(Operator):
 		return {'FINISHED'}
 		
 
-class Preset_Set(Operator):
+class Preset_Set(bpy.types.Operator):
 	"""Preset Set Density"""
 	bl_idname = "object.preset_set"
 	bl_label = "Set Texel Density"
@@ -64,7 +69,7 @@ class Preset_Set(Operator):
 		return {'FINISHED'}
 		
 
-class Select_Same_TD(Operator):
+class Select_Same_TD(bpy.types.Operator):
 	"""Select Faces with same TD"""
 	bl_idname = "object.select_same_texel"
 	bl_label = "Select Faces with same TD"
@@ -180,3 +185,21 @@ class Select_Same_TD(Operator):
 		bpy.ops.object.mode_set(mode='EDIT')
 
 		return {'FINISHED'}
+
+
+classes = (
+	Texel_Density_Copy,
+	Calculated_To_Set,
+	Preset_Set,
+	Select_Same_TD,
+)
+	
+
+def register():
+	for cls in classes:
+		bpy.utils.register_class(cls)
+
+
+def unregister():
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)

@@ -1,3 +1,11 @@
+import bpy
+
+from bpy.props import (
+		StringProperty,
+		EnumProperty,
+        )
+
+
 def Filter_Gradient_OffsetX(self, context):
 	offsetXFiltered = bpy.context.preferences.addons[__name__].preferences.offsetX.replace(',', '.')
 	
@@ -49,3 +57,18 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		layout.prop(self, 'anchorPos', expand=False)
 		layout.prop(self, 'offsetX')
 		layout.prop(self, 'offsetY')
+
+
+classes = (
+    TD_Addon_Preferences,
+)	
+
+
+def register():
+	for cls in classes:
+		bpy.utils.register_class(cls)
+
+
+def unregister():
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)
