@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 
 from bpy.props import StringProperty
 

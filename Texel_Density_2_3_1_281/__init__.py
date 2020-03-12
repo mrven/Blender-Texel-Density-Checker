@@ -8,20 +8,6 @@ bl_info = {
 	"category": "Object",
 }
 
-'''
-import bpy
-import bmesh
-import math
-import colorsys
-import blf
-import bgl
-import gpu
-import bpy_extras.mesh_utils
-import random
-
-from gpu_extras.batch import batch_for_shader
-'''
-
 modulesNames = ['props', 'preferences', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui']
 
 modulesFullNames = {}
@@ -31,10 +17,6 @@ for currentModuleName in modulesNames:
 import sys
 import importlib
 
-
-draw_info = {
-	"handler": None,
-}
 
 for currentModuleFullName in modulesFullNames.values():
 	if currentModuleFullName in sys.modules:

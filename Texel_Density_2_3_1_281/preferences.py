@@ -35,7 +35,7 @@ def Filter_Gradient_OffsetY(self, context):
 
 
 class TD_Addon_Preferences(bpy.types.AddonPreferences):
-	bl_idname = __name__
+	bl_idname = __package__
 
 	offsetX: StringProperty(
 		name="Offset X",

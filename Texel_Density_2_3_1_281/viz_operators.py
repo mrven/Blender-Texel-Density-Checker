@@ -1,6 +1,18 @@
 import bpy
+import bmesh
+import math
+import colorsys
+import blf
+import bgl
+import gpu
+import bpy_extras.mesh_utils
+import random
 
+from gpu_extras.batch import batch_for_shader
 from bpy.props import StringProperty
+
+from . import core_td_operators
+from . import props
 
 
 def draw_callback_px(self, context):
@@ -13,9 +25,9 @@ def draw_callback_px(self, context):
 	screenTexelY = 2/region.height
 
 	fontSize = 12
-	offsetX = int(bpy.context.preferences.addons[__name__].preferences.offsetX)
-	offsetY = int(bpy.context.preferences.addons[__name__].preferences.offsetY)
-	anchorPos = bpy.context.preferences.addons[__name__].preferences.anchorPos
+	offsetX = int(bpy.context.preferences.addons[__package__].preferences.offsetX)
+	offsetY = int(bpy.context.preferences.addons[__package__].preferences.offsetY)
+	anchorPos = bpy.context.preferences.addons[__package__].preferences.anchorPos
 	font_id = 0
 	blf.size(font_id, fontSize, 72)
 	blf.color(font_id, 1, 1, 1, 1)
@@ -206,7 +218,7 @@ def Calculate_TD_To_List():
 			loopB = bm.faces[x].loops[trisIndex + 1][bm.loops.layers.uv.active].uv
 			loopC = bm.faces[x].loops[trisIndex + 2][bm.loops.layers.uv.active].uv
 			#get multiplication of vectors of current triangle
-			multiVector = Vector2dMultiple(loopA, loopB, loopC)
+			multiVector = core_td_operators.Vector2dMultiple(loopA, loopB, loopC)
 			#Increment area of current tri to total uv area
 			Area += 0.5 * multiVector
 
@@ -605,7 +617,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode = start_mode)
 		bpy.context.space_data.shading.color_type = 'VERTEX'
 
-		Show_Gradient(self, context)
+		props.Show_Gradient(self, context)
 
 		return {'FINISHED'}
 
@@ -660,5 +672,9 @@ def register():
 
 
 def unregister():
+	if draw_info["handler"] != None:
+		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
+		draw_info["handler"] = None
+
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
