@@ -247,7 +247,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 
 			layout.separator()
 			row = layout.row()
-			row.operator("object.clear_object_list", text="Clear Stored Face Maps")
+			row.operator("object.clear_checker_face_maps", text="Clear Stored Face Maps")
 
 			
 			layout.separator()
@@ -279,7 +279,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 
 
 # Panel in UV Editor
-class UI_PT_texel_density_checker(bpy.types.Panel):
+class UV_PT_texel_density_checker(bpy.types.Panel):
 	bl_label = "Texel Density Checker"
 	bl_space_type = "IMAGE_EDITOR"
 	bl_region_type = "UI"
@@ -510,7 +510,7 @@ class UI_PT_texel_density_checker(bpy.types.Panel):
 
 classes = (
     VIEW3D_PT_texel_density_checker,
-    UI_PT_texel_density_checker,
+    UV_PT_texel_density_checker,
 )	
 
 

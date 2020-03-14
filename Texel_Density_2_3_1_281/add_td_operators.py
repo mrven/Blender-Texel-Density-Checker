@@ -3,6 +3,8 @@ import bmesh
 
 from bpy.props import StringProperty
 
+from . import utils
+
 
 class Texel_Density_Copy(bpy.types.Operator):
 	"""Copy Density"""
@@ -59,12 +61,12 @@ class Preset_Set(bpy.types.Operator):
 	bl_idname = "object.preset_set"
 	bl_label = "Set Texel Density"
 	bl_options = {'REGISTER', 'UNDO'}
-	TDValue: StringProperty()
+	td_value: StringProperty()
 	
 	def execute(self, context):
 		td = context.scene.td
 		
-		td.density_set = self.TDValue
+		td.density_set = self.td_value
 		bpy.ops.object.texel_density_set()
 				
 		return {'FINISHED'}
@@ -118,64 +120,64 @@ class Select_Same_TD(bpy.types.Operator):
 					bpy.ops.object.mode_set(mode='EDIT')
 
 					td_for_all_faces = []
-					td_for_all_faces = Calculate_TD_To_List()
+					td_for_all_faces = utils.Calculate_TD_To_List()
 
-					for faceid in start_selected_faces:
+					for face_id in start_selected_faces:
 						mesh = bpy.context.active_object.data
 						bm_local = bmesh.from_edit_mesh(mesh)
 						bm_local.faces.ensure_lookup_table()
 						uv_layer = bm_local.loops.layers.uv.active
 						
-						for uvid in range(0, len(bm_local.faces)):
-							for loop in bm_local.faces[uvid].loops:
+						for uv_id in range(0, len(bm_local.faces)):
+							for loop in bm_local.faces[uv_id].loops:
 								loop[uv_layer].select = False
 						
-						for loop in bm_local.faces[faceid].loops:
+						for loop in bm_local.faces[face_id].loops:
 							loop[uv_layer].select = True
 						
-						current_poly_td_value = float(td_for_all_faces[faceid])
+						current_poly_td_value = float(td_for_all_faces[face_id])
 						if (current_poly_td_value > (search_td_value - threshold_td_value)) and (current_poly_td_value < (search_td_value + threshold_td_value)):
-							searched_faces.append(faceid)
+							searched_faces.append(face_id)
 					
 					mesh = bpy.context.active_object.data
 					bm_local = bmesh.from_edit_mesh(mesh)
 					bm_local.faces.ensure_lookup_table()
 					uv_layer = bm_local.loops.layers.uv.active
 					
-					for uvid in range(0, len(bm_local.faces)):
-						for loop in bm_local.faces[uvid].loops:
+					for uv_id in range(0, len(bm_local.faces)):
+						for loop in bm_local.faces[uv_id].loops:
 							loop[uv_layer].select = False
 
-					for faceid in searched_faces:
-						for loop in bm_local.faces[faceid].loops:
+					for face_id in searched_faces:
+						for loop in bm_local.faces[face_id].loops:
 							loop[uv_layer].select = True
 
 					bpy.ops.object.mode_set(mode='OBJECT')
-					for id in start_selected_faces:
-						bpy.context.active_object.data.polygons[id].select = True
+					for face_id in start_selected_faces:
+						bpy.context.active_object.data.polygons[face_id].select = True
 				
 				else:
 					
 					td_for_all_faces = []
-					td_for_all_faces = Calculate_TD_To_List()
+					td_for_all_faces = utils.Calculate_TD_To_List()
 
-					for faceid in range(0, face_count):
+					for face_id in range(0, face_count):
 						bpy.ops.object.mode_set(mode='EDIT')
 						bpy.ops.mesh.reveal()
 						bpy.ops.mesh.select_all(action='DESELECT')
 						bpy.ops.object.mode_set(mode='OBJECT')
-						bpy.context.active_object.data.polygons[faceid].select = True
+						bpy.context.active_object.data.polygons[face_id].select = True
 						bpy.ops.object.mode_set(mode='EDIT')
-						current_poly_td_value = float(td_for_all_faces[faceid])
+						current_poly_td_value = float(td_for_all_faces[face_id])
 						if (current_poly_td_value > (search_td_value - threshold_td_value)) and (current_poly_td_value < (search_td_value + threshold_td_value)):
-							searched_faces.append(faceid)
+							searched_faces.append(face_id)
 
 					bpy.ops.object.mode_set(mode='OBJECT')
-					for id in range(0, face_count):
-						bpy.context.active_object.data.polygons[id].select = False
+					for face_id in range(0, face_count):
+						bpy.context.active_object.data.polygons[face_id].select = False
 
-					for id in searched_faces:
-						bpy.context.active_object.data.polygons[id].select = True
+					for face_id in searched_faces:
+						bpy.context.active_object.data.polygons[face_id].select = True
 
 		#Select Objects Again
 		for x in start_selected_obj:

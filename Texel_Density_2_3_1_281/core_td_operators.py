@@ -2,59 +2,7 @@ import bpy
 import bmesh
 import math
 
-def Vector2dMultiple(A, B, C):
-	return abs((B[0]- A[0])*(C[1]- A[1])-(B[1]- A[1])*(C[0]- A[0]))
-
-
-def Vector3dMultiple(A, B, C):
-	result = 0
-	vectorX = 0
-	vectorY = 0
-	vectorZ = 0
-	
-	vectorX = (B[1]- A[1])*(C[2]- A[2])-(B[2]- A[2])*(C[1]- A[1])
-	vectorY = -1*((B[0]- A[0])*(C[2]- A[2])-(B[2]- A[2])*(C[0]- A[0]))
-	vectorZ = (B[0]- A[0])*(C[1]- A[1])-(B[1]- A[1])*(C[0]- A[0])
-	
-	result = math.sqrt(math.pow(vectorX, 2) + math.pow(vectorY, 2) + math.pow(vectorZ, 2))
-	return result
-
-
-def SyncUVSelection():
-	mesh = bpy.context.active_object.data
-	bm = bmesh.from_edit_mesh(mesh)
-	bm.faces.ensure_lookup_table()
-	uv_layer = bm.loops.layers.uv.active
-	uv_selected_faces = []
-	face_count = len(bm.faces)
-
-	for faceid in range (face_count):
-		face_is_selected = True
-		for loop in bm.faces[faceid].loops:
-			if not(loop[uv_layer].select):
-				face_is_selected = False
-	
-		if face_is_selected and bm.faces[faceid].select:
-			uv_selected_faces.append(faceid)
-	
-	for faceid in range (face_count):
-		for loop in bm.faces[faceid].loops:
-			loop[uv_layer].select = False
-
-	for faceid in uv_selected_faces:
-		for loop in bm.faces[faceid].loops:
-			loop[uv_layer].select = True
-
-	for face in bm.faces:
-		if bpy.context.scene.td.selected_faces:
-			face.select_set(False)
-		else:
-			face.select_set(True)
-	    
-	for id in uv_selected_faces:
-		bm.faces[id].select_set(True)
-
-	bmesh.update_edit_mesh(mesh, False, False)
+from . import utils
 
 
 class Texel_Density_Check(bpy.types.Operator):
@@ -72,42 +20,42 @@ class Texel_Density_Check(bpy.types.Operator):
 		start_mode = bpy.context.object.mode
 
 		#set default values
-		Area=0
-		gmArea = 0
-		textureSizeCurX = 1024
-		textureSizeCurY = 1024
+		area=0
+		gm_area = 0
+		texture_size_cur_x = 1024
+		texture_size_cur_y = 1024
 		
 		#Get texture size from panel
 		if td.texture_size == '0':
-			textureSizeCurX = 512
-			textureSizeCurY = 512
+			texture_size_cur_x = 512
+			texture_size_cur_y = 512
 		if td.texture_size == '1':
-			textureSizeCurX = 1024
-			textureSizeCurY = 1024
+			texture_size_cur_x = 1024
+			texture_size_cur_y = 1024
 		if td.texture_size == '2':
-			textureSizeCurX = 2048
-			textureSizeCurY = 2048
+			texture_size_cur_x = 2048
+			texture_size_cur_y = 2048
 		if td.texture_size == '3':
-			textureSizeCurX = 4096
-			textureSizeCurY = 4096
+			texture_size_cur_x = 4096
+			texture_size_cur_y = 4096
 		if td.texture_size == '4':
 			try:
-				textureSizeCurX = int(td.custom_width)
+				texture_size_cur_x = int(td.custom_width)
 			except:
-				textureSizeCurX = 1024
+				texture_size_cur_x = 1024
 			try:
-				textureSizeCurY = int(td.custom_height)
+				texture_size_cur_y = int(td.custom_height)
 			except:
-				textureSizeCurY = 1024
+				texture_size_cur_y = 1024
 
-		if textureSizeCurX < 1 or textureSizeCurY < 1:
-			textureSizeCurX = 1024
-			textureSizeCurY = 1024
+		if texture_size_cur_x < 1 or texture_size_cur_y < 1:
+			texture_size_cur_x = 1024
+			texture_size_cur_y = 1024
 
-		aspectRatio = textureSizeCurX / textureSizeCurY;
-		if aspectRatio < 1:
-			aspectRatio = 1 / aspectRatio
-		largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
+		aspect_ratio = texture_size_cur_x / texture_size_cur_y;
+		if aspect_ratio < 1:
+			aspect_ratio = 1 / aspect_ratio
+		largest_side = texture_size_cur_x if texture_size_cur_x > texture_size_cur_y else texture_size_cur_y;
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -129,15 +77,15 @@ class Texel_Density_Check(bpy.types.Operator):
 					bpy.ops.mesh.select_all(action='SELECT')
 
 				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
-					SyncUVSelection()
+					utils.Sync_UV_Selection()
 
 				#Get selected list of selected polygons
 				bpy.ops.object.mode_set(mode='OBJECT')
 				face_count = len(bpy.context.active_object.data.polygons)
 				selected_faces = []
-				for faceid in range (0, face_count):
-					if bpy.context.active_object.data.polygons[faceid].select == True:
-						selected_faces.append(faceid)
+				for face_id in range (0, face_count):
+					if bpy.context.active_object.data.polygons[face_id].select == True:
+						selected_faces.append(face_id)
 				
 				#get bmesh from active object		
 				bpy.ops.object.mode_set(mode='EDIT')
@@ -145,46 +93,46 @@ class Texel_Density_Check(bpy.types.Operator):
 				bm.faces.ensure_lookup_table()
 				for x in selected_faces:
 					#set default values for multiplication of vectors (uv and physical area of object)
-					localArea = 0
+					local_area = 0
 					#UV Area calculating
 					#get uv-coordinates of verteces of current triangle
-					for trisIndex in range(0, len(bm.faces[x].loops) - 2):
-						loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
-						loopB = bm.faces[x].loops[trisIndex + 1][bm.loops.layers.uv.active].uv
-						loopC = bm.faces[x].loops[trisIndex + 2][bm.loops.layers.uv.active].uv
+					for tri_index in range(0, len(bm.faces[x].loops) - 2):
+						loop_a = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
+						loop_b = bm.faces[x].loops[tri_index + 1][bm.loops.layers.uv.active].uv
+						loop_c = bm.faces[x].loops[tri_index + 2][bm.loops.layers.uv.active].uv
 						#get multiplication of vectors of current triangle
-						multiVector = Vector2dMultiple(loopA, loopB, loopC)
+						multi_vector = utils.Vector2d_Multiply(loop_a, loop_b, loop_c)
 						#Increment area of current tri to total uv area
-						localArea += 0.5 * multiVector
+						local_area += 0.5 * multi_vector
 
-					gmArea += bpy.context.active_object.data.polygons[x].area
-					Area += localArea
+					gm_area += bpy.context.active_object.data.polygons[x].area
+					area += local_area
 
 				#delete duplicated object
 				bpy.ops.object.mode_set(mode='OBJECT')
 				bpy.ops.object.delete()
 
 		#Calculate TD and Display Value
-		if Area > 0:
+		if area > 0:
 			#UV Area in percents
-			UVspace = Area * 100
+			uv_space = area * 100
 			
 			#TexelDensity calculating from selected in panel texture size
-			if gmArea > 0:
-				TexelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
+			if gm_area > 0:
+				texel_density = ((largest_side / math.sqrt(aspect_ratio)) * math.sqrt(area))/(math.sqrt(gm_area)*100) / bpy.context.scene.unit_settings.scale_length
 			else:
-				TexelDensity = 0.001
+				texel_density = 0.001
 
 			#show calculated values on panel
-			td.uv_space = '%.3f' % round(UVspace, 3) + ' %'
+			td.uv_space = '%.3f' % round(uv_space, 3) + ' %'
 			if td.units == '0':
-				td.density = '%.3f' % round(TexelDensity, 3)
+				td.density = '%.3f' % round(texel_density, 3)
 			if td.units == '1':
-				td.density = '%.3f' % round(TexelDensity*100, 3)
+				td.density = '%.3f' % round(texel_density*100, 3)
 			if td.units == '2':
-				td.density = '%.3f' % round(TexelDensity*2.54, 3)
+				td.density = '%.3f' % round(texel_density*2.54, 3)
 			if td.units == '3':
-				td.density = '%.3f' % round(TexelDensity*30.48, 3)
+				td.density = '%.3f' % round(texel_density*30.48, 3)
 
 			self.report({'INFO'}, "TD is Calculated")
 
@@ -217,9 +165,9 @@ class Texel_Density_Set(bpy.types.Operator):
 		#Get Value for TD Set
 		destiny_set_filtered = td.density_set.replace(',', '.')
 		try:
-			densityNewValue = float(destiny_set_filtered)
-			if densityNewValue < 0.0001:
-				densityNewValue = 0.0001
+			density_new_value = float(destiny_set_filtered)
+			if density_new_value < 0.0001:
+				density_new_value = 0.0001
 		except:
 			self.report({'INFO'}, "Density value is wrong")
 			return {'CANCELLED'}
@@ -234,15 +182,15 @@ class Texel_Density_Set(bpy.types.Operator):
 
 				#save start selected in 3d view faces
 				start_selected_faces = []
-				for faceid in range (0, len(o.data.polygons)):
-					if bpy.context.active_object.data.polygons[faceid].select == True:
-						start_selected_faces.append(faceid)
+				for face_id in range (0, len(o.data.polygons)):
+					if bpy.context.active_object.data.polygons[face_id].select == True:
+						start_selected_faces.append(face_id)
 
 				bpy.ops.object.mode_set(mode='EDIT')
 
 				#If Set TD from UV Editor sync selection
 				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
-					SyncUVSelection()
+					utils.Sync_UV_Selection()
 
 				#Select All Polygons if Calculate TD per Object
 				if start_mode == 'OBJECT' or td.selected_faces == False:	
@@ -251,17 +199,17 @@ class Texel_Density_Set(bpy.types.Operator):
 
 				#Get current TD Value from object or faces
 				bpy.ops.object.texel_density_check()
-				densityCurrentValue = float(td.density)
-				if densityCurrentValue < 0.0001:
-					densityCurrentValue = 0.0001
+				density_current_value = float(td.density)
+				if density_current_value < 0.0001:
+					density_current_value = 0.0001
 
-				scaleFac = densityNewValue/densityCurrentValue
+				scale_fac = density_new_value/density_current_value
 				#check opened image editor window
-				IE_area = 0
+				ie_area = 0
 				flag_exist_area = False
 				for area in range(len(bpy.context.screen.areas)):
 					if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR':
-						IE_area = area
+						ie_area = area
 						flag_exist_area = True
 						bpy.context.screen.areas[area].type = 'CONSOLE'
 				
@@ -277,19 +225,19 @@ class Texel_Density_Set(bpy.types.Operator):
 				if bpy.context.scene.tool_settings.use_uv_select_sync == False:
 					bpy.ops.uv.select_all(action = 'SELECT')
 				
-				bpy.ops.transform.resize(value=(scaleFac, scaleFac, 1))
+				bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
 				if td.set_method == '0':
 					bpy.ops.uv.average_islands_scale()
 				bpy.context.area.type = 'VIEW_3D'
 				
 				if flag_exist_area == True:
-					bpy.context.screen.areas[IE_area].type = 'IMAGE_EDITOR'
+					bpy.context.screen.areas[ie_area].type = 'IMAGE_EDITOR'
 
 				bpy.ops.mesh.select_all(action='DESELECT')
 
 				bpy.ops.object.mode_set(mode='OBJECT')
-				for faceid in start_selected_faces:
-					bpy.context.active_object.data.polygons[faceid].select = True
+				for face_id in start_selected_faces:
+					bpy.context.active_object.data.polygons[face_id].select = True
 
 		#Select Objects Again
 		for x in start_selected_obj:

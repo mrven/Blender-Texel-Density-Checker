@@ -6,57 +6,57 @@ from bpy.props import (
         )
 
 
-def Filter_Gradient_OffsetX(self, context):
-	offsetXFiltered = bpy.context.preferences.addons[__name__].preferences.offsetX.replace(',', '.')
+def Filter_Gradient_Offset_X(self, context):
+	offset_x_filtered = bpy.context.preferences.addons[__package__].preferences.offset_x.replace(',', '.')
 	
 	try:
-		offsetX = int(offsetXFiltered)
+		offset_x = int(offset_x_filtered)
 	except:
-		offsetX = 20
+		offset_x = 20
 
-	if (offsetX < 0):
-		offsetX = 20
+	if (offset_x < 0):
+		offset_x = 20
 	
-	bpy.context.preferences.addons[__name__].preferences.offsetX = str(offsetX)
+	bpy.context.preferences.addons[__package__].preferences.offset_x = str(offset_x)
 
 
-def Filter_Gradient_OffsetY(self, context):	
-	offsetYFiltered = bpy.context.preferences.addons[__name__].preferences.offsetY.replace(',', '.')
+def Filter_Gradient_Offset_Y(self, context):	
+	offset_y_filtered = bpy.context.preferences.addons[__package__].preferences.offset_y.replace(',', '.')
 	
 	try:
-		offsetY = int(offsetYFiltered)
+		offset_y = int(offset_y_filtered)
 	except:
-		offsetY = 20
+		offset_y = 20
 
-	if (offsetY < 0):
-		offsetY = 20
+	if (offset_y < 0):
+		offset_y = 20
 
-	bpy.context.preferences.addons[__name__].preferences.offsetY = str(offsetY)
+	bpy.context.preferences.addons[__package__].preferences.offset_y = str(offset_y)
 
 
 class TD_Addon_Preferences(bpy.types.AddonPreferences):
 	bl_idname = __package__
 
-	offsetX: StringProperty(
+	offset_x: StringProperty(
 		name="Offset X",
 		description="Offset X from Anchor",
-		default="250", update = Filter_Gradient_OffsetX)
+		default="250", update = Filter_Gradient_Offset_X)
 
-	offsetY: StringProperty(
+	offset_y: StringProperty(
 		name="Offset Y",
 		description="Offset Y from Anchor",
-		default="20", update = Filter_Gradient_OffsetY)
+		default="20", update = Filter_Gradient_Offset_Y)
 
-	anchorPosList = (('LEFT_TOP','Left Top',''),('LEFT_BOTTOM','Left Bottom',''), 
+	anchor_pos_list = (('LEFT_TOP','Left Top',''),('LEFT_BOTTOM','Left Bottom',''), 
 						('RIGHT_TOP','Right Top',''), ('RIGHT_BOTTOM','Right Bottom',''))
-	anchorPos: EnumProperty(name="Anchor Position", items = anchorPosList, default = 'LEFT_BOTTOM')
+	anchor_pos: EnumProperty(name="Position Anchor", items = anchor_pos_list, default = 'LEFT_BOTTOM')
 
 	def draw(self, context):
 		layout = self.layout
-		layout.label(text='Texel Density Viewport Panel:')
-		layout.prop(self, 'anchorPos', expand=False)
-		layout.prop(self, 'offsetX')
-		layout.prop(self, 'offsetY')
+		layout.label(text='Texel Density Gradient Position:')
+		layout.prop(self, 'anchor_pos', expand=False)
+		layout.prop(self, 'offset_x')
+		layout.prop(self, 'offset_y')
 
 
 classes = (

@@ -8,31 +8,31 @@ bl_info = {
 	"category": "Object",
 }
 
-modulesNames = ['props', 'preferences', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui']
+modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui']
 
-modulesFullNames = {}
-for currentModuleName in modulesNames:
-	modulesFullNames[currentModuleName] = ('{}.{}'.format(__name__, currentModuleName))
+modules_full_names = {}
+for current_module_name in modules_names:
+	modules_full_names[current_module_name] = ('{}.{}'.format(__name__, current_module_name))
 
 import sys
 import importlib
 
 
-for currentModuleFullName in modulesFullNames.values():
-	if currentModuleFullName in sys.modules:
-		importlib.reload(sys.modules[currentModuleFullName])
+for current_module_full_name in modules_full_names.values():
+	if current_module_full_name in sys.modules:
+		importlib.reload(sys.modules[current_module_full_name])
 	else:
-		globals()[currentModuleFullName] = importlib.import_module(currentModuleFullName)
-		setattr(globals()[currentModuleFullName], 'modulesNames', modulesFullNames)
+		globals()[current_module_full_name] = importlib.import_module(current_module_full_name)
+		setattr(globals()[current_module_full_name], 'modulesNames', modules_full_names)
 
 def register():
-	for currentModuleName in modulesFullNames.values():
-		if currentModuleName in sys.modules:
-			if hasattr(sys.modules[currentModuleName], 'register'):
-				sys.modules[currentModuleName].register()
+	for current_module_name in modules_full_names.values():
+		if current_module_name in sys.modules:
+			if hasattr(sys.modules[current_module_name], 'register'):
+				sys.modules[current_module_name].register()
 
 def unregister():
-	for currentModuleName in modulesFullNames.values():
-		if currentModuleName in sys.modules:
-			if hasattr(sys.modules[currentModuleName], 'unregister'):
-				sys.modules[currentModuleName].unregister()
+	for current_module_name in modules_full_names.values():
+		if current_module_name in sys.modules:
+			if hasattr(sys.modules[current_module_name], 'unregister'):
+				sys.modules[current_module_name].unregister()

@@ -11,58 +11,58 @@ import random
 from gpu_extras.batch import batch_for_shader
 from bpy.props import StringProperty
 
-from . import core_td_operators
+from . import utils
 from . import props
 
 
-def draw_callback_px(self, context):
+def Draw_Callback_Px(self, context):
 	td = bpy.context.scene.td
 	"""Draw on the viewports"""
 	#drawing routine
 	#Get Parameters
 	region = bpy.context.region
-	screenTexelX = 2/region.width
-	screenTexelY = 2/region.height
+	screen_texel_x = 2/region.width
+	screen_texel_y = 2/region.height
 
-	fontSize = 12
-	offsetX = int(bpy.context.preferences.addons[__package__].preferences.offsetX)
-	offsetY = int(bpy.context.preferences.addons[__package__].preferences.offsetY)
-	anchorPos = bpy.context.preferences.addons[__package__].preferences.anchorPos
+	font_size = 12
+	offset_x = int(bpy.context.preferences.addons[__package__].preferences.offset_x)
+	offset_y = int(bpy.context.preferences.addons[__package__].preferences.offset_y)
+	anchor_pos = bpy.context.preferences.addons[__package__].preferences.anchor_pos
 	font_id = 0
-	blf.size(font_id, fontSize, 72)
+	blf.size(font_id, font_size, 72)
 	blf.color(font_id, 1, 1, 1, 1)
 
 	bake_vc_min_td = float(td.bake_vc_min_td)
 	bake_vc_max_td = float(td.bake_vc_max_td)
 
 	#Calculate Text Position from Anchor
-	if anchorPos == 'LEFT_BOTTOM':
-		fontStartPosX = 0 + offsetX
-		fontStartPosY = 0 + offsetY
-	elif anchorPos == 'LEFT_TOP':
-		fontStartPosX = 0 + offsetX
-		fontStartPosY = region.height - offsetY - 15
-	elif anchorPos == 'RIGHT_BOTTOM':
-		fontStartPosX = region.width - offsetX - 250
-		fontStartPosY = 0 + offsetY
+	if anchor_pos == 'LEFT_BOTTOM':
+		font_start_pos_x = 0 + offset_x
+		font_start_pos_y = 0 + offset_y
+	elif anchor_pos == 'LEFT_TOP':
+		font_start_pos_x = 0 + offset_x
+		font_start_pos_y = region.height - offset_y - 15
+	elif anchor_pos == 'RIGHT_BOTTOM':
+		font_start_pos_x = region.width - offset_x - 250
+		font_start_pos_y = 0 + offset_y
 	else:
-		fontStartPosX = region.width - offsetX - 250
-		fontStartPosY = region.height - offsetY - 15
+		font_start_pos_x = region.width - offset_x - 250
+		font_start_pos_y = region.height - offset_y - 15
 
 	#Draw TD Values in Viewport via BLF
-	blf.position(font_id, fontStartPosX, fontStartPosY + 18, 0)
+	blf.position(font_id, font_start_pos_x, font_start_pos_y + 18, 0)
 	blf.draw(font_id, str(round(bake_vc_min_td, 3)))
 
-	blf.position(font_id, fontStartPosX + 115, fontStartPosY + 18, 0)
+	blf.position(font_id, font_start_pos_x + 115, font_start_pos_y + 18, 0)
 	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.5 + bake_vc_min_td, 3)))
 
-	blf.position(font_id, fontStartPosX + 240, fontStartPosY + 18, 0)
+	blf.position(font_id, font_start_pos_x + 240, font_start_pos_y + 18, 0)
 	blf.draw(font_id, str(round(bake_vc_max_td, 3)))
 
-	blf.position(font_id, fontStartPosX + 52, fontStartPosY - 15, 0)
+	blf.position(font_id, font_start_pos_x + 52, font_start_pos_y - 15, 0)
 	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.25 + bake_vc_min_td, 3)))
 
-	blf.position(font_id, fontStartPosX + 177, fontStartPosY - 15, 0)
+	blf.position(font_id, font_start_pos_x + 177, font_start_pos_y - 15, 0)
 	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.75 + bake_vc_min_td, 3)))
 
 	#Draw Gradient via shader
@@ -78,8 +78,8 @@ def draw_callback_px(self, context):
 	'''
 
 	fragment_shader = '''
-	uniform float posXMin;
-	uniform float posXMax;
+	uniform float pos_x_min;
+	uniform float pos_x_max;
 
 	in vec3 pos;
 
@@ -91,51 +91,51 @@ def draw_callback_px(self, context):
 		vec4 y = vec4(1.0f, 1.0f, 0.0f, 1.0f);
 		vec4 r = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-		float posX25 = (posXMax - posXMin) * 0.25 + posXMin;
-		float posX50 = (posXMax - posXMin) * 0.5 + posXMin;
-		float posX75 = (posXMax - posXMin) * 0.75 + posXMin;
+		float pos_x_25 = (pos_x_max - pos_x_min) * 0.25 + pos_x_min;
+		float pos_x_50 = (pos_x_max - pos_x_min) * 0.5 + pos_x_min;
+		float pos_x_75 = (pos_x_max - pos_x_min) * 0.75 + pos_x_min;
 
-		float blendColor1 = (pos.x - posXMin)/(posX25 - posXMin);
-		float blendColor2 = (pos.x - posX25)/(posX50 - posX25);
-		float blendColor3 = (pos.x - posX50)/(posX75 - posX50);
-		float blendColor4 = (pos.x - posX75)/(posXMax - posX75);
+		float blendColor1 = (pos.x - pos_x_min)/(pos_x_25 - pos_x_min);
+		float blendColor2 = (pos.x - pos_x_25)/(pos_x_50 - pos_x_25);
+		float blendColor3 = (pos.x - pos_x_50)/(pos_x_75 - pos_x_50);
+		float blendColor4 = (pos.x - pos_x_75)/(pos_x_max - pos_x_75);
 
-		gl_FragColor = (c * blendColor1 + b * (1 - blendColor1)) * step(pos.x, posX25) +
-						(g * blendColor2 + c * (1 - blendColor2)) * step(pos.x, posX50) * step(posX25, pos.x) +
-						(y * blendColor3 + g * (1 - blendColor3)) * step(pos.x, posX75) * step(posX50, pos.x) +
-						(r * blendColor4 + y * (1 - blendColor4)) * step(pos.x, posXMax) * step(posX75, pos.x);
+		gl_FragColor = (c * blendColor1 + b * (1 - blendColor1)) * step(pos.x, pos_x_25) +
+						(g * blendColor2 + c * (1 - blendColor2)) * step(pos.x, pos_x_50) * step(pos_x_25, pos.x) +
+						(y * blendColor3 + g * (1 - blendColor3)) * step(pos.x, pos_x_75) * step(pos_x_50, pos.x) +
+						(r * blendColor4 + y * (1 - blendColor4)) * step(pos.x, pos_x_max) * step(pos_x_75, pos.x);
 	}
 	'''
 
-	gradientXMin = screenTexelX * offsetX
-	gradientXMax = screenTexelX * (offsetX + 250)
-	gradientYMin = screenTexelY * offsetY
-	gradientYMax = screenTexelY * (offsetY + 15)
+	gradient_x_min = screen_texel_x * offset_x
+	gradient_x_max = screen_texel_x * (offset_x + 250)
+	gradient_y_min = screen_texel_y * offset_y
+	gradient_y_max = screen_texel_y * (offset_y + 15)
 
-	if anchorPos == 'LEFT_BOTTOM':
+	if anchor_pos == 'LEFT_BOTTOM':
 		vertices = (
-			(-1.0 + gradientXMin, -1.0 + gradientYMax), (-1.0 + gradientXMax, -1.0 + gradientYMax),
-			(-1.0 + gradientXMin, -1.0 + gradientYMin), (-1.0 + gradientXMax, -1.0 + gradientYMin))
-		posXMin = -1.0 + gradientXMin
-		posXMax = -1.0 + gradientXMax
-	elif anchorPos == 'LEFT_TOP':
+			(-1.0 + gradient_x_min, -1.0 + gradient_y_max), (-1.0 + gradient_x_max, -1.0 + gradient_y_max),
+			(-1.0 + gradient_x_min, -1.0 + gradient_y_min), (-1.0 + gradient_x_max, -1.0 + gradient_y_min))
+		pos_x_min = -1.0 + gradient_x_min
+		pos_x_max = -1.0 + gradient_x_max
+	elif anchor_pos == 'LEFT_TOP':
 		vertices = (
-			(-1.0 + gradientXMin, 1.0 - gradientYMax), (-1.0 + gradientXMax, 1.0 - gradientYMax),
-			(-1.0 + gradientXMin, 1.0 - gradientYMin), (-1.0 + gradientXMax, 1.0 - gradientYMin))
-		posXMin = -1.0 + gradientXMin
-		posXMax = -1.0 +gradientXMax
-	elif anchorPos == 'RIGHT_BOTTOM':
+			(-1.0 + gradient_x_min, 1.0 - gradient_y_max), (-1.0 + gradient_x_max, 1.0 - gradient_y_max),
+			(-1.0 + gradient_x_min, 1.0 - gradient_y_min), (-1.0 + gradient_x_max, 1.0 - gradient_y_min))
+		pos_x_min = -1.0 + gradient_x_min
+		pos_x_max = -1.0 +gradient_x_max
+	elif anchor_pos == 'RIGHT_BOTTOM':
 		vertices = (
-			(1.0 - gradientXMin, -1.0 + gradientYMax), (1.0 - gradientXMax, -1.0 + gradientYMax),
-			(1.0 - gradientXMin, -1.0 + gradientYMin), (1.0 - gradientXMax, -1.0 + gradientYMin))
-		posXMin = 1.0 - gradientXMax
-		posXMax = 1.0 - gradientXMin
+			(1.0 - gradient_x_min, -1.0 + gradient_y_max), (1.0 - gradient_x_max, -1.0 + gradient_y_max),
+			(1.0 - gradient_x_min, -1.0 + gradient_y_min), (1.0 - gradient_x_max, -1.0 + gradient_y_min))
+		pos_x_min = 1.0 - gradient_x_max
+		pos_x_max = 1.0 - gradient_x_min
 	else:
 		vertices = (
-			(1.0 - gradientXMin, 1.0 - gradientYMax), (1.0 - gradientXMax, 1.0 - gradientYMax),
-			(1.0 - gradientXMin, 1.0 - gradientYMin), (1.0 - gradientXMax, 1.0 - gradientYMin))
-		posXMin = 1.0 - gradientXMax
-		posXMax = 1.0 - gradientXMin
+			(1.0 - gradient_x_min, 1.0 - gradient_y_max), (1.0 - gradient_x_max, 1.0 - gradient_y_max),
+			(1.0 - gradient_x_min, 1.0 - gradient_y_min), (1.0 - gradient_x_max, 1.0 - gradient_y_min))
+		pos_x_min = 1.0 - gradient_x_max
+		pos_x_max = 1.0 - gradient_x_min
 
 
 	indices = (
@@ -145,116 +145,9 @@ def draw_callback_px(self, context):
 	batch = batch_for_shader(shader, 'TRIS', {"position": vertices}, indices=indices)
 
 	shader.bind()
-	shader.uniform_float("posXMin", posXMin)
-	shader.uniform_float("posXMax", posXMax)
+	shader.uniform_float("pos_x_min", pos_x_min)
+	shader.uniform_float("pos_x_max", pos_x_max)
 	batch.draw(shader)
-
-
-def Calculate_TD_To_List():
-	td = bpy.context.scene.td
-	calculated_obj_td = []
-
-	#save current mode and active object
-	start_active_obj = bpy.context.active_object
-	start_mode = bpy.context.object.mode
-
-	#set default values
-	Area=0
-	gmArea = 0
-	textureSizeCurX = 1024
-	textureSizeCurY = 1024
-	
-	#Get texture size from panel
-	if td.texture_size == '0':
-		textureSizeCurX = 512
-		textureSizeCurY = 512
-	if td.texture_size == '1':
-		textureSizeCurX = 1024
-		textureSizeCurY = 1024
-	if td.texture_size == '2':
-		textureSizeCurX = 2048
-		textureSizeCurY = 2048
-	if td.texture_size == '3':
-		textureSizeCurX = 4096
-		textureSizeCurY = 4096
-	if td.texture_size == '4':
-		try:
-			textureSizeCurX = int(td.custom_width)
-		except:
-			textureSizeCurX = 1024
-		try:
-			textureSizeCurY = int(td.custom_height)
-		except:
-			textureSizeCurY = 1024
-
-	if textureSizeCurX < 1 or textureSizeCurY < 1:
-		textureSizeCurX = 1024
-		textureSizeCurY = 1024
-
-	bpy.ops.object.mode_set(mode='OBJECT')
-
-	face_count = len(bpy.context.active_object.data.polygons)
-
-	#Duplicate and Triangulate Object
-	bpy.ops.object.duplicate()
-	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-
-	aspectRatio = textureSizeCurX / textureSizeCurY;
-	if aspectRatio < 1:
-		aspectRatio = 1 / aspectRatio
-	largestSide = textureSizeCurX if textureSizeCurX > textureSizeCurY else textureSizeCurY;
-
-	#get bmesh from active object		
-	bpy.ops.object.mode_set(mode='EDIT')
-	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
-	bm.faces.ensure_lookup_table()
-	
-	for x in range(0, face_count):
-		Area = 0
-		#UV Area calculating
-		#get uv-coordinates of verteces of current triangle
-		for trisIndex in range(0, len(bm.faces[x].loops) - 2):
-			loopA = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
-			loopB = bm.faces[x].loops[trisIndex + 1][bm.loops.layers.uv.active].uv
-			loopC = bm.faces[x].loops[trisIndex + 2][bm.loops.layers.uv.active].uv
-			#get multiplication of vectors of current triangle
-			multiVector = core_td_operators.Vector2dMultiple(loopA, loopB, loopC)
-			#Increment area of current tri to total uv area
-			Area += 0.5 * multiVector
-
-		gmArea = bpy.context.active_object.data.polygons[x].area
-
-		#TexelDensity calculating from selected in panel texture size
-		if gmArea > 0 and Area > 0:
-			texelDensity = ((largestSide / math.sqrt(aspectRatio)) * math.sqrt(Area))/(math.sqrt(gmArea)*100) / bpy.context.scene.unit_settings.scale_length
-		else:
-			texelDensity = 0.001
-
-		#show calculated values on panel
-		if td.units == '0':
-			texelDensity = '%.3f' % round(texelDensity, 3)
-		if td.units == '1':
-			texelDensity = '%.3f' % round(texelDensity*100, 3)
-		if td.units == '2':
-			texelDensity = '%.3f' % round(texelDensity*2.54, 3)
-		if td.units == '3':
-			texelDensity = '%.3f' % round(texelDensity*30.48, 3)
-
-		calculated_obj_td.append(float(texelDensity))
-
-	#delete duplicated object
-	bpy.ops.object.mode_set(mode='OBJECT')
-	
-	bpy.ops.object.delete()
-	bpy.context.view_layer.objects.active = start_active_obj
-	
-	bpy.ops.object.mode_set(mode=start_mode)
-
-	return calculated_obj_td
-
-
-def Saturate(val):
-	return max(min(val, 1), 0)
 
 
 class Checker_Assign(bpy.types.Operator):
@@ -322,23 +215,23 @@ class Checker_Assign(bpy.types.Operator):
 		if flag_exist_material == False:
 			td_checker_mat = bpy.data.materials.new('TD_Checker')
 			td_checker_mat.use_nodes = True
-			Nodes = td_checker_mat.node_tree.nodes
-			Links = td_checker_mat.node_tree.links
-			MixNode = Nodes.new(type="ShaderNodeMixRGB")
-			MixNode.location = (-200,200)
-			MixNode.blend_type = 'COLOR'
-			MixNode.inputs['Fac'].default_value = 1
-			Links.new(MixNode.outputs["Color"], Nodes['Principled BSDF'].inputs['Base Color'])
+			nodes = td_checker_mat.node_tree.nodes
+			links = td_checker_mat.node_tree.links
+			mix_node = nodes.new(type="ShaderNodeMixRGB")
+			mix_node.location = (-200,200)
+			mix_node.blend_type = 'COLOR'
+			mix_node.inputs['Fac'].default_value = 1
+			links.new(mix_node.outputs["Color"], nodes['Principled BSDF'].inputs['Base Color'])
 
-			TexNode = Nodes.new('ShaderNodeTexImage')
-			TexNode.location = (-500,300)
-			TexNode.image = bpy.data.images['TD_Checker']
-			Links.new(TexNode.outputs["Color"], MixNode.inputs['Color1'])
+			tex_node = nodes.new('ShaderNodeTexImage')
+			tex_node.location = (-500,300)
+			tex_node.image = bpy.data.images['TD_Checker']
+			links.new(tex_node.outputs["Color"], mix_node.inputs['Color1'])
 
-			VcNode = Nodes.new(type="ShaderNodeAttribute")
-			VcNode.location = (-500, 0)
-			VcNode.attribute_name = "td_vis"
-			Links.new(VcNode.outputs["Color"], MixNode.inputs['Color2'])			
+			vc_node = nodes.new(type="ShaderNodeAttribute")
+			vc_node.location = (-500, 0)
+			vc_node.attribute_name = "td_vis"
+			links.new(vc_node.outputs["Color"], mix_node.inputs['Color2'])			
 		
 		bpy.ops.object.mode_set(mode = 'OBJECT')
 
@@ -378,7 +271,7 @@ class Checker_Assign(bpy.types.Operator):
 								face_map_composed_name += str(mat)
 
 								if obj.data.materials[mat] == None:
-									face_map_composed_name += 'None'
+									face_map_composed_name += '_None'
 								else:
 									face_map_composed_name += '_' + obj.data.materials[mat].name
 								obj.face_maps.active.name = face_map_composed_name
@@ -485,10 +378,10 @@ class Checker_Restore(bpy.types.Operator):
 		return {'FINISHED'}
 
 
-class Clear_Object_List(bpy.types.Operator):
-	"""Clear List of stored objects"""
-	bl_idname = "object.clear_object_list"
-	bl_label = "Clear List of Stored Objects"
+class Clear_Checker_Face_Maps(bpy.types.Operator):
+	"""Clear Stored Checker Face Maps"""
+	bl_idname = "object.clear_checker_face_maps"
+	bl_label = "Clear Stored Checker Face Maps"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
@@ -558,12 +451,12 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						if f.select:
 							start_selected_faces.append(f.index)
 
-				shouldAddVC = True
+				should_add_vc = True
 				for vc in x.data.vertex_colors:
 					if vc.name == "td_vis":
-						shouldAddVC = False
+						should_add_vc = False
 
-				if shouldAddVC:
+				if should_add_vc:
 					bpy.ops.mesh.vertex_color_add()
 					x.data.vertex_colors.active.name = "td_vis"
 
@@ -571,7 +464,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 				face_list = []
 				if self.mode == "TD":
-					face_list = Calculate_TD_To_List()
+					face_list = utils.Calculate_TD_To_List()
 				if self.mode == "UV":
 					face_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
 
@@ -580,25 +473,26 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				bm.faces.ensure_lookup_table()
 
 				if self.mode == "TD":
-					for faceid in range(0, face_count):
-						remaped_td = (face_list[faceid] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
-						remaped_td = Saturate(remaped_td)
+					for face_id in range(0, face_count):
+						remaped_td = (face_list[face_id] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
+						remaped_td = utils.Saturate(remaped_td)
 						hue = (1 - remaped_td) * 0.67
 						color = colorsys.hsv_to_rgb(hue, 1, 1)
 						color4 = (color[0], color[1], color[2], 1)
 						
-						for loop in bm.faces[faceid].loops:
+						for loop in bm.faces[face_id].loops:
 							loop[bm.loops.layers.color.active] = color4
 
 				if self.mode == "UV":
-					for uvIsland in face_list:
-						randomHue = random.randrange(0, 10, 1)/10
-						randomValue = random.randrange(4, 10, 1)/10
-						color = colorsys.hsv_to_rgb(randomHue, 1, randomValue)
+					for uv_island in face_list:
+						random_hue = random.randrange(0, 10, 1)/10
+						random_value = random.randrange(2, 10, 1)/10
+						random_saturation = random.randrange(7, 10, 1)/10
+						color = colorsys.hsv_to_rgb(random_hue, random_saturation, random_value)
 						color4 = (color[0], color[1], color[2], 1)
 
-						for faceID in uvIsland:
-							for loop in bm.faces[faceID].loops:
+						for face_id in uv_island:
+							for loop in bm.faces[face_id].loops:
 								loop[bm.loops.layers.color.active] = color4
 
 				bpy.ops.object.mode_set(mode='OBJECT')
@@ -607,8 +501,8 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 					bpy.ops.object.mode_set(mode='EDIT')
 					bpy.ops.mesh.select_all(action='DESELECT')
 					bpy.ops.object.mode_set(mode='OBJECT')
-					for faceid in start_selected_faces:
-						bpy.context.active_object.data.polygons[faceid].select = True
+					for face_id in start_selected_faces:
+						bpy.context.active_object.data.polygons[face_id].select = True
 
 		bpy.ops.object.select_all(action='DESELECT')
 		for x in start_selected_obj:
@@ -660,7 +554,7 @@ class Clear_TD_VC(bpy.types.Operator):
 classes = (
     Checker_Assign,
 	Checker_Restore,
-	Clear_Object_List,
+	Clear_Checker_Face_Maps,
 	Bake_TD_UV_to_VC,
 	Clear_TD_VC,
 )	
@@ -672,9 +566,5 @@ def register():
 
 
 def unregister():
-	if draw_info["handler"] != None:
-		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
-		draw_info["handler"] = None
-
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
