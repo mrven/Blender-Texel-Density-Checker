@@ -149,35 +149,35 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			split = row.split(factor=0.33, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="20.48").TDValue="20.48"
+				c.operator("object.preset_set", text="20.48").td_value="20.48"
 			if td.units == '1':
-				c.operator("object.preset_set", text="2048").TDValue="2048"
+				c.operator("object.preset_set", text="2048").td_value="2048"
 			if td.units == '2':
-				c.operator("object.preset_set", text="52.0192").TDValue="52.0192"
+				c.operator("object.preset_set", text="52.0192").td_value="52.0192"
 			if td.units == '3':
-				c.operator("object.preset_set", text="624.2304").TDValue="624.2304"
+				c.operator("object.preset_set", text="624.2304").td_value="624.2304"
 			
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="10.24").TDValue="10.24"
+				c.operator("object.preset_set", text="10.24").td_value="10.24"
 			if td.units == '1':
-				c.operator("object.preset_set", text="1024").TDValue="1024"
+				c.operator("object.preset_set", text="1024").td_value="1024"
 			if td.units == '2':
-				c.operator("object.preset_set", text="26.0096").TDValue="26.0096"
+				c.operator("object.preset_set", text="26.0096").td_value="26.0096"
 			if td.units == '3':
-				c.operator("object.preset_set", text="312.1152").TDValue="312.1152"
+				c.operator("object.preset_set", text="312.1152").td_value="312.1152"
 
 			split = split.split()
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="5.12").TDValue="5.12"
+				c.operator("object.preset_set", text="5.12").td_value="5.12"
 			if td.units == '1':
-				c.operator("object.preset_set", text="512").TDValue="512"
+				c.operator("object.preset_set", text="512").td_value="512"
 			if td.units == '2':
-				c.operator("object.preset_set", text="13.0048").TDValue="13.0048"
+				c.operator("object.preset_set", text="13.0048").td_value="13.0048"
 			if td.units == '3':
-				c.operator("object.preset_set", text="156.0576").TDValue="156.0576"
+				c.operator("object.preset_set", text="156.0576").td_value="156.0576"
 				
 			#--Aligner Preset Buttons----
 			row = layout.row()
@@ -186,44 +186,44 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			split = row.split(factor=0.33, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="2.56").TDValue="2.56"
+				c.operator("object.preset_set", text="2.56").td_value="2.56"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="256").TDValue="256"
+				c.operator("object.preset_set", text="256").td_value="256"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="6.5024").TDValue="6.5024"
+				c.operator("object.preset_set", text="6.5024").td_value="6.5024"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="78.0288").TDValue="78.0288"
+				c.operator("object.preset_set", text="78.0288").td_value="78.0288"
 				
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="1.28").TDValue="1.28"
+				c.operator("object.preset_set", text="1.28").td_value="1.28"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="128").TDValue="128"
+				c.operator("object.preset_set", text="128").td_value="128"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="3.2512").TDValue="3.2512"
+				c.operator("object.preset_set", text="3.2512").td_value="3.2512"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="39.0144").TDValue="39.0144"
+				c.operator("object.preset_set", text="39.0144").td_value="39.0144"
 				
 			split = split.split()
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="0.64").TDValue="0.64"
+				c.operator("object.preset_set", text="0.64").td_value="0.64"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="64").TDValue="64"
+				c.operator("object.preset_set", text="64").td_value="64"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="1.6256").TDValue="1.6256"
+				c.operator("object.preset_set", text="1.6256").td_value="1.6256"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="19.5072").TDValue="19.5072"
+				c.operator("object.preset_set", text="19.5072").td_value="19.5072"
 				
 			
 			if context.object.mode == 'OBJECT':
@@ -406,44 +406,44 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			split = row.split(factor=0.33, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="20.48").TDValue="20.48"
+				c.operator("object.preset_set", text="20.48").td_value="20.48"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="2048").TDValue="2048"
+				c.operator("object.preset_set", text="2048").td_value="2048"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="52.0192").TDValue="52.0192"
+				c.operator("object.preset_set", text="52.0192").td_value="52.0192"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="624.2304").TDValue="624.2304"
+				c.operator("object.preset_set", text="624.2304").td_value="624.2304"
 				
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="10.24").TDValue="10.24"
+				c.operator("object.preset_set", text="10.24").td_value="10.24"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="1024").TDValue="1024"
+				c.operator("object.preset_set", text="1024").td_value="1024"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="26.0096").TDValue="26.0096"
+				c.operator("object.preset_set", text="26.0096").td_value="26.0096"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="312.1152").TDValue="312.1152"
+				c.operator("object.preset_set", text="312.1152").td_value="312.1152"
 				
 			split = split.split()
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="5.12").TDValue="5.12"
+				c.operator("object.preset_set", text="5.12").td_value="5.12"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="512").TDValue="512"
+				c.operator("object.preset_set", text="512").td_value="512"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="13.0048").TDValue="13.0048"
+				c.operator("object.preset_set", text="13.0048").td_value="13.0048"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="156.0576").TDValue="156.0576"
+				c.operator("object.preset_set", text="156.0576").td_value="156.0576"
 				
 				
 			#--Aligner Preset Buttons----
@@ -453,44 +453,44 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			split = row.split(factor=0.33, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="2.56").TDValue="2.56"
+				c.operator("object.preset_set", text="2.56").td_value="2.56"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="256").TDValue="256"
+				c.operator("object.preset_set", text="256").td_value="256"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="6.5024").TDValue="6.5024"
+				c.operator("object.preset_set", text="6.5024").td_value="6.5024"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="78.0288").TDValue="78.0288"
+				c.operator("object.preset_set", text="78.0288").td_value="78.0288"
 				
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="1.28").TDValue="1.28"
+				c.operator("object.preset_set", text="1.28").td_value="1.28"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="128").TDValue="128"
+				c.operator("object.preset_set", text="128").td_value="128"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="3.2512").TDValue="3.2512"
+				c.operator("object.preset_set", text="3.2512").td_value="3.2512"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="39.0144").TDValue="39.0144"
+				c.operator("object.preset_set", text="39.0144").td_value="39.0144"
 				
 			split = split.split()
 			c = split.column()
 			if td.units == '0':
-				c.operator("object.preset_set", text="0.64").TDValue="0.64"
+				c.operator("object.preset_set", text="0.64").td_value="0.64"
 				
 			if td.units == '1':
-				c.operator("object.preset_set", text="64").TDValue="64"
+				c.operator("object.preset_set", text="64").td_value="64"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="1.6256").TDValue="1.6256"
+				c.operator("object.preset_set", text="1.6256").td_value="1.6256"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="19.5072").TDValue="19.5072"
+				c.operator("object.preset_set", text="19.5072").td_value="19.5072"
 				
 				
 			layout.separator()
