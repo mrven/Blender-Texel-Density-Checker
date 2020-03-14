@@ -252,28 +252,37 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			
 			layout.separator()
 			row = layout.row()
-			row.label(text="TD to Vertex Colors")
-			row = layout.row()
-			row.label(text="Min/Max TD Values:")
-			#Split row
-			row = layout.row()
-			c = row.column()
-			row = c.row()
-			split = row.split(factor=0.5, align=True)
-			c = split.column()
-			c.prop(td, "bake_vc_min_td")
-			split = split.split()
-			c = split.column()
-			c.prop(td, "bake_vc_max_td")
-			#----
+			row.label(text="Bake to Vertex Colors Mode:")
 			layout.separator()
 			row = layout.row()
-			row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+			row.prop(td, 'bake_vc_mode', expand=False)
 			layout.separator()
-			row = layout.row()
-			row.operator("object.bake_td_uv_to_vc", text="TD to Vertex Color").mode = 'TD'
-			row = layout.row()
-			row.operator("object.bake_td_uv_to_vc", text="UV to Vertex Color").mode = 'UV'
+			if td.bake_vc_mode == "TD_TO_VC":
+				row = layout.row()
+				row.label(text="Min/Max TD Values:")
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.5, align=True)
+				c = split.column()
+				c.prop(td, "bake_vc_min_td")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "bake_vc_max_td")
+				#----
+				layout.separator()
+				row = layout.row()
+				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+				layout.separator()
+				row = layout.row()
+				row.operator("object.bake_td_uv_to_vc", text="TD to Vertex Color")
+			
+			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				row = layout.row()
+				row.operator("object.bake_td_uv_to_vc", text="UV to Vertex Color")
+
+			layout.separator()
 			row = layout.row()
 			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
 

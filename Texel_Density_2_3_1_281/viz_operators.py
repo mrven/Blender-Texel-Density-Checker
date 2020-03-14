@@ -418,8 +418,6 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 	bl_idname = "object.bake_td_uv_to_vc"
 	bl_label = "Bake TD to Vertex Color"
 	bl_options = {'REGISTER', 'UNDO'}
-
-	mode: StringProperty()
 	
 	def execute(self, context):
 		td = context.scene.td
@@ -432,7 +430,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bake_vc_min_td = float(td.bake_vc_min_td)
 		bake_vc_max_td = float(td.bake_vc_max_td)
 		
-		if (bake_vc_min_td == bake_vc_max_td) and self.mode == "TD":
+		if (bake_vc_min_td == bake_vc_max_td) and td.bake_vc_mode == "TD_TO_VC":
 			self.report({'INFO'}, "Value Range is wrong")
 			return {'CANCELLED'}
 
@@ -463,16 +461,16 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				x.data.vertex_colors["td_vis"].active = True
 
 				face_list = []
-				if self.mode == "TD":
+				if td.bake_vc_mode == "TD_TO_VC":
 					face_list = utils.Calculate_TD_To_List()
-				if self.mode == "UV":
+				if td.bake_vc_mode == "UV_ISLANDS_TO_VC":
 					face_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
 
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
 				bm.faces.ensure_lookup_table()
 
-				if self.mode == "TD":
+				if td.bake_vc_mode == "TD_TO_VC":
 					for face_id in range(0, face_count):
 						remaped_td = (face_list[face_id] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
 						remaped_td = utils.Saturate(remaped_td)
@@ -483,7 +481,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						for loop in bm.faces[face_id].loops:
 							loop[bm.loops.layers.color.active] = color4
 
-				if self.mode == "UV":
+				if td.bake_vc_mode == "UV_ISLANDS_TO_VC":
 					for uv_island in face_list:
 						random_hue = random.randrange(0, 10, 1)/10
 						random_value = random.randrange(2, 10, 1)/10
@@ -511,7 +509,8 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode = start_mode)
 		bpy.context.space_data.shading.color_type = 'VERTEX'
 
-		props.Show_Gradient(self, context)
+		if td.bake_vc_mode == "TD_TO_VC":
+			props.Show_Gradient(self, context)
 
 		return {'FINISHED'}
 

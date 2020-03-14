@@ -105,6 +105,16 @@ def Filter_Bake_VC_Max_TD(self, context):
 	td.bake_vc_max_td = str(bake_vc_max_td)	
 
 
+def Change_Bake_VC_Mode(self, context):
+	td = context.scene.td
+
+	if td.bake_vc_mode == "TD_TO_VC":
+		Show_Gradient(self, context)
+	else:
+		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
+		draw_info["handler"] = None
+
+
 draw_info = {
 	"handler": None,
 }
@@ -189,6 +199,9 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		description="Show Gradient in Viewport",
 		default = False,
 		update = Show_Gradient)
+
+	bake_vc_mode_list = (('TD_TO_VC','Texel Density',''),('UV_ISLANDS_TO_VC','UV Islands',''))
+	bake_vc_mode: EnumProperty(name="", items = bake_vc_mode_list, update = Change_Bake_VC_Mode)
 
 
 classes = (
