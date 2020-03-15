@@ -77,7 +77,7 @@ def Change_Texture_Type(self, context):
 
 def Filter_Bake_VC_Min_TD(self, context):
 	td = context.scene.td
-	bake_vc_min_td_filtered = td.bake_vc_min_td.replace(',', '.')
+	bake_vc_min_td_filtered = td['bake_vc_min_td'].replace(',', '.')
 	
 	try:
 		bake_vc_min_td = float(bake_vc_min_td_filtered)
@@ -87,12 +87,14 @@ def Filter_Bake_VC_Min_TD(self, context):
 	if (bake_vc_min_td<0.01):
 		bake_vc_min_td = 0.01
 
-	td.bake_vc_min_td = str(bake_vc_min_td)
+	td['bake_vc_min_td'] = str(bake_vc_min_td)
+	bpy.ops.object.bake_td_uv_to_vc()
+	return None
 
 
 def Filter_Bake_VC_Max_TD(self, context):
 	td = context.scene.td
-	bake_vc_max_td_filtered = td.bake_vc_max_td.replace(',', '.')
+	bake_vc_max_td_filtered = td['bake_vc_max_td'].replace(',', '.')
 	
 	try:
 		bake_vc_max_td = float(bake_vc_max_td_filtered)
@@ -102,7 +104,9 @@ def Filter_Bake_VC_Max_TD(self, context):
 	if (bake_vc_max_td<0.01):
 		bake_vc_max_td = 0.01
 
-	td.bake_vc_max_td = str(bake_vc_max_td)	
+	td['bake_vc_max_td'] = str(bake_vc_max_td)	
+	bpy.ops.object.bake_td_uv_to_vc()
+	return None
 
 
 def Change_Bake_VC_Mode(self, context):

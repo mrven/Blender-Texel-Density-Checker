@@ -7,7 +7,7 @@ from bpy.props import (
 
 
 def Filter_Gradient_Offset_X(self, context):
-	offset_x_filtered = bpy.context.preferences.addons[__package__].preferences.offset_x.replace(',', '.')
+	offset_x_filtered = bpy.context.preferences.addons[__package__].preferences['offset_x'].replace(',', '.')
 	
 	try:
 		offset_x = int(offset_x_filtered)
@@ -17,11 +17,12 @@ def Filter_Gradient_Offset_X(self, context):
 	if (offset_x < 0):
 		offset_x = 20
 	
-	bpy.context.preferences.addons[__package__].preferences.offset_x = str(offset_x)
+	bpy.context.preferences.addons[__package__].preferences['offset_x'] = str(offset_x)
+	return None
 
 
 def Filter_Gradient_Offset_Y(self, context):	
-	offset_y_filtered = bpy.context.preferences.addons[__package__].preferences.offset_y.replace(',', '.')
+	offset_y_filtered = bpy.context.preferences.addons[__package__].preferences['offset_y'].replace(',', '.')
 	
 	try:
 		offset_y = int(offset_y_filtered)
@@ -31,7 +32,8 @@ def Filter_Gradient_Offset_Y(self, context):
 	if (offset_y < 0):
 		offset_y = 20
 
-	bpy.context.preferences.addons[__package__].preferences.offset_y = str(offset_y)
+	bpy.context.preferences.addons[__package__].preferences['offset_y'] = str(offset_y)
+	return None
 
 
 class TD_Addon_Preferences(bpy.types.AddonPreferences):
