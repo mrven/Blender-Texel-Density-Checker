@@ -39,18 +39,8 @@ class Texel_Density_Check(bpy.types.Operator):
 			texture_size_cur_x = 4096
 			texture_size_cur_y = 4096
 		if td.texture_size == '4':
-			try:
-				texture_size_cur_x = int(td.custom_width)
-			except:
-				texture_size_cur_x = 1024
-			try:
-				texture_size_cur_y = int(td.custom_height)
-			except:
-				texture_size_cur_y = 1024
-
-		if texture_size_cur_x < 1 or texture_size_cur_y < 1:
-			texture_size_cur_x = 1024
-			texture_size_cur_y = 1024
+			texture_size_cur_x = int(td.custom_width)
+			texture_size_cur_y = int(td.custom_height)
 
 		aspect_ratio = texture_size_cur_x / texture_size_cur_y;
 		if aspect_ratio < 1:
@@ -163,11 +153,8 @@ class Texel_Density_Set(bpy.types.Operator):
 		start_mode = bpy.context.object.mode
 
 		#Get Value for TD Set
-		destiny_set_filtered = td.density_set.replace(',', '.')
 		try:
-			density_new_value = float(destiny_set_filtered)
-			if density_new_value < 0.0001:
-				density_new_value = 0.0001
+			density_new_value = float(td.density_set)
 		except:
 			self.report({'INFO'}, "Density value is wrong")
 			return {'CANCELLED'}

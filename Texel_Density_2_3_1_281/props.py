@@ -17,39 +17,43 @@ def Change_Texture_Size(self, context):
 	for t in range(len(bpy.data.images)):
 		if bpy.data.images[t].name == 'TD_Checker':
 			flag_exist_texture = True
-			
-	if flag_exist_texture:
+				
+	checker_rexolution_x = 1024
+	checker_rexolution_y = 1024
+	
+	#Get texture size from panel
+	if td.texture_size == '0':
+		checker_rexolution_x = 512
+		checker_rexolution_y = 512
+	if td.texture_size == '1':
 		checker_rexolution_x = 1024
 		checker_rexolution_y = 1024
-		
-		#Get texture size from panel
-		if td.texture_size == '0':
-			checker_rexolution_x = 512
-			checker_rexolution_y = 512
-		if td.texture_size == '1':
+	if td.texture_size == '2':
+		checker_rexolution_x = 2048
+		checker_rexolution_y = 2048
+	if td.texture_size == '3':
+		checker_rexolution_x = 4096
+		checker_rexolution_y = 4096
+	if td.texture_size == '4':
+		try:
+			checker_rexolution_x = int(td.custom_width)
+		except:
 			checker_rexolution_x = 1024
+			td['custom_width'] = '1024'
+			
+		try:
+			checker_rexolution_y = int(td.custom_height)
+		except:
 			checker_rexolution_y = 1024
-		if td.texture_size == '2':
-			checker_rexolution_x = 2048
-			checker_rexolution_y = 2048
-		if td.texture_size == '3':
-			checker_rexolution_x = 4096
-			checker_rexolution_y = 4096
-		if td.texture_size == '4':
-			try:
-				checker_rexolution_x = int(td.custom_width)
-			except:
-				checker_rexolution_x = 1024
-				
-			try:
-				checker_rexolution_y = int(td.custom_height)
-			except:
-				checker_rexolution_y = 1024
-				
-		if checker_rexolution_x < 1 or checker_rexolution_y < 1:
-			checker_rexolution_x = 1024
-			checker_rexolution_y = 1024
+			td['custom_height'] = '1024'
 
+	if checker_rexolution_x < 1 or checker_rexolution_y < 1:
+		checker_rexolution_x = 1024
+		checker_rexolution_y = 1024
+		td['custom_width'] = '1024'
+		td['custom_height'] = '1024'
+
+	if flag_exist_texture:
 		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
 		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
 		bpy.data.images['TD_Checker'].generated_type=td.checker_type
@@ -89,7 +93,6 @@ def Filter_Bake_VC_Min_TD(self, context):
 
 	td['bake_vc_min_td'] = str(bake_vc_min_td)
 	bpy.ops.object.bake_td_uv_to_vc()
-	return None
 
 
 def Filter_Bake_VC_Max_TD(self, context):
@@ -106,7 +109,21 @@ def Filter_Bake_VC_Max_TD(self, context):
 
 	td['bake_vc_max_td'] = str(bake_vc_max_td)	
 	bpy.ops.object.bake_td_uv_to_vc()
-	return None
+
+
+def Filter_Density_Set(self, context):
+	td = context.scene.td
+	density_set_filtered = td['density_set'].replace(',', '.')
+	
+	try:
+		density_set = float(density_set_filtered)
+	except:
+		density_set = 2.0
+
+	if (density_set<0.001):
+		density_set = 0.001
+
+	td['density_set'] = str(density_set)
 
 
 def Change_Bake_VC_Mode(self, context):
@@ -147,7 +164,8 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	density_set: StringProperty(
 		name="",
 		description="Texel Density",
-		default="0")
+		default="0",
+		update = Filter_Density_Set)
 	
 	tex_size = (('0','512px',''),('1','1024px',''),('2','2048px',''),('3','4096px',''), ('4','Custom',''))
 	texture_size: EnumProperty(name="", items = tex_size, update = Change_Texture_Size)
