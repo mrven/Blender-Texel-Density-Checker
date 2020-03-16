@@ -154,7 +154,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	uv_space: StringProperty(
 		name="",
 		description="wasting of uv space",
-		default="0")
+		default="0 %")
 	
 	density: StringProperty(
 		name="",

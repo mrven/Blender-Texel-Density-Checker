@@ -123,31 +123,29 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			c.label(text="UV Space:")
 			split = split.split()
 			c = split.column()
-			c.prop(td, 'uv_space', expand=False)
-			c.enabled = False
+			c.label(text=td.uv_space)
 			#----
 			
+			cur_units = "px/cm"
+			if td.units == '0':
+				cur_units = "px/cm"
+			if td.units == '1':
+				cur_units = "px/m"
+			if td.units == '2':
+				cur_units = "px/in"
+			if td.units == '3':
+				cur_units = "px/ft"
+
 			#Split row
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.3, align=True)
+			split = row.split(factor=0.4, align=True)
 			c = split.column()
-			c.label(text="Density:")			
-			split = split.split(factor=0.6, align=True)
-			c = split.column()
-			c.prop(td, "density")
+			c.label(text="Density:")
 			split = split.split()
-			c.enabled = False
 			c = split.column()
-			if td.units == '0':
-				c.label(text="px/cm")
-			if td.units == '1':
-				c.label(text="px/m")
-			if td.units == '2':
-				c.label(text="px/in")
-			if td.units == '3':
-				c.label(text="px/ft")
+			c.label(text=td.density + " " + cur_units)
 			#----
 
 			layout.operator("object.texel_density_check", text="Calculate TD")
@@ -203,9 +201,9 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			if td.units == '1':
 				c.operator("object.preset_set", text="2048").td_value="2048"
 			if td.units == '2':
-				c.operator("object.preset_set", text="52.0192").td_value="52.0192"
+				c.operator("object.preset_set", text="52.019").td_value="52.019"
 			if td.units == '3':
-				c.operator("object.preset_set", text="624.2304").td_value="624.2304"
+				c.operator("object.preset_set", text="624.23").td_value="624.23"
 			
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
@@ -214,9 +212,9 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			if td.units == '1':
 				c.operator("object.preset_set", text="1024").td_value="1024"
 			if td.units == '2':
-				c.operator("object.preset_set", text="26.0096").td_value="26.0096"
+				c.operator("object.preset_set", text="26.01").td_value="26.01"
 			if td.units == '3':
-				c.operator("object.preset_set", text="312.1152").td_value="312.1152"
+				c.operator("object.preset_set", text="312.115").td_value="312.115"
 
 			split = split.split()
 			c = split.column()
@@ -225,9 +223,9 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			if td.units == '1':
 				c.operator("object.preset_set", text="512").td_value="512"
 			if td.units == '2':
-				c.operator("object.preset_set", text="13.0048").td_value="13.0048"
+				c.operator("object.preset_set", text="13.005").td_value="13.005"
 			if td.units == '3':
-				c.operator("object.preset_set", text="156.0576").td_value="156.0576"
+				c.operator("object.preset_set", text="156.058").td_value="156.058"
 				
 			#--Aligner Preset Buttons----
 			row = layout.row()
@@ -242,10 +240,10 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="256").td_value="256"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="6.5024").td_value="6.5024"
+				c.operator("object.preset_set", text="6.502").td_value="6.502"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="78.0288").td_value="78.0288"
+				c.operator("object.preset_set", text="78.029").td_value="78.029"
 				
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
@@ -256,10 +254,10 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="128").td_value="128"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="3.2512").td_value="3.2512"
+				c.operator("object.preset_set", text="3.251").td_value="3.251"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="39.0144").td_value="39.0144"
+				c.operator("object.preset_set", text="39.014").td_value="39.014"
 				
 			split = split.split()
 			c = split.column()
@@ -270,18 +268,18 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="64").td_value="64"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="1.6256").td_value="1.6256"
+				c.operator("object.preset_set", text="1.626").td_value="1.626"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="19.5072").td_value="19.5072"
+				c.operator("object.preset_set", text="19.507").td_value="19.507"
 				
-			
+			layout.separator()
+			layout.separator()
+
 			if context.object.mode == 'OBJECT':
-				layout.separator()
 				layout.operator("object.texel_density_copy", text="TD from Active to Others")
 				
 			if context.object.mode == 'EDIT':
-				layout.separator()
 				layout.operator("object.select_same_texel", text="Select Faces with same TD")
 				#Split row
 				row = layout.row()
@@ -296,12 +294,20 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				#----
 			
 			layout.separator()
-			row = layout.row()
-			row.label(text="Bake to Vertex Colors Mode:")
 			layout.separator()
+
+			#Split row
 			row = layout.row()
-			row.prop(td, 'bake_vc_mode', expand=False)
-			layout.separator()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Bake VC Mode:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, "bake_vc_mode", expand=False)
+			#----
+
 			if td.bake_vc_mode == "TD_TO_VC":
 				row = layout.row()
 				row.label(text="Min/Max TD Values:")
@@ -316,10 +322,8 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c = split.column()
 				c.prop(td, "bake_vc_max_td")
 				#----
-				layout.separator()
 				row = layout.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
-				layout.separator()
 				row = layout.row()
 				row.operator("object.bake_td_uv_to_vc", text="TD to Vertex Color")
 			
@@ -327,7 +331,6 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = layout.row()
 				row.operator("object.bake_td_uv_to_vc", text="UV to Vertex Color")
 
-			layout.separator()
 			row = layout.row()
 			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
 
@@ -400,6 +403,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.label(text="px")	
 
 			layout.separator()
+			layout.separator()
 
 			layout.prop(td, "selected_faces", text="Selected Faces")
 
@@ -412,31 +416,29 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			c.label(text="UV Space:")
 			split = split.split()
 			c = split.column()
-			c.prop(td, 'uv_space', expand=False)
-			c.enabled = False
+			c.label(text=td.uv_space)
 			#----
+
+			cur_units = "px/cm"
+			if td.units == '0':
+				cur_units = "px/cm"
+			if td.units == '1':
+				cur_units = "px/m"
+			if td.units == '2':
+				cur_units = "px/in"
+			if td.units == '3':
+				cur_units = "px/ft"
 
 			#Split row
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.3, align=True)
+			split = row.split(factor=0.4, align=True)
 			c = split.column()
-			c.label(text="Density:")			
-			split = split.split(factor=0.6, align=True)
-			c = split.column()
-			c.prop(td, "density")
+			c.label(text="Density:")
 			split = split.split()
-			c.enabled = False
 			c = split.column()
-			if td.units == '0':
-				c.label(text="px/cm")
-			if td.units == '1':
-				c.label(text="px/m")
-			if td.units == '2':
-				c.label(text="px/in")
-			if td.units == '3':
-				c.label(text="px/ft")
+			c.label(text=td.density + " " + cur_units)
 			#----
 
 			layout.operator("object.texel_density_check", text="Calculate TD")
@@ -493,10 +495,10 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="2048").td_value="2048"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="52.0192").td_value="52.0192"
+				c.operator("object.preset_set", text="52.019").td_value="52.019"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="624.2304").td_value="624.2304"
+				c.operator("object.preset_set", text="624.23").td_value="624.23"
 				
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
@@ -507,10 +509,10 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="1024").td_value="1024"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="26.0096").td_value="26.0096"
+				c.operator("object.preset_set", text="26.01").td_value="26.01"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="312.1152").td_value="312.1152"
+				c.operator("object.preset_set", text="312.115").td_value="312.115"
 				
 			split = split.split()
 			c = split.column()
@@ -521,10 +523,10 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="512").td_value="512"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="13.0048").td_value="13.0048"
+				c.operator("object.preset_set", text="13.005").td_value="13.005"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="156.0576").td_value="156.0576"
+				c.operator("object.preset_set", text="156.058").td_value="156.058"
 				
 				
 			#--Aligner Preset Buttons----
@@ -540,10 +542,10 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="256").td_value="256"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="6.5024").td_value="6.5024"
+				c.operator("object.preset_set", text="6.502").td_value="6.502"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="78.0288").td_value="78.0288"
+				c.operator("object.preset_set", text="78.029").td_value="78.029"
 				
 			split = split.split(factor=0.5, align=True)
 			c = split.column()
@@ -554,10 +556,10 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="128").td_value="128"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="3.2512").td_value="3.2512"
+				c.operator("object.preset_set", text="3.251").td_value="3.251"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="39.0144").td_value="39.0144"
+				c.operator("object.preset_set", text="39.014").td_value="39.014"
 				
 			split = split.split()
 			c = split.column()
@@ -568,13 +570,14 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.operator("object.preset_set", text="64").td_value="64"
 				
 			if td.units == '2':
-				c.operator("object.preset_set", text="1.6256").td_value="1.6256"
+				c.operator("object.preset_set", text="1.626").td_value="1.626"
 				
 			if td.units == '3':
-				c.operator("object.preset_set", text="19.5072").td_value="19.5072"
-				
+				c.operator("object.preset_set", text="19.507").td_value="19.507"
 				
 			layout.separator()
+			layout.separator()
+
 			layout.operator("object.select_same_texel", text="Select Faces with same TD")
 			#Split row
 			row = layout.row()
