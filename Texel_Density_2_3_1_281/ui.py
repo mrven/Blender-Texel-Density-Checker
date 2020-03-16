@@ -31,10 +31,17 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			c.prop(td, 'units', expand=False)
 			#----
 
-			layout.label(text="Texture Size:")
-
+			#Split row
 			row = layout.row()
-			row.prop(td, 'texture_size', expand=False)
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Texture Size:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'texture_size', expand=False)
+			#----
 
 			if td.texture_size == '4':
 				row = layout.row()
@@ -65,37 +72,73 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 		
 
 			layout.separator()
+			layout.separator()
+
+			#Split row
 			row = layout.row()
-			row.label(text="Checker Material Method:")
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Checker Method:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'checker_method', expand=False)
+			#----
+
+			#Split row
 			row = layout.row()
-			row.prop(td, 'checker_method', expand=False)
-			row = layout.row()
-			row.label(text="Checker Type:")
-			row = layout.row()
-			row.prop(td, 'checker_type', expand=False)
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Checker Type:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'checker_type', expand=False)
+			#----
+
 			row = layout.row()
 			row.operator("object.checker_assign", text="Assign Checker Material")
 
 			row = layout.row()
 			row.operator("object.checker_restore", text="Restore Materials")
 
+			row = layout.row()
+			row.operator("object.clear_checker_face_maps", text="Clear Stored Face Maps")
+
+			layout.separator()
+			layout.separator()
+
 			if context.object.mode == 'EDIT':
 				layout.separator()
 				layout.prop(td, "selected_faces", text="Selected Faces")
-			
-			layout.separator()
-			layout.label(text="Filled UV Space:")
-			row = layout.row()
-			row.prop(td, "uv_space")
-			row.enabled = False
-			layout.label(text="Texel Density:")
+
+			#Split row
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.65, align=True)
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="UV Space:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'uv_space', expand=False)
+			c.enabled = False
+			#----
+			
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.3, align=True)
+			c = split.column()
+			c.label(text="Density:")			
+			split = split.split(factor=0.6, align=True)
 			c = split.column()
 			c.prop(td, "density")
 			split = split.split()
+			c.enabled = False
 			c = split.column()
 			if td.units == '0':
 				c.label(text="px/cm")
@@ -105,28 +148,21 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c.label(text="px/in")
 			if td.units == '3':
 				c.label(text="px/ft")
-			row.enabled = False
+			#----
+
 			layout.operator("object.texel_density_check", text="Calculate TD")
 			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
+			
 			layout.separator()
-			layout.label(text="Set Texel Density")
 			
 			#Split row
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.5, align=True)
+			split = row.split(factor=0.3, align=True)
 			c = split.column()
-			c.label(text="Set Method:")
-			split = split.split()
-			c = split.column()
-			c.prop(td, 'set_method', expand=False)
-			#----
-
-			row = layout.row()
-			c = row.column()
-			row = c.row()
-			split = row.split(factor=0.65, align=True)
+			c.label(text="Set TD:")			
+			split = split.split(factor=0.6, align=True)
 			c = split.column()
 			c.prop(td, "density_set")
 			split = split.split()
@@ -139,6 +175,20 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c.label(text="px/in")
 			if td.units == '3':
 				c.label(text="px/ft")
+			#----
+
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Set Method:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'set_method', expand=False)
+			#----
+
 			layout.operator("object.texel_density_set", text="Set My TD")
 			
 			#--Aligner Preset Buttons----
@@ -244,11 +294,6 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c = split.column()
 				c.prop(td, "select_td_threshold")
 				#----
-
-			layout.separator()
-			row = layout.row()
-			row.operator("object.clear_checker_face_maps", text="Clear Stored Face Maps")
-
 			
 			layout.separator()
 			row = layout.row()
@@ -315,10 +360,17 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			c.prop(td, 'units', expand=False)
 			#----
 
-			layout.label(text="Texture Size:")
-
+			#Split row
 			row = layout.row()
-			row.prop(td, 'texture_size', expand=False)
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="Texture Size:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'texture_size', expand=False)
+			#----
 
 			if td.texture_size == '4':
 				row = layout.row()
@@ -348,20 +400,60 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.label(text="px")	
 
 			layout.separator()
+
 			layout.prop(td, "selected_faces", text="Selected Faces")
-			
-			layout.separator()
-			layout.label(text="Filled UV Space:")
-			row = layout.row()
-			row.prop(td, "uv_space")
-			row.enabled = False
-			layout.label(text="Texel Density:")
+
+			#Split row
 			row = layout.row()
 			c = row.column()
 			row = c.row()
-			split = row.split(factor=0.65, align=True)
+			split = row.split(factor=0.5, align=True)
+			c = split.column()
+			c.label(text="UV Space:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, 'uv_space', expand=False)
+			c.enabled = False
+			#----
+
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.3, align=True)
+			c = split.column()
+			c.label(text="Density:")			
+			split = split.split(factor=0.6, align=True)
 			c = split.column()
 			c.prop(td, "density")
+			split = split.split()
+			c.enabled = False
+			c = split.column()
+			if td.units == '0':
+				c.label(text="px/cm")
+			if td.units == '1':
+				c.label(text="px/m")
+			if td.units == '2':
+				c.label(text="px/in")
+			if td.units == '3':
+				c.label(text="px/ft")
+			#----
+
+			layout.operator("object.texel_density_check", text="Calculate TD")
+			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
+			
+			layout.separator()
+			
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
+			split = row.split(factor=0.3, align=True)
+			c = split.column()
+			c.label(text="Set TD:")			
+			split = split.split(factor=0.6, align=True)
+			c = split.column()
+			c.prop(td, "density_set")
 			split = split.split()
 			c = split.column()
 			if td.units == '0':
@@ -372,11 +464,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				c.label(text="px/in")
 			if td.units == '3':
 				c.label(text="px/ft")
-			row.enabled = False
-			layout.operator("object.texel_density_check", text="Calculate TD")
-			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
-			layout.separator()
-			layout.label(text="Set Texel Density")
+			#----
 			
 			#Split row
 			row = layout.row()
@@ -390,22 +478,6 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			c.prop(td, 'set_method', expand=False)
 			#----
 
-			row = layout.row()
-			c = row.column()
-			row = c.row()
-			split = row.split(factor=0.65, align=True)
-			c = split.column()
-			c.prop(td, "density_set")
-			split = split.split()
-			c = split.column()
-			if td.units == '0':
-				c.label(text="px/cm")
-			if td.units == '1':
-				c.label(text="px/m")
-			if td.units == '2':
-				c.label(text="px/in")
-			if td.units == '3':
-				c.label(text="px/ft")
 			layout.operator("object.texel_density_set", text="Set My TD")
 			
 			#--Aligner Preset Buttons----
