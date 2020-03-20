@@ -223,6 +223,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	units_list = (('0','px/cm',''),('1','px/m',''), ('2','px/in',''), ('3','px/ft',''))
 	units: EnumProperty(name="", items = units_list, update = Change_Units)
 	
+	select_value: StringProperty(
+		name="",
+		description="Select Value",
+		default="1.0")
+
 	select_td_threshold: StringProperty(
 		name="",
 		description="Select Threshold",
@@ -269,6 +274,9 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		description="Max UV Space",
 		default="2.0",
 		update = Filter_Bake_VC_Max_Space)
+
+	select_mode_list = (('FACES_BY_TD','Faces (By Texel)',''), ('ISLANDS_BY_TD','Islands (By Texel)',''), ('ISLANDS_BY_SPACE','Islands (By UV Space)',''))
+	select_mode: EnumProperty(name="", items = select_mode_list)
 
 
 classes = (

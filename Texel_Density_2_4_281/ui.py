@@ -280,7 +280,44 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				layout.operator("object.texel_density_copy", text="TD from Active to Others")
 				
 			if context.object.mode == 'EDIT':
-				layout.operator("object.select_same_texel", text="Select Faces with same TD")
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.3, align=True)
+				c = split.column()
+				c.label(text="Select:")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "select_mode", expand=False)
+				#----
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.4, align=True)
+				c = split.column()
+				if td.select_mode == "FACES_BY_TD" or td.select_mode == "ISLANDS_BY_TD":
+					c.label(text="Texel:")
+				elif td.select_mode == "ISLANDS_BY_SPACE":
+					c.label(text="UV Space:")
+				split = split.split(factor=0.6, align=True)
+				c = split.column()
+				c.prop(td, "select_value")
+				split = split.split()
+				c = split.column()
+				if td.select_mode == "FACES_BY_TD" or td.select_mode == "ISLANDS_BY_TD":
+					if td.units == '0':
+						c.label(text="px/cm")
+					if td.units == '1':
+						c.label(text="px/m")
+					if td.units == '2':
+						c.label(text="px/in")
+					if td.units == '3':
+						c.label(text="px/ft")
+				elif td.select_mode == "ISLANDS_BY_SPACE":
+					c.label(text="%")
+				#----
 				#Split row
 				row = layout.row()
 				c = row.column()
@@ -292,7 +329,14 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				c = split.column()
 				c.prop(td, "select_td_threshold")
 				#----
-			
+				if td.select_mode == "FACES_BY_TD":
+					layout.operator("object.select_same_texel", text="Select Faces By TD")
+				elif td.select_mode == "ISLANDS_BY_TD":
+					layout.operator("object.select_same_texel", text="Select Islands By TD")
+				elif td.select_mode == "ISLANDS_BY_SPACE":
+					layout.operator("object.select_same_texel", text="Select Islands By UV Space")
+
+
 			layout.separator()
 			layout.separator()
 
