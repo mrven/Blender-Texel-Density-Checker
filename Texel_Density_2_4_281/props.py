@@ -161,7 +161,7 @@ def Filter_Density_Set(self, context):
 def Change_Bake_VC_Mode(self, context):
 	td = context.scene.td
 
-	if td.bake_vc_mode == "TD_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
+	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
 		Show_Gradient(self, context)
 	else:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
@@ -255,7 +255,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default = False,
 		update = Show_Gradient)
 
-	bake_vc_mode_list = (('TD_TO_VC','Texel Density',''),('UV_ISLANDS_TO_VC','UV Islands',''), ('UV_SPACE_TO_VC','UV Space (%)',''))
+	bake_vc_mode_list = (('TD_FACES_TO_VC','Texel (By Face)',''), ('TD_ISLANDS_TO_VC','Texel (By Island)',''),('UV_ISLANDS_TO_VC','UV Islands',''), ('UV_SPACE_TO_VC','UV Space (%)',''))
 	bake_vc_mode: EnumProperty(name="", items = bake_vc_mode_list, update = Change_Bake_VC_Mode)
 
 	bake_vc_min_space: StringProperty(

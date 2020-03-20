@@ -36,7 +36,7 @@ def Draw_Callback_Px(self, context):
 	bake_max_value = 0
 	bake_value_precision = 3
 
-	if td.bake_vc_mode == "TD_TO_VC":	
+	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC":	
 		bake_min_value = float(td.bake_vc_min_td)
 		bake_max_value = float(td.bake_vc_max_td)
 		bake_value_precision = 3
@@ -442,7 +442,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bake_vc_min_space = float(td.bake_vc_min_space)
 		bake_vc_max_space = float(td.bake_vc_max_space)
 
-		if (bake_vc_min_td == bake_vc_max_td) and td.bake_vc_mode == "TD_TO_VC":
+		if (bake_vc_min_td == bake_vc_max_td) and (td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC"):
 			self.report({'INFO'}, "Value Range is wrong")
 			return {'CANCELLED'}
 
@@ -476,30 +476,38 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 				x.data.vertex_colors["td_vis"].active = True
 
-				face_list = []
+				islands_list = []
 				face_area_list = []
+				face_td_list = []
 
-				if td.bake_vc_mode == "TD_TO_VC":
-					face_list = utils.Calculate_TD_To_List()
+				if td.bake_vc_mode == "TD_FACES_TO_VC":
+					face_td_list = utils.Calculate_TD_To_List()
+
+				elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
+					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+					face_td_list = utils.Calculate_TD_To_List()
+					face_area_list = utils.Calculate_UV_Space_To_List()
+
 				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
-					face_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+
 				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
-					face_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
 					face_area_list = utils.Calculate_UV_Space_To_List()
 
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
 				bm.faces.ensure_lookup_table()
 
-				if td.bake_vc_mode == "TD_TO_VC":
+				if td.bake_vc_mode == "TD_FACES_TO_VC":
 					for face_id in range(0, face_count):
-						color = utils.Value_To_Color(face_list[face_id], bake_vc_min_td, bake_vc_max_td)
+						color = utils.Value_To_Color(face_td_list[face_id], bake_vc_min_td, bake_vc_max_td)
 
 						for loop in bm.faces[face_id].loops:
 							loop[bm.loops.layers.color.active] = color
 
 				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
-					for uv_island in face_list:
+					for uv_island in islands_list:
 						random_hue = random.randrange(0, 10, 1)/10
 						random_value = random.randrange(2, 10, 1)/10
 						random_saturation = random.randrange(7, 10, 1)/10
@@ -511,13 +519,30 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 								loop[bm.loops.layers.color.active] = color4
 
 				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
-					for uv_island in face_list:
+					for uv_island in islands_list:
 						island_area = 0
 						for face_id in uv_island:						
 							island_area += face_area_list[face_id]
 						island_area *= 100
 
 						color = utils.Value_To_Color(island_area, bake_vc_min_space, bake_vc_max_space)
+
+						for face_id in uv_island:
+							for loop in bm.faces[face_id].loops:
+								loop[bm.loops.layers.color.active] = color
+
+				elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
+					for uv_island in islands_list:
+						island_td = 0
+						island_area = 0
+						#Calculate Total Island Area
+						for face_id in uv_island:
+							island_area += face_area_list[face_id]
+
+						for face_id in uv_island:						
+							island_td += face_td_list[face_id] * face_area_list[face_id]/island_area
+
+						color = utils.Value_To_Color(island_td, bake_vc_min_td, bake_vc_max_td)
 
 						for face_id in uv_island:
 							for loop in bm.faces[face_id].loops:
@@ -539,7 +564,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode = start_mode)
 		bpy.context.space_data.shading.color_type = 'VERTEX'
 
-		if td.bake_vc_mode == "TD_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
+		if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
 			props.Show_Gradient(self, context)
 
 		return {'FINISHED'}
