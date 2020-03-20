@@ -111,6 +111,38 @@ def Filter_Bake_VC_Max_TD(self, context):
 	bpy.ops.object.bake_td_uv_to_vc()
 
 
+def Filter_Bake_VC_Min_Space(self, context):
+	td = context.scene.td
+	bake_vc_min_space_filtered = td['bake_vc_min_space'].replace(',', '.')
+	
+	try:
+		bake_vc_min_space = float(bake_vc_min_space_filtered)
+	except:
+		bake_vc_min_space = 0.0001
+
+	if (bake_vc_min_space<0.00001):
+		bake_vc_min_space = 0.00001
+
+	td['bake_vc_min_space'] = str(bake_vc_min_space)	
+	bpy.ops.object.bake_td_uv_to_vc()
+
+
+def Filter_Bake_VC_Max_Space(self, context):
+	td = context.scene.td
+	bake_vc_max_space_filtered = td['bake_vc_max_space'].replace(',', '.')
+	
+	try:
+		bake_vc_max_space = float(bake_vc_max_space_filtered)
+	except:
+		bake_vc_max_space = 0.0001
+
+	if (bake_vc_max_space<0.00001):
+		bake_vc_max_space = 0.00001
+
+	td['bake_vc_max_space'] = str(bake_vc_max_space)	
+	bpy.ops.object.bake_td_uv_to_vc()
+
+
 def Filter_Density_Set(self, context):
 	td = context.scene.td
 	density_set_filtered = td['density_set'].replace(',', '.')
@@ -129,12 +161,13 @@ def Filter_Density_Set(self, context):
 def Change_Bake_VC_Mode(self, context):
 	td = context.scene.td
 
-	if td.bake_vc_mode == "TD_TO_VC":
+	if td.bake_vc_mode == "TD_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
 		Show_Gradient(self, context)
 	else:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
 		draw_info["handler"] = None
 
+	bpy.ops.object.bake_td_uv_to_vc()
 
 draw_info = {
 	"handler": None,
@@ -222,8 +255,20 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default = False,
 		update = Show_Gradient)
 
-	bake_vc_mode_list = (('TD_TO_VC','Texel Density',''),('UV_ISLANDS_TO_VC','UV Islands',''))
+	bake_vc_mode_list = (('TD_TO_VC','Texel Density',''),('UV_ISLANDS_TO_VC','UV Islands',''), ('UV_SPACE_TO_VC','UV Space (%)',''))
 	bake_vc_mode: EnumProperty(name="", items = bake_vc_mode_list, update = Change_Bake_VC_Mode)
+
+	bake_vc_min_space: StringProperty(
+		name="",
+		description="Min UV Space",
+		default="0.0001",
+		update = Filter_Bake_VC_Min_Space)
+
+	bake_vc_max_space: StringProperty(
+		name="",
+		description="Max UV Space",
+		default="2.0",
+		update = Filter_Bake_VC_Max_Space)
 
 
 classes = (

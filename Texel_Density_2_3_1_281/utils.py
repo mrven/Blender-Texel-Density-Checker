@@ -1,6 +1,7 @@
 import bpy
 import bmesh
 import math
+import colorsys
 
 def Vector2d_Multiply(a, b, c):
 	return abs((b[0]- a[0])*(c[1]- a[1])-(b[1]- a[1])*(c[0]- a[0]))
@@ -20,6 +21,14 @@ def Vector3d_Multiply(a, b, c):
 	result = math.sqrt(math.pow(vector_x, 2) + math.pow(vector_y, 2) + math.pow(vector_z, 2))
 	return result
 
+
+def Value_To_Color(value, range_min, range_max):
+	remaped_value = (value - range_min) / (range_max - range_min)
+	remaped_value = Saturate(remaped_value)
+	hue = (1 - remaped_value) * 0.67
+	color = colorsys.hsv_to_rgb(hue, 1, 1)
+	color4 = (color[0], color[1], color[2], 1)
+	return color4
 
 
 def Sync_UV_Selection():
@@ -160,6 +169,56 @@ def Calculate_TD_To_List():
 	bpy.ops.object.mode_set(mode=start_mode)
 
 	return calculated_obj_td
+
+
+def Calculate_UV_Space_To_List():
+	td = bpy.context.scene.td
+	calculated_obj_uv_space = []
+
+	#save current mode and active object
+	start_active_obj = bpy.context.active_object
+	start_mode = bpy.context.object.mode
+
+	#set default values
+	area=0
+	
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	face_count = len(bpy.context.active_object.data.polygons)
+
+	#Duplicate and Triangulate Object
+	bpy.ops.object.duplicate()
+	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+
+	#get bmesh from active object		
+	bpy.ops.object.mode_set(mode='EDIT')
+	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+	bm.faces.ensure_lookup_table()
+	
+	for x in range(0, face_count):
+		area = 0
+		#UV Area calculating
+		#get uv-coordinates of verteces of current triangle
+		for tri_index in range(0, len(bm.faces[x].loops) - 2):
+			loop_a = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
+			loop_b = bm.faces[x].loops[tri_index + 1][bm.loops.layers.uv.active].uv
+			loop_c = bm.faces[x].loops[tri_index + 2][bm.loops.layers.uv.active].uv
+			#get multiplication of vectors of current triangle
+			multi_vector = Vector2d_Multiply(loop_a, loop_b, loop_c)
+			#Increment area of current tri to total uv area
+			area += 0.5 * multi_vector
+
+		calculated_obj_uv_space.append(area)
+
+	#delete duplicated object
+	bpy.ops.object.mode_set(mode='OBJECT')
+	
+	bpy.ops.object.delete()
+	bpy.context.view_layer.objects.active = start_active_obj
+	
+	bpy.ops.object.mode_set(mode=start_mode)
+
+	return calculated_obj_uv_space
 
 
 def Saturate(val):

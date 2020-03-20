@@ -325,11 +325,30 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = layout.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
 				row = layout.row()
-				row.operator("object.bake_td_uv_to_vc", text="TD to Vertex Color")
+				row.operator("object.bake_td_uv_to_vc", text="Texel Density to VC")
 			
 			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
 				row = layout.row()
-				row.operator("object.bake_td_uv_to_vc", text="UV to Vertex Color")
+				row.operator("object.bake_td_uv_to_vc", text="UV Islands to VC")
+
+			elif td.bake_vc_mode == "UV_SPACE_TO_VC":
+				row = layout.row()
+				row.label(text="Min/Max UV Space:")
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.5, align=True)
+				c = split.column()
+				c.prop(td, "bake_vc_min_space")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "bake_vc_max_space")
+				#----
+				row = layout.row()
+				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+				row = layout.row()
+				row.operator("object.bake_td_uv_to_vc", text="UV Space to VC")
 
 			row = layout.row()
 			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")

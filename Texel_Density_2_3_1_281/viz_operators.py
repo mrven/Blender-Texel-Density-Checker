@@ -32,8 +32,18 @@ def Draw_Callback_Px(self, context):
 	blf.size(font_id, font_size, 72)
 	blf.color(font_id, 1, 1, 1, 1)
 
-	bake_vc_min_td = float(td.bake_vc_min_td)
-	bake_vc_max_td = float(td.bake_vc_max_td)
+	bake_min_value = 0
+	bake_max_value = 0
+	bake_value_precision = 3
+
+	if td.bake_vc_mode == "TD_TO_VC":	
+		bake_min_value = float(td.bake_vc_min_td)
+		bake_max_value = float(td.bake_vc_max_td)
+		bake_value_precision = 3
+	elif td.bake_vc_mode == "UV_SPACE_TO_VC":
+		bake_min_value = float(td.bake_vc_min_space)
+		bake_max_value = float(td.bake_vc_max_space)
+		bake_value_precision = 5
 
 	#Calculate Text Position from Anchor
 	if anchor_pos == 'LEFT_BOTTOM':
@@ -51,19 +61,19 @@ def Draw_Callback_Px(self, context):
 
 	#Draw TD Values in Viewport via BLF
 	blf.position(font_id, font_start_pos_x, font_start_pos_y + 18, 0)
-	blf.draw(font_id, str(round(bake_vc_min_td, 3)))
+	blf.draw(font_id, str(round(bake_min_value, bake_value_precision)))
 
 	blf.position(font_id, font_start_pos_x + 115, font_start_pos_y + 18, 0)
-	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.5 + bake_vc_min_td, 3)))
+	blf.draw(font_id, str(round((bake_max_value - bake_min_value) * 0.5 + bake_min_value, bake_value_precision)))
 
 	blf.position(font_id, font_start_pos_x + 240, font_start_pos_y + 18, 0)
-	blf.draw(font_id, str(round(bake_vc_max_td, 3)))
+	blf.draw(font_id, str(round(bake_max_value, bake_value_precision)))
 
 	blf.position(font_id, font_start_pos_x + 52, font_start_pos_y - 15, 0)
-	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.25 + bake_vc_min_td, 3)))
+	blf.draw(font_id, str(round((bake_max_value - bake_min_value) * 0.25 + bake_min_value, bake_value_precision)))
 
 	blf.position(font_id, font_start_pos_x + 177, font_start_pos_y - 15, 0)
-	blf.draw(font_id, str(round((bake_vc_max_td - bake_vc_min_td) * 0.75 + bake_vc_min_td, 3)))
+	blf.draw(font_id, str(round((bake_max_value - bake_min_value) * 0.75 + bake_min_value, bake_value_precision)))
 
 	#Draw Gradient via shader
 	vertex_shader = '''
@@ -429,8 +439,14 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 		bake_vc_min_td = float(td.bake_vc_min_td)
 		bake_vc_max_td = float(td.bake_vc_max_td)
-		
+		bake_vc_min_space = float(td.bake_vc_min_space)
+		bake_vc_max_space = float(td.bake_vc_max_space)
+
 		if (bake_vc_min_td == bake_vc_max_td) and td.bake_vc_mode == "TD_TO_VC":
+			self.report({'INFO'}, "Value Range is wrong")
+			return {'CANCELLED'}
+
+		if (bake_vc_min_space == bake_vc_max_space) and td.bake_vc_mode == "UV_SPACE_TO_VC":
 			self.report({'INFO'}, "Value Range is wrong")
 			return {'CANCELLED'}
 
@@ -461,10 +477,15 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				x.data.vertex_colors["td_vis"].active = True
 
 				face_list = []
+				face_area_list = []
+
 				if td.bake_vc_mode == "TD_TO_VC":
 					face_list = utils.Calculate_TD_To_List()
-				if td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
 					face_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
+					face_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+					face_area_list = utils.Calculate_UV_Space_To_List()
 
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
@@ -472,16 +493,12 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 				if td.bake_vc_mode == "TD_TO_VC":
 					for face_id in range(0, face_count):
-						remaped_td = (face_list[face_id] - bake_vc_min_td) / (bake_vc_max_td - bake_vc_min_td)
-						remaped_td = utils.Saturate(remaped_td)
-						hue = (1 - remaped_td) * 0.67
-						color = colorsys.hsv_to_rgb(hue, 1, 1)
-						color4 = (color[0], color[1], color[2], 1)
-						
-						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.active] = color4
+						color = utils.Value_To_Color(face_list[face_id], bake_vc_min_td, bake_vc_max_td)
 
-				if td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+						for loop in bm.faces[face_id].loops:
+							loop[bm.loops.layers.color.active] = color
+
+				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
 					for uv_island in face_list:
 						random_hue = random.randrange(0, 10, 1)/10
 						random_value = random.randrange(2, 10, 1)/10
@@ -493,6 +510,19 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 							for loop in bm.faces[face_id].loops:
 								loop[bm.loops.layers.color.active] = color4
 
+				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
+					for uv_island in face_list:
+						island_area = 0
+						for face_id in uv_island:						
+							island_area += face_area_list[face_id]
+						island_area *= 100
+
+						color = utils.Value_To_Color(island_area, bake_vc_min_space, bake_vc_max_space)
+
+						for face_id in uv_island:
+							for loop in bm.faces[face_id].loops:
+								loop[bm.loops.layers.color.active] = color
+				
 				bpy.ops.object.mode_set(mode='OBJECT')
 					
 				if start_mode == "EDIT":
@@ -509,7 +539,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode = start_mode)
 		bpy.context.space_data.shading.color_type = 'VERTEX'
 
-		if td.bake_vc_mode == "TD_TO_VC":
+		if td.bake_vc_mode == "TD_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
 			props.Show_Gradient(self, context)
 
 		return {'FINISHED'}
