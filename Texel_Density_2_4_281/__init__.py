@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Tools for for checking Texel Density and wasting of uv space",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
-	"version": (2, 3, 1),
+	"version": (2, 4),
 	"blender": (2, 81, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
