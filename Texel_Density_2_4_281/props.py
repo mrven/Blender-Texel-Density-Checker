@@ -91,7 +91,7 @@ def Filter_Bake_VC_Min_TD(self, context):
 	if (bake_vc_min_td<0.01):
 		bake_vc_min_td = 0.01
 
-	td['bake_vc_min_td'] = '%.5f' % bake_vc_min_td
+	td['bake_vc_min_td'] = str(bake_vc_min_td)
 	bpy.ops.object.bake_td_uv_to_vc()
 
 

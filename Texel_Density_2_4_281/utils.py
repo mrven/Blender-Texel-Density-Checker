@@ -68,9 +68,9 @@ def Sync_UV_Selection():
 	bmesh.update_edit_mesh(mesh, False, False)
 
 
-def Calculate_TD_To_List():
+def Calculate_TD_Area_To_List():
 	td = bpy.context.scene.td
-	calculated_obj_td = []
+	calculated_obj_td_area = []
 
 	#save current mode and active object
 	start_active_obj = bpy.context.active_object
@@ -129,6 +129,7 @@ def Calculate_TD_To_List():
 	
 	for x in range(0, face_count):
 		area = 0
+		td_area_list = []
 		#UV Area calculating
 		#get uv-coordinates of verteces of current triangle
 		for tri_index in range(0, len(bm.faces[x].loops) - 2):
@@ -155,7 +156,8 @@ def Calculate_TD_To_List():
 		if td.units == '3':
 			texel_density = texel_density*30.48
 
-		calculated_obj_td.append(float(texel_density))
+		td_area_list = [texel_density, area]
+		calculated_obj_td_area.append(td_area_list)
 
 	#delete duplicated object
 	bpy.ops.object.mode_set(mode='OBJECT')
@@ -165,54 +167,7 @@ def Calculate_TD_To_List():
 	
 	bpy.ops.object.mode_set(mode=start_mode)
 
-	return calculated_obj_td
-
-
-def Calculate_UV_Space_To_List():
-	td = bpy.context.scene.td
-	calculated_obj_uv_space = []
-
-	#save current mode and active object
-	start_active_obj = bpy.context.active_object
-	start_mode = bpy.context.object.mode
-
-	bpy.ops.object.mode_set(mode='OBJECT')
-
-	face_count = len(bpy.context.active_object.data.polygons)
-
-	#Duplicate and Triangulate Object
-	bpy.ops.object.duplicate()
-	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-
-	#get bmesh from active object		
-	bpy.ops.object.mode_set(mode='EDIT')
-	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
-	bm.faces.ensure_lookup_table()
-	
-	for x in range(0, face_count):
-		area = 0
-		#UV Area calculating
-		#get uv-coordinates of verteces of current triangle
-		for tri_index in range(0, len(bm.faces[x].loops) - 2):
-			loop_a = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
-			loop_b = bm.faces[x].loops[tri_index + 1][bm.loops.layers.uv.active].uv
-			loop_c = bm.faces[x].loops[tri_index + 2][bm.loops.layers.uv.active].uv
-			#get multiplication of vectors of current triangle
-			multi_vector = Vector2d_Multiply(loop_a, loop_b, loop_c)
-			#Increment area of current tri to total uv area
-			area += 0.5 * multi_vector
-
-		calculated_obj_uv_space.append(area)
-
-	#delete duplicated object
-	bpy.ops.object.mode_set(mode='OBJECT')
-	
-	bpy.ops.object.delete()
-	bpy.context.view_layer.objects.active = start_active_obj
-	
-	bpy.ops.object.mode_set(mode=start_mode)
-
-	return calculated_obj_uv_space
+	return calculated_obj_td_area
 
 
 def Saturate(val):

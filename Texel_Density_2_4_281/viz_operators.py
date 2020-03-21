@@ -477,12 +477,10 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				x.data.vertex_colors["td_vis"].active = True
 
 				islands_list = []
-				face_area_list = []
-				face_td_list = []
+				face_td_area_list = []
 
 				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
-				face_td_list = utils.Calculate_TD_To_List()
-				face_area_list = utils.Calculate_UV_Space_To_List()
+				face_td_area_list = utils.Calculate_TD_Area_To_List()
 
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
@@ -490,7 +488,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 				if td.bake_vc_mode == "TD_FACES_TO_VC":
 					for face_id in range(0, face_count):
-						color = utils.Value_To_Color(face_td_list[face_id], bake_vc_min_td, bake_vc_max_td)
+						color = utils.Value_To_Color(face_td_area_list[face_id][0], bake_vc_min_td, bake_vc_max_td)
 
 						for loop in bm.faces[face_id].loops:
 							loop[bm.loops.layers.color.active] = color
@@ -511,7 +509,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 					for uv_island in islands_list:
 						island_area = 0
 						for face_id in uv_island:						
-							island_area += face_area_list[face_id]
+							island_area += face_td_area_list[face_id][1]
 						
 						island_area *= 100
 
@@ -527,10 +525,10 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						island_area = 0
 						#Calculate Total Island Area
 						for face_id in uv_island:
-							island_area += face_area_list[face_id]
+							island_area += face_td_area_list[face_id][1]
 
 						for face_id in uv_island:						
-							island_td += face_td_list[face_id] * face_area_list[face_id]/island_area
+							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
 
 						color = utils.Value_To_Color(island_td, bake_vc_min_td, bake_vc_max_td)
 
