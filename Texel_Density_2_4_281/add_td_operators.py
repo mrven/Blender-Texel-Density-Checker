@@ -1,5 +1,6 @@
 import bpy
 import bmesh
+import bpy_extras.mesh_utils
 
 from bpy.props import StringProperty
 
@@ -72,9 +73,9 @@ class Preset_Set(bpy.types.Operator):
 		return {'FINISHED'}
 		
 
-class Select_Same_TD(bpy.types.Operator):
+class Select_By_TD_Space(bpy.types.Operator):
 	"""Select Faces with same TD"""
-	bl_idname = "object.select_same_texel"
+	bl_idname = "object.select_by_td_space"
 	bl_label = "Select Faces with same TD"
 	bl_options = {'REGISTER', 'UNDO'}
 
@@ -84,97 +85,93 @@ class Select_Same_TD(bpy.types.Operator):
 		#save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_selected_obj = bpy.context.selected_objects
-		start_selected_faces_mode = td.selected_faces
-
-		#select mode faces and set "Selected faces" for TD Operations
+		
+		search_value = float(td.select_value)
+		select_threshold = float(td.select_threshold)
+		
 		bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
-		td.selected_faces = True
-
-		#Calculate TD for search
-		bpy.ops.object.texel_density_check()
-		search_td_value = float(td.density)
-
-		threshold_filtered = td.select_td_threshold.replace(',', '.')
-		try:
-			threshold_td_value = float(threshold_filtered)
-		except:
-			threshold_td_value = 0.1
-			td.select_td_threshold = "0.1"
-
+		bpy.context.scene.tool_settings.uv_select_mode = 'FACE'
+		
 		bpy.ops.object.mode_set(mode='OBJECT')
+		
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if (x.type == 'MESH' and len(x.data.uv_layers) > 0):
 				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
+				
 				face_count = len(bpy.context.active_object.data.polygons)
 				
 				searched_faces=[]
 
+				islands_list = []
+				face_area_list = []
+				face_td_list = []
+
+				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+				face_td_list = utils.Calculate_TD_To_List()
+				face_area_list = utils.Calculate_UV_Space_To_List()
+
 				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
-					#save start selected in 3d view faces
-					start_selected_faces = []
-					for id in range (0, face_count):
-						if bpy.context.active_object.data.polygons[id].select == True:
-							start_selected_faces.append(id)
 					bpy.ops.object.mode_set(mode='EDIT')
 
-					td_for_all_faces = []
-					td_for_all_faces = utils.Calculate_TD_To_List()
-
-					for face_id in start_selected_faces:
-						mesh = bpy.context.active_object.data
-						bm_local = bmesh.from_edit_mesh(mesh)
-						bm_local.faces.ensure_lookup_table()
-						uv_layer = bm_local.loops.layers.uv.active
-						
-						for uv_id in range(0, len(bm_local.faces)):
-							for loop in bm_local.faces[uv_id].loops:
-								loop[uv_layer].select = False
-						
-						for loop in bm_local.faces[face_id].loops:
-							loop[uv_layer].select = True
-						
-						current_poly_td_value = float(td_for_all_faces[face_id])
-						if (current_poly_td_value > (search_td_value - threshold_td_value)) and (current_poly_td_value < (search_td_value + threshold_td_value)):
-							searched_faces.append(face_id)
-					
 					mesh = bpy.context.active_object.data
 					bm_local = bmesh.from_edit_mesh(mesh)
 					bm_local.faces.ensure_lookup_table()
 					uv_layer = bm_local.loops.layers.uv.active
-					
+
 					for uv_id in range(0, len(bm_local.faces)):
 						for loop in bm_local.faces[uv_id].loops:
 							loop[uv_layer].select = False
+
+					if td.select_mode == "FACES_BY_TD":
+						for face_id in range(0, face_count):
+							if (face_td_list[face_id] > (search_value - select_threshold)) and (face_td_list[face_id] < (search_value + select_threshold)):
+								searched_faces.append(face_id)
+
+					elif td.select_mode == "ISLANDS_BY_TD":
+						for uv_island in islands_list:
+							island_td = 0
+							island_area = 0
+							#Calculate Total Island Area
+							for face_id in uv_island:
+								island_area += face_area_list[face_id]
+
+							for face_id in uv_island:						
+								island_td += face_td_list[face_id] * face_area_list[face_id]/island_area
+
+							print(str(island_td) + "\n")
+							if (island_td > (search_value - select_threshold)) and (island_td < (search_value + select_threshold)):
+								for face_id in uv_island:	
+									searched_faces.append(face_id)
+
+					elif td.select_mode == "ISLANDS_BY_SPACE":
+						for uv_island in islands_list:
+							island_area = 0
+							for face_id in uv_island:						
+								island_area += face_area_list[face_id]
+								
+							island_area *= 100
+
+							if (island_area > (search_value - select_threshold)) and (island_area < (search_value + select_threshold)):
+								for face_id in uv_island:
+									searched_faces.append(face_id)
 
 					for face_id in searched_faces:
 						for loop in bm_local.faces[face_id].loops:
 							loop[uv_layer].select = True
 
 					bpy.ops.object.mode_set(mode='OBJECT')
-					for face_id in start_selected_faces:
-						bpy.context.active_object.data.polygons[face_id].select = True
-				
-				else:
-					
-					td_for_all_faces = []
-					td_for_all_faces = utils.Calculate_TD_To_List()
 
+				else:
+					bpy.ops.object.mode_set(mode='EDIT')
+					bpy.ops.mesh.select_all(action='DESELECT')
+					
 					for face_id in range(0, face_count):
-						bpy.ops.object.mode_set(mode='EDIT')
-						bpy.ops.mesh.reveal()
-						bpy.ops.mesh.select_all(action='DESELECT')
-						bpy.ops.object.mode_set(mode='OBJECT')
-						bpy.context.active_object.data.polygons[face_id].select = True
-						bpy.ops.object.mode_set(mode='EDIT')
-						current_poly_td_value = float(td_for_all_faces[face_id])
-						if (current_poly_td_value > (search_td_value - threshold_td_value)) and (current_poly_td_value < (search_td_value + threshold_td_value)):
+						if (face_td_list[face_id] > (search_value - select_threshold)) and (face_td_list[face_id] < (search_value + select_threshold)):
 							searched_faces.append(face_id)
 
 					bpy.ops.object.mode_set(mode='OBJECT')
-					for face_id in range(0, face_count):
-						bpy.context.active_object.data.polygons[face_id].select = False
 
 					for face_id in searched_faces:
 						bpy.context.active_object.data.polygons[face_id].select = True
@@ -183,7 +180,6 @@ class Select_Same_TD(bpy.types.Operator):
 		for x in start_selected_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
-		td.selected_faces = start_selected_faces_mode
 
 		bpy.ops.object.mode_set(mode='EDIT')
 
@@ -194,7 +190,7 @@ classes = (
 	Texel_Density_Copy,
 	Calculated_To_Set,
 	Preset_Set,
-	Select_Same_TD,
+	Select_By_TD_Space,
 )
 	
 

@@ -91,7 +91,7 @@ def Filter_Bake_VC_Min_TD(self, context):
 	if (bake_vc_min_td<0.01):
 		bake_vc_min_td = 0.01
 
-	td['bake_vc_min_td'] = str(bake_vc_min_td)
+	td['bake_vc_min_td'] = '%.5f' % bake_vc_min_td
 	bpy.ops.object.bake_td_uv_to_vc()
 
 
@@ -156,6 +156,38 @@ def Filter_Density_Set(self, context):
 		density_set = 0.001
 
 	td['density_set'] = str(density_set)
+
+
+def Filter_Select_Value(self, context):
+	td = context.scene.td
+	select_value_filtered = td['select_value'].replace(',', '.')
+	
+	try:
+		select_value = float(select_value_filtered)
+	except:
+		select_value = 1.0
+
+	if (select_value<0.00001):
+		select_value = 0.00001
+
+	td['select_value'] = str(select_value)
+	bpy.ops.object.select_by_td_space()
+
+
+def Filter_Select_Threshold(self, context):
+	td = context.scene.td
+	select_threshold_filtered = td['select_threshold'].replace(',', '.')
+	
+	try:
+		select_threshold = float(select_threshold_filtered)
+	except:
+		select_threshold = 0.1
+
+	if (select_threshold<0.00001):
+		select_threshold = 0.00001
+
+	td['select_threshold'] = str(select_threshold)
+	bpy.ops.object.select_by_td_space()
 
 
 def Change_Bake_VC_Mode(self, context):
@@ -226,12 +258,14 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	select_value: StringProperty(
 		name="",
 		description="Select Value",
-		default="1.0")
+		default="1.0",
+		update = Filter_Select_Value)
 
-	select_td_threshold: StringProperty(
+	select_threshold: StringProperty(
 		name="",
 		description="Select Threshold",
-		default="0.1")
+		default="0.1",
+		update = Filter_Select_Threshold)
 	
 	set_method_list = (('0','Each',''),('1','Average',''))
 	set_method: EnumProperty(name="", items = set_method_list)

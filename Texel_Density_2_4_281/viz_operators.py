@@ -480,20 +480,9 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				face_area_list = []
 				face_td_list = []
 
-				if td.bake_vc_mode == "TD_FACES_TO_VC":
-					face_td_list = utils.Calculate_TD_To_List()
-
-				elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
-					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
-					face_td_list = utils.Calculate_TD_To_List()
-					face_area_list = utils.Calculate_UV_Space_To_List()
-
-				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
-					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
-
-				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
-					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
-					face_area_list = utils.Calculate_UV_Space_To_List()
+				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+				face_td_list = utils.Calculate_TD_To_List()
+				face_area_list = utils.Calculate_UV_Space_To_List()
 
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
@@ -523,6 +512,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						island_area = 0
 						for face_id in uv_island:						
 							island_area += face_area_list[face_id]
+						
 						island_area *= 100
 
 						color = utils.Value_To_Color(island_area, bake_vc_min_space, bake_vc_max_space)

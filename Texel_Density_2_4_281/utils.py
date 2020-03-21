@@ -146,17 +146,14 @@ def Calculate_TD_To_List():
 		if gm_area > 0 and area > 0:
 			texel_density = ((largest_side / math.sqrt(aspect_ratio)) * math.sqrt(area))/(math.sqrt(gm_area)*100) / bpy.context.scene.unit_settings.scale_length
 		else:
-			texel_density = 0.001
+			texel_density = 0.0001
 
-		#show calculated values on panel
-		if td.units == '0':
-			texel_density = '%.3f' % round(texel_density, 3)
 		if td.units == '1':
-			texel_density = '%.3f' % round(texel_density*100, 3)
+			texel_density = texel_density*100
 		if td.units == '2':
-			texel_density = '%.3f' % round(texel_density*2.54, 3)
+			texel_density = texel_density*2.54
 		if td.units == '3':
-			texel_density = '%.3f' % round(texel_density*30.48, 3)
+			texel_density = texel_density*30.48
 
 		calculated_obj_td.append(float(texel_density))
 
@@ -179,9 +176,6 @@ def Calculate_UV_Space_To_List():
 	start_active_obj = bpy.context.active_object
 	start_mode = bpy.context.object.mode
 
-	#set default values
-	area=0
-	
 	bpy.ops.object.mode_set(mode='OBJECT')
 
 	face_count = len(bpy.context.active_object.data.polygons)

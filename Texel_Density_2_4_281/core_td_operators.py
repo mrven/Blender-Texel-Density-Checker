@@ -114,7 +114,7 @@ class Texel_Density_Check(bpy.types.Operator):
 				texel_density = 0.001
 
 			#show calculated values on panel
-			td.uv_space = '%.3f' % round(uv_space, 3) + ' %'
+			td.uv_space = '%.4f' % round(uv_space, 4) + ' %'
 			if td.units == '0':
 				td.density = '%.3f' % round(texel_density, 3)
 			if td.units == '1':
