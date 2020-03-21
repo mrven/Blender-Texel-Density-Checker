@@ -105,10 +105,45 @@ class Select_By_TD_Space(bpy.types.Operator):
 				searched_faces=[]
 
 				islands_list = []
-				face_td_list = []
+				face_td_area_list = []
 
 				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
 				face_td_area_list = utils.Calculate_TD_Area_To_List()
+
+				if td.select_mode == "FACES_BY_TD":
+					for face_id in range(0, face_count):
+						if (face_td_area_list[face_id][0] >= (search_value - select_threshold)) and (face_td_area_list[face_id][0] <= (search_value + select_threshold)):
+							searched_faces.append(face_id)
+
+				elif td.select_mode == "ISLANDS_BY_TD":
+					for uv_island in islands_list:
+						island_td = 0
+						island_area = 0
+						#Calculate Total Island Area
+						for face_id in uv_island:
+							island_area += face_td_area_list[face_id][1]
+
+						for face_id in uv_island:						
+							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
+
+						print(str(island_td) + "\n")
+						if (island_td >= (search_value - select_threshold)) and (island_td <= (search_value + select_threshold)):
+							for face_id in uv_island:	
+								searched_faces.append(face_id)
+
+				elif td.select_mode == "ISLANDS_BY_SPACE":
+					for uv_island in islands_list:
+						island_area = 0
+						for face_id in uv_island:						
+							island_area += face_td_area_list[face_id][1]
+							
+						island_area *= 100
+
+						print(str(island_area) + "\n")
+
+						if (island_area >= (search_value - select_threshold)) and (island_area <= (search_value + select_threshold)):
+							for face_id in uv_island:
+								searched_faces.append(face_id)
 
 				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
 					bpy.ops.object.mode_set(mode='EDIT')
@@ -122,39 +157,6 @@ class Select_By_TD_Space(bpy.types.Operator):
 						for loop in bm_local.faces[uv_id].loops:
 							loop[uv_layer].select = False
 
-					if td.select_mode == "FACES_BY_TD":
-						for face_id in range(0, face_count):
-							if (face_td_area_list[face_id][0] > (search_value - select_threshold)) and (face_td_area_list[face_id][0] < (search_value + select_threshold)):
-								searched_faces.append(face_id)
-
-					elif td.select_mode == "ISLANDS_BY_TD":
-						for uv_island in islands_list:
-							island_td = 0
-							island_area = 0
-							#Calculate Total Island Area
-							for face_id in uv_island:
-								island_area += face_td_area_list[face_id][1]
-
-							for face_id in uv_island:						
-								island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
-
-							print(str(island_td) + "\n")
-							if (island_td > (search_value - select_threshold)) and (island_td < (search_value + select_threshold)):
-								for face_id in uv_island:	
-									searched_faces.append(face_id)
-
-					elif td.select_mode == "ISLANDS_BY_SPACE":
-						for uv_island in islands_list:
-							island_area = 0
-							for face_id in uv_island:						
-								island_area += face_td_area_list[face_id][1]
-								
-							island_area *= 100
-
-							if (island_area > (search_value - select_threshold)) and (island_area < (search_value + select_threshold)):
-								for face_id in uv_island:
-									searched_faces.append(face_id)
-
 					for face_id in searched_faces:
 						for loop in bm_local.faces[face_id].loops:
 							loop[uv_layer].select = True
@@ -165,10 +167,6 @@ class Select_By_TD_Space(bpy.types.Operator):
 					bpy.ops.object.mode_set(mode='EDIT')
 					bpy.ops.mesh.select_all(action='DESELECT')
 					
-					for face_id in range(0, face_count):
-						if (face_td_area_list[face_id][0] > (search_value - select_threshold)) and (face_td_area_list[face_id][0] < (search_value + select_threshold)):
-							searched_faces.append(face_id)
-
 					bpy.ops.object.mode_set(mode='OBJECT')
 
 					for face_id in searched_faces:

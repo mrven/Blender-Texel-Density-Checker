@@ -62,7 +62,6 @@ def Change_Texture_Size(self, context):
 
 
 def Change_Units(self, context):
-	td = context.scene.td
 	bpy.ops.object.texel_density_check()
 
 
@@ -201,6 +200,9 @@ def Change_Bake_VC_Mode(self, context):
 
 	bpy.ops.object.bake_td_uv_to_vc()
 
+def Change_Select_Mode(self, context):
+	bpy.ops.object.select_by_td_space()
+
 draw_info = {
 	"handler": None,
 }
@@ -310,7 +312,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		update = Filter_Bake_VC_Max_Space)
 
 	select_mode_list = (('FACES_BY_TD','Faces (By Texel)',''), ('ISLANDS_BY_TD','Islands (By Texel)',''), ('ISLANDS_BY_SPACE','Islands (By UV Space)',''))
-	select_mode: EnumProperty(name="", items = select_mode_list)
+	select_mode: EnumProperty(name="", items = select_mode_list, update = Change_Select_Mode)
 
 
 classes = (
