@@ -3,25 +3,6 @@ import bmesh
 import math
 import colorsys
 
-def Vector2d_Multiply(a, b, c):
-	return abs((b[0]- a[0])*(c[1]- a[1])-(b[1]- a[1])*(c[0]- a[0]))
-
-
-#Deprecated
-def Vector3d_Multiply(a, b, c):
-	result = 0
-	vector_x = 0
-	vector_y = 0
-	vector_z = 0
-	
-	vector_x = (b[1]- a[1])*(c[2]- a[2])-(b[2]- a[2])*(c[1]- a[1])
-	vector_y = -1*((b[0]- a[0])*(c[2]- a[2])-(b[2]- a[2])*(c[0]- a[0]))
-	vector_z = (b[0]- a[0])*(c[1]- a[1])-(b[1]- a[1])*(c[0]- a[0])
-	
-	result = math.sqrt(math.pow(vector_x, 2) + math.pow(vector_y, 2) + math.pow(vector_z, 2))
-	return result
-
-
 def Value_To_Color(value, range_min, range_max):
 	remaped_value = (value - range_min) / (range_max - range_min)
 	remaped_value = Saturate(remaped_value)
@@ -61,7 +42,7 @@ def Sync_UV_Selection():
 			face.select_set(False)
 		else:
 			face.select_set(True)
-	    
+		
 	for face_id in uv_selected_faces:
 		bm.faces[face_id].select_set(True)
 
@@ -130,17 +111,22 @@ def Calculate_TD_Area_To_List():
 	for x in range(0, face_count):
 		area = 0
 		td_area_list = []
-		#UV Area calculating
-		#get uv-coordinates of verteces of current triangle
-		for tri_index in range(0, len(bm.faces[x].loops) - 2):
-			loop_a = bm.faces[x].loops[0][bm.loops.layers.uv.active].uv
-			loop_b = bm.faces[x].loops[tri_index + 1][bm.loops.layers.uv.active].uv
-			loop_c = bm.faces[x].loops[tri_index + 2][bm.loops.layers.uv.active].uv
-			#get multiplication of vectors of current triangle
-			multi_vector = Vector2d_Multiply(loop_a, loop_b, loop_c)
-			#Increment area of current tri to total uv area
-			area += 0.5 * multi_vector
+		
+		#UV area
+		loops = []
+		for loop in bm.faces[x].loops:
+			loops.append(loop[bm.loops.layers.uv.active].uv)
+			
+		loops_count = len(loops)
+		a = loops_count - 1
+		
+		for b in range(0, loops_count):
+			area +=  (loops[a].x + loops[b].x) * (loops[a].y - loops[b].y)
+			a = b
+		
+		area = abs(0.5 * area)
 
+		#Geometry Area
 		gm_area = bpy.context.active_object.data.polygons[x].area
 
 		#TexelDensity calculating from selected in panel texture size
