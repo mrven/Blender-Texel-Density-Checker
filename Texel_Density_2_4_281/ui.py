@@ -96,7 +96,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			c = split.column()
 			c.prop(td, 'checker_type', expand=False)
 			#----
-
+			
 			row = layout.row()
 			row.operator("object.checker_assign", text="Assign Checker Material")
 

@@ -39,11 +39,22 @@ def Draw_Callback_Px(self, context):
 	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC":	
 		bake_min_value = float(td.bake_vc_min_td)
 		bake_max_value = float(td.bake_vc_max_td)
-		bake_value_precision = 3
+
 	elif td.bake_vc_mode == "UV_SPACE_TO_VC":
 		bake_min_value = float(td.bake_vc_min_space)
 		bake_max_value = float(td.bake_vc_max_space)
+
+	if abs(bake_max_value - bake_min_value) <= 3:
 		bake_value_precision = 5
+	elif abs(bake_max_value - bake_min_value) <= 12:
+		bake_value_precision = 4
+	elif abs(bake_max_value - bake_min_value) <= 25:
+		bake_value_precision = 3
+	elif abs(bake_max_value - bake_min_value) <= 50:
+		bake_value_precision = 2
+	else:
+		bake_value_precision = 1
+
 
 	#Calculate Text Position from Anchor
 	if anchor_pos == 'LEFT_BOTTOM':
