@@ -156,5 +156,101 @@ def Calculate_TD_Area_To_List():
 	return calculated_obj_td_area
 
 
+def Get_UV_Islands():
+	start_selected_3d_faces = []
+	start_selected_uv_faces = []
+	start_hidden_faces = []
+	start_mode = bpy.context.object.mode
+	start_uv_sync_mode = bpy.context.scene.tool_settings.use_uv_select_sync
+
+	bpy.ops.object.mode_set(mode='EDIT')
+
+	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+	bm.faces.ensure_lookup_table()
+	uv_layer = bm.loops.layers.uv.active
+	face_count = len(bm.faces)
+
+	#save start selected and hidden faces
+	for face in bm.faces:
+		if face.select:
+			start_selected_3d_faces.append(face.index)
+		if face.hide:
+			start_hidden_faces.append(face.index)
+		
+		face_is_uv_selected = True
+		for loop in face.loops:
+			if not(loop[uv_layer].select):
+				face_is_uv_selected = False
+
+		if face_is_uv_selected:
+			start_selected_uv_faces.append(face.index)
+
+	bpy.context.scene.tool_settings.use_uv_select_sync = False
+	bpy.ops.mesh.reveal()
+	bpy.ops.mesh.select_all(action='SELECT')
+
+	face_dict = {}
+	face_dict = [f for f in range(0,face_count)]
+	uv_islands = []
+
+	face_dict_len_start = len(face_dict)
+	face_dict_len_finish = 0
+
+	while len(face_dict) > 0:
+		if face_dict_len_finish == face_dict_len_start:
+			print("Breaking Bad")
+			uv_islands = []
+			break
+
+		face_dict_len_start = len(face_dict)
+		
+		uv_island = []
+		bpy.ops.uv.select_all(action='DESELECT')
+
+		for loop in bm.faces[face_dict[0]].loops:
+				loop[uv_layer].select = True
+
+		bpy.ops.uv.select_linked()
+
+		for face_id in range (face_count):
+				face_is_selected = True
+				for loop in bm.faces[face_id].loops:
+					if not(loop[uv_layer].select):
+						face_is_selected = False
+			
+				if face_is_selected and bm.faces[face_id].select:
+					uv_island.append(face_id)
+
+		for face_id in uv_island:
+			face_dict.remove(face_id)
+
+		face_dict_len_finish = len(face_dict)
+
+		bpy.ops.uv.select_all(action='DESELECT')
+
+		uv_islands.append(uv_island)
+
+	#Restore Saved Parameters
+	bpy.ops.mesh.select_all(action='DESELECT')
+	bpy.context.scene.tool_settings.use_uv_select_sync = start_uv_sync_mode
+	bpy.ops.uv.select_all(action='DESELECT')
+
+	for face_id in start_selected_3d_faces:
+		bm.faces[face_id].select = True
+
+	for face_id in start_selected_uv_faces:
+		for loop in bm.faces[face_id].loops:
+			loop[uv_layer].select = True
+
+	for face_id in start_hidden_faces:
+		bm.faces[face_id].hide_set(True)
+
+	bmesh.update_edit_mesh(bpy.context.active_object.data)
+
+	bpy.ops.object.mode_set(mode=start_mode)
+
+	return uv_islands
+
+
 def Saturate(val):
 	return max(min(val, 1), 0)

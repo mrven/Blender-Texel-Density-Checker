@@ -7,7 +7,6 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
 	bl_category = "Texel Density"
-	#bl_options = {'DEFAULT_CLOSED'}
 
 	@classmethod
 	def poll(self, context):
@@ -372,6 +371,17 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.operator("object.bake_td_uv_to_vc", text="Texel Density to VC")
 			
 			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.5, align=True)
+				c = split.column()
+				c.label(text="Island Detect Mode:")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "uv_islands_to_vc_mode", expand=False)
+				#----
 				row = layout.row()
 				row.operator("object.bake_td_uv_to_vc", text="UV Islands to VC")
 

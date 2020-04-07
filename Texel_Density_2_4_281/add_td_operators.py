@@ -1,6 +1,5 @@
 import bpy
 import bmesh
-import bpy_extras.mesh_utils
 
 from bpy.props import StringProperty
 
@@ -89,6 +88,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 		search_value = float(td.select_value)
 		select_threshold = float(td.select_threshold)
 		
+		bpy.ops.object.mode_set(mode='EDIT')
 		bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
 		bpy.context.scene.tool_settings.uv_select_mode = 'FACE'
 		
@@ -107,7 +107,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 				islands_list = []
 				face_td_area_list = []
 
-				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+				islands_list = utils.Get_UV_Islands()
 				face_td_area_list = utils.Calculate_TD_Area_To_List()
 
 				if td.select_mode == "FACES_BY_TD":
@@ -122,6 +122,9 @@ class Select_By_TD_Space(bpy.types.Operator):
 						#Calculate Total Island Area
 						for face_id in uv_island:
 							island_area += face_td_area_list[face_id][1]
+
+						if island_area == 0:
+							island_area = 0.000001
 
 						for face_id in uv_island:						
 							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area

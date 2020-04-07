@@ -5,8 +5,8 @@ import colorsys
 import blf
 import bgl
 import gpu
-import bpy_extras.mesh_utils
 import random
+import bpy_extras.mesh_utils
 
 from gpu_extras.batch import batch_for_shader
 from bpy.props import StringProperty
@@ -479,7 +479,12 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				islands_list = []
 				face_td_area_list = []
 
-				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+				
+				if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
+					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+				else:
+					islands_list = utils.Get_UV_Islands()
+				
 				face_td_area_list = utils.Calculate_TD_Area_To_List()
 
 				bpy.ops.object.mode_set(mode='EDIT')
@@ -526,6 +531,9 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						#Calculate Total Island Area
 						for face_id in uv_island:
 							island_area += face_td_area_list[face_id][1]
+
+						if island_area == 0:
+							island_area = 0.000001
 
 						for face_id in uv_island:						
 							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
