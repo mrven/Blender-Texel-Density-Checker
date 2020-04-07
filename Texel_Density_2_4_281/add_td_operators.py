@@ -45,13 +45,30 @@ class Texel_Density_Copy(bpy.types.Operator):
 class Calculated_To_Set(bpy.types.Operator):
 	"""Copy Calc to Set"""
 	bl_idname = "object.calculate_to_set"
-	bl_label = "Set Texel Density"
+	bl_label = "Copy Calculated Value to Set Value Field"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
 		td = context.scene.td
 		
 		td.density_set = td.density
+		
+		return {'FINISHED'}
+
+
+class Calculated_To_Select(bpy.types.Operator):
+	"""Copy Calc to Set"""
+	bl_idname = "object.calculate_to_select"
+	bl_label = "Copy Calculated Value to Select Value Field"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	def execute(self, context):
+		td = context.scene.td
+		
+		if td.select_mode == "ISLANDS_BY_SPACE":
+			td['select_value'] = td.uv_space[:-2]
+		else:
+			td['select_value'] = td.density
 		
 		return {'FINISHED'}
 		
@@ -112,8 +129,17 @@ class Select_By_TD_Space(bpy.types.Operator):
 
 				if td.select_mode == "FACES_BY_TD":
 					for face_id in range(0, face_count):
-						if (face_td_area_list[face_id][0] >= (search_value - select_threshold)) and (face_td_area_list[face_id][0] <= (search_value + select_threshold)):
-							searched_faces.append(face_id)
+						if td.select_type == "EQUAL":
+							if (face_td_area_list[face_id][0] >= (search_value - select_threshold)) and (face_td_area_list[face_id][0] <= (search_value + select_threshold)):
+								searched_faces.append(face_id)
+						
+						elif td.select_type == "LESS":
+							if face_td_area_list[face_id][0] <= search_value:
+								searched_faces.append(face_id)
+
+						elif td.select_type == "GREATER":
+							if face_td_area_list[face_id][0] >= search_value:
+								searched_faces.append(face_id)
 
 				elif td.select_mode == "ISLANDS_BY_TD":
 					for uv_island in islands_list:
@@ -129,10 +155,20 @@ class Select_By_TD_Space(bpy.types.Operator):
 						for face_id in uv_island:						
 							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
 
-						print(str(island_td) + "\n")
-						if (island_td >= (search_value - select_threshold)) and (island_td <= (search_value + select_threshold)):
-							for face_id in uv_island:	
-								searched_faces.append(face_id)
+						if td.select_type == "EQUAL":
+							if (island_td >= (search_value - select_threshold)) and (island_td <= (search_value + select_threshold)):
+								for face_id in uv_island:	
+									searched_faces.append(face_id)
+
+						elif td.select_type == "LESS":
+							if island_td <= search_value:
+								for face_id in uv_island:	
+									searched_faces.append(face_id)
+
+						elif td.select_type == "GREATER":
+							if island_td >= search_value:
+								for face_id in uv_island:	
+									searched_faces.append(face_id)
 
 				elif td.select_mode == "ISLANDS_BY_SPACE":
 					for uv_island in islands_list:
@@ -142,11 +178,20 @@ class Select_By_TD_Space(bpy.types.Operator):
 							
 						island_area *= 100
 
-						print(str(island_area) + "\n")
+						if td.select_type == "EQUAL":
+							if (island_area >= (search_value - select_threshold)) and (island_area <= (search_value + select_threshold)):
+								for face_id in uv_island:
+									searched_faces.append(face_id)
 
-						if (island_area >= (search_value - select_threshold)) and (island_area <= (search_value + select_threshold)):
-							for face_id in uv_island:
-								searched_faces.append(face_id)
+						if td.select_type == "LESS":
+							if island_area <= search_value:
+								for face_id in uv_island:
+									searched_faces.append(face_id)
+
+						if td.select_type == "GREATER":
+							if island_area >= search_value:
+								for face_id in uv_island:
+									searched_faces.append(face_id)
 
 				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
 					bpy.ops.object.mode_set(mode='EDIT')
@@ -188,6 +233,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 classes = (
 	Texel_Density_Copy,
 	Calculated_To_Set,
+	Calculated_To_Select,
 	Preset_Set,
 	Select_By_TD_Space,
 )

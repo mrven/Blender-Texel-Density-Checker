@@ -316,11 +316,16 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default="2.0",
 		update = Filter_Bake_VC_Max_Space)
 
+	uv_islands_to_vc_mode_list = (('ISLAND','By Island',''), ('OVERLAP','By Overlap',''))
+	uv_islands_to_vc_mode: EnumProperty(name="", items = uv_islands_to_vc_mode_list, update = Change_UV_Islands_Mode)
+
 	select_mode_list = (('FACES_BY_TD','Faces (By Texel)',''), ('ISLANDS_BY_TD','Islands (By Texel)',''), ('ISLANDS_BY_SPACE','Islands (By UV Space)',''))
 	select_mode: EnumProperty(name="", items = select_mode_list, update = Change_Select_Mode)
 
-	uv_islands_to_vc_mode_list = (('ISLAND','By Island',''), ('OVERLAP','By Overlap',''))
-	uv_islands_to_vc_mode: EnumProperty(name="", items = uv_islands_to_vc_mode_list, update = Change_UV_Islands_Mode)
+	select_type_list = (('EQUAL','Equal To',''), ('LESS','Less Than',''), ('GREATER','Greater Than',''))
+	select_type: EnumProperty(name="", items = select_type_list, update = Change_Select_Mode)
+
+
 
 
 classes = (

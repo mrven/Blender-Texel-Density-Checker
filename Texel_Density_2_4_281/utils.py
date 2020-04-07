@@ -198,7 +198,7 @@ def Get_UV_Islands():
 
 	while len(face_dict) > 0:
 		if face_dict_len_finish == face_dict_len_start:
-			print("Breaking Bad")
+			print("Can not Select Island")
 			uv_islands = []
 			break
 

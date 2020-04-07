@@ -149,6 +149,8 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 
 			layout.operator("object.texel_density_check", text="Calculate TD")
 			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
+			if context.object.mode == 'EDIT':
+				layout.operator("object.calculate_to_select", text="Calc -> Select Value")
 			
 			layout.separator()
 			
@@ -294,6 +296,17 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = layout.row()
 				c = row.column()
 				row = c.row()
+				split = row.split(factor=0.3, align=True)
+				c = split.column()
+				c.label(text="Select Type:")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "select_type", expand=False)
+				#----
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
 				split = row.split(factor=0.4, align=True)
 				c = split.column()
 				if td.select_mode == "FACES_BY_TD" or td.select_mode == "ISLANDS_BY_TD":
@@ -317,17 +330,18 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				elif td.select_mode == "ISLANDS_BY_SPACE":
 					c.label(text="%")
 				#----
-				#Split row
-				row = layout.row()
-				c = row.column()
-				row = c.row()
-				split = row.split(factor=0.6, align=True)
-				c = split.column()
-				c.label(text="Select Threshold:")
-				split = split.split()
-				c = split.column()
-				c.prop(td, "select_threshold")
-				#----
+				if td.select_type == "EQUAL":
+					#Split row
+					row = layout.row()
+					c = row.column()
+					row = c.row()
+					split = row.split(factor=0.6, align=True)
+					c = split.column()
+					c.label(text="Select Threshold:")
+					split = split.split()
+					c = split.column()
+					c.prop(td, "select_threshold")
+					#----
 				if td.select_mode == "FACES_BY_TD":
 					layout.operator("object.select_by_td_space", text="Select Faces By TD")
 				elif td.select_mode == "ISLANDS_BY_TD":
@@ -516,6 +530,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 
 			layout.operator("object.texel_density_check", text="Calculate TD")
 			layout.operator("object.calculate_to_set", text="Calc -> Set Value")
+			layout.operator("object.calculate_to_select", text="Calc -> Select Value")
 			
 			layout.separator()
 			
@@ -666,6 +681,17 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			row = layout.row()
 			c = row.column()
 			row = c.row()
+			split = row.split(factor=0.3, align=True)
+			c = split.column()
+			c.label(text="Select Type:")
+			split = split.split()
+			c = split.column()
+			c.prop(td, "select_type", expand=False)
+			#----
+			#Split row
+			row = layout.row()
+			c = row.column()
+			row = c.row()
 			split = row.split(factor=0.4, align=True)
 			c = split.column()
 			if td.select_mode == "FACES_BY_TD" or td.select_mode == "ISLANDS_BY_TD":
@@ -689,17 +715,19 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			elif td.select_mode == "ISLANDS_BY_SPACE":
 				c.label(text="%")
 			#----
-			#Split row
-			row = layout.row()
-			c = row.column()
-			row = c.row()
-			split = row.split(factor=0.6, align=True)
-			c = split.column()
-			c.label(text="Select Threshold:")
-			split = split.split()
-			c = split.column()
-			c.prop(td, "select_threshold")
-			#----
+			if td.select_type == "EQUAL":
+				#Split row
+				row = layout.row()
+				c = row.column()
+				row = c.row()
+				split = row.split(factor=0.6, align=True)
+				c = split.column()
+				c.label(text="Select Threshold:")
+				split = split.split()
+				c = split.column()
+				c.prop(td, "select_threshold")
+				#----
+			
 			if td.select_mode == "FACES_BY_TD":
 				layout.operator("object.select_by_td_space", text="Select Faces By TD")
 			elif td.select_mode == "ISLANDS_BY_TD":
