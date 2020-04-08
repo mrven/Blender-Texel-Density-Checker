@@ -3,6 +3,7 @@ import bpy
 from bpy.props import (
 		StringProperty,
 		EnumProperty,
+		BoolProperty
         )
 
 
@@ -53,12 +54,19 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 						('RIGHT_TOP','Right Top',''), ('RIGHT_BOTTOM','Right Bottom',''))
 	anchor_pos: EnumProperty(name="Position Anchor", items = anchor_pos_list, default = 'LEFT_BOTTOM')
 
+	automatic_recalc: BoolProperty(
+		name="Calling Select/Bake VC operator after changing Mode/Value",
+		description="Calling Select/Bake VC operator after changing Mode/Value",
+		default = False)
+
 	def draw(self, context):
 		layout = self.layout
 		layout.label(text='Texel Density Gradient Position:')
 		layout.prop(self, 'anchor_pos', expand=False)
 		layout.prop(self, 'offset_x')
 		layout.prop(self, 'offset_y')
+		layout.separator()
+		layout.prop(self, 'automatic_recalc')
 
 
 classes = (
