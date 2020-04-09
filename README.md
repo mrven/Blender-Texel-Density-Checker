@@ -1,6 +1,6 @@
 # Blender Addon: Texel Density Checker
 
-![Header](/images/00_Header_TD_2_1920.png)
+![Header](/images/Header_TD_3_1920.png)
 
 **[Russian README](/README_ru.md)**
 
@@ -19,41 +19,26 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 * ***[Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
 * ***[Blender 2.80 (Windows, Linux)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280.zip)***
 * ***[Blender 2.80 (MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280_MacOS.zip)***
-* ***[Blender 2.81 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_3_281.zip)***
+* ***[Blender 2.81 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_0_281.zip)***
 
 If you want to support me you can buy this addon:
 * ***[Gumroad (Pay what you want)](https://gumroad.com/l/CEIOR)***
 * ***[Blender Market (10$)](https://blendermarket.com/products/texel-density-checker)***
 
-![Different Units](/images/EN-en/01_Units_EN.png)
+![Different Units](/images/TD_3_En-en/01_Units_EN.png)
 
-![Texture Size](/images/EN-en/02_Texture_Size_1_EN.png)
-![Texture Size](/images/EN-en/03_Texture_Size_2_EN.png)
+![Texture Size](/images/TD_3_En-en/02_Texture_Size_EN.png)
 
-![Checker Material](/images/EN-en/04_Checker_Material_EN.png)
+![Checker Material](/images/TD_3_En-en/03_Checker_Material_EN.png)
 
-![Filled UV Space](/images/EN-en/05_Filled_UV_EN.png)
+![Calculate TD](/images/TD_3_En-en/04_Calculate_EN.png)
 
-![Calculate TD Object](/images/EN-en/06_Calculate_Obj_EN.png)
+![Copy Value](/images/TD_3_En-en/05_Calc_to_Set_EN.png)
 
-![Calculate TD Edit](/images/EN-en/07_Calculate_Edit_EN.png)
+![Set TD](/images/TD_3_En-en/06_Set_TD_EN.png)
 
-![Calc To Set](/images/EN-en/08_Calc_to_Set_EN.png)
+![Select](/images/TD_3_En-en/07_Select_EN.png)
 
-![Set TD Object](/images/EN-en/09_Set_TD_Obj_EN.png)
+![TD To VC](/images/TD_3_En-en/08_TD_VC_EN.png)
 
-![Set TD Edit](/images/EN-en/10_Set_TD_Edit_EN.png)
-
-![Set TD Method](/images/EN-en/11_Set_Method_EN.png)
-
-![Peset Buttons](/images/EN-en/12_Presets_EN.png)
-
-![Bake TD To VC](/images/EN-en/16_Bake_TD_VC_EN.png)
-
-![Bake UV To VC](/images/EN-en/17_Bake_UV_VC_EN.png)
-
-![Copy TD](/images/EN-en/13_Copy_TD_EN.png)
-
-![Select Faces Same TD](/images/EN-en/14_Select_Same_TD_EN.png)
-
-![Modes](/images/EN-en/15_Modes_EN.png)
+![UV To VC](/images/TD_3_En-en/09_UV_VC_EN.png)
