@@ -408,19 +408,3 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				row.operator("object.select_by_td_space", text="Select Islands By TD")
 			elif td.select_mode == "ISLANDS_BY_SPACE":
 				row.operator("object.select_by_td_space", text="Select Islands By UV Space")
-
-
-classes = (
-    VIEW3D_PT_texel_density_checker,
-    UV_PT_texel_density_checker,
-)	
-
-
-def register():
-	for cls in classes:
-		bpy.utils.register_class(cls)
-
-
-def unregister():
-	for cls in reversed(classes):
-		bpy.utils.unregister_class(cls)

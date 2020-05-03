@@ -1,10 +1,40 @@
 import bpy
 
+from . import ui
+
+from .ui import VIEW3D_PT_texel_density_checker, UV_PT_texel_density_checker
+
 from bpy.props import (
 		StringProperty,
 		EnumProperty,
 		BoolProperty
         )
+
+
+def update_view3d_panel_category(self, context):
+	is_panel = hasattr(bpy.types, 'VIEW3D_PT_texel_density_checker')
+	category = bpy.context.preferences.addons[__package__].preferences.view3d_panel_category
+	
+	if is_panel:
+		try:
+			bpy.utils.unregister_class(VIEW3D_PT_texel_density_checker)
+		except:
+			pass
+	VIEW3D_PT_texel_density_checker.bl_category = category
+	bpy.utils.register_class(VIEW3D_PT_texel_density_checker)
+
+
+def update_uv_panel_category(self, context):
+	is_panel = hasattr(bpy.types, 'UV_PT_texel_density_checker')
+	category = bpy.context.preferences.addons[__package__].preferences.uv_panel_category
+	
+	if is_panel:
+		try:
+			bpy.utils.unregister_class(UV_PT_texel_density_checker)
+		except:
+			pass
+	UV_PT_texel_density_checker.bl_category = category
+	bpy.utils.register_class(UV_PT_texel_density_checker)
 
 
 def Filter_Gradient_Offset_X(self, context):
@@ -41,42 +71,80 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 	bl_idname = __package__
 
 	offset_x: StringProperty(
-		name="Offset X",
+		name="",
 		description="Offset X from Anchor",
 		default="250", update = Filter_Gradient_Offset_X)
 
 	offset_y: StringProperty(
-		name="Offset Y",
+		name="",
 		description="Offset Y from Anchor",
 		default="20", update = Filter_Gradient_Offset_Y)
 
 	anchor_pos_list = (('LEFT_TOP','Left Top',''),('LEFT_BOTTOM','Left Bottom',''), 
 						('RIGHT_TOP','Right Top',''), ('RIGHT_BOTTOM','Right Bottom',''))
-	anchor_pos: EnumProperty(name="Position Anchor", items = anchor_pos_list, default = 'LEFT_BOTTOM')
+	anchor_pos: EnumProperty(name="", items = anchor_pos_list, default = 'LEFT_BOTTOM')
 
 	automatic_recalc: BoolProperty(
 		name="Calling Select/Bake VC operator after changing Mode/Value",
 		description="Calling Select/Bake VC operator after changing Mode/Value",
 		default = False)
 
+	view3d_panel_category: StringProperty(
+		name="",
+		description="Choose a name for the category of panel (3D View)",
+		default="Texel Density",
+		update = update_view3d_panel_category
+		)
+
+	uv_panel_category: StringProperty(
+		name="",
+		description="Choose a name for the category of panel (UV Editor)",
+		default="Texel Density",
+		update = update_uv_panel_category
+		)
+
 	def draw(self, context):
 		layout = self.layout
-		layout.label(text='Texel Density Gradient Position:')
-		layout.prop(self, 'anchor_pos', expand=False)
-		layout.prop(self, 'offset_x')
-		layout.prop(self, 'offset_y')
-		layout.separator()
+		box = layout.box()
+		row = box.row()
+		row.label(text='Texel Density Gradient Position:')
+		row = box.row(align=True)
+		row.label(text='Position Anchor:')
+		row.prop(self, 'anchor_pos', expand=False)
+		row = box.row(align=True)
+		row.label(text='Offset X:')
+		row.prop(self, 'offset_x')
+		row = box.row(align=True)
+		row.label(text='Offset Y:')
+		row.prop(self, 'offset_y')
+		
+		box = layout.box()
+		row = box.row(align=True)
+		row.label(text='Panel Category (3D View):')
+		row.prop(self, 'view3d_panel_category')
+		row = box.row(align=True)
+		row.label(text='Panel Category (UV Editor):')
+		row.prop(self, 'uv_panel_category')
+		
 		layout.prop(self, 'automatic_recalc')
 
 
 classes = (
     TD_Addon_Preferences,
+    VIEW3D_PT_texel_density_checker,
+    UV_PT_texel_density_checker,
 )	
 
 
 def register():
 	for cls in classes:
 		bpy.utils.register_class(cls)
+
+	# Update Category
+	context = bpy.context
+	prefs = bpy.context.preferences.addons[__package__].preferences
+	update_view3d_panel_category(prefs, context)
+	update_uv_panel_category(prefs, context)
 
 
 def unregister():
