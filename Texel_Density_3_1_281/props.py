@@ -293,7 +293,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	set_method: EnumProperty(name="", items = set_method_list)
 
 	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''))
-	checker_method: EnumProperty(name="", items = checker_method_list)
+	checker_method: EnumProperty(name="", items = checker_method_list, default = '1')
 
 	checker_type_list = (('COLOR_GRID','Color Grid',''),('UV_GRID','UV Grid',''))
 	checker_type: EnumProperty(name="", items = checker_type_list, update = Change_Texture_Type)

@@ -51,12 +51,11 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row = box.row()
 			row.operator("object.checker_assign", text="Assign Checker Material")
 
-			row = box.row()
-			row.operator("object.checker_restore", text="Restore Materials")
-
-			row = box.row()
-			row.operator("object.clear_checker_face_maps", text="Clear Stored Face Maps")
-
+			if td.checker_method == '1':
+				row = box.row()
+				row.operator("object.checker_restore", text="Restore Materials")
+				row = box.row()
+				row.operator("object.clear_checker_face_maps", text="Clear Stored Face Maps")
 			
 			if context.object.mode == 'EDIT':
 				row = layout.row()
