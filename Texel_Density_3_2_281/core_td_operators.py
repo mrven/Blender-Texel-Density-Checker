@@ -193,13 +193,15 @@ class Texel_Density_Set(bpy.types.Operator):
 
 				scale_fac = density_new_value/density_current_value
 				#check opened image editor window
-				ie_area = 0
+				ie_areas = []
 				flag_exist_area = False
 				for area in range(len(bpy.context.screen.areas)):
-					if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR':
-						ie_area = area
+					if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR' and bpy.context.screen.areas[area].ui_type == 'UV':
+						ie_areas.append(area)
 						flag_exist_area = True
-						bpy.context.screen.areas[area].type = 'CONSOLE'
+
+				for ie_area in ie_areas:
+					bpy.context.screen.areas[ie_area].ui_type = 'VIEW'
 				
 				bpy.context.area.type = 'IMAGE_EDITOR'
 				
@@ -219,7 +221,8 @@ class Texel_Density_Set(bpy.types.Operator):
 				bpy.context.area.type = 'VIEW_3D'
 				
 				if flag_exist_area == True:
-					bpy.context.screen.areas[ie_area].type = 'IMAGE_EDITOR'
+					for ie_area in ie_areas:
+						bpy.context.screen.areas[ie_area].ui_type = 'UV'
 
 				bpy.ops.mesh.select_all(action='DESELECT')
 
