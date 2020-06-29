@@ -474,7 +474,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode='OBJECT')
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if (x.type == 'MESH' and len(x.data.uv_layers) > 0):
+			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0):
 				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
 								

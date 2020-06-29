@@ -29,7 +29,7 @@ class Texel_Density_Copy(bpy.types.Operator):
 
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if (x.type == 'MESH' and len(x.data.uv_layers) > 0) and not x == start_active_obj:
+			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0) and not x == start_active_obj:
 				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
 				bpy.ops.object.texel_density_set()
@@ -113,7 +113,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 		
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if (x.type == 'MESH' and len(x.data.uv_layers) > 0):
+			if (x.type == 'MESH' and len(x.data.uv_layers) > 0) and len(x.data.polygons) > 0:
 				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
 				

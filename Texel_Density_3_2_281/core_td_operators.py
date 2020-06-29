@@ -25,7 +25,7 @@ class Texel_Density_Check(bpy.types.Operator):
 
 		for o in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if o.type == 'MESH' and len(o.data.uv_layers) > 0:
+			if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
 				o.select_set(True)
 				bpy.context.view_layer.objects.active = o
 				
@@ -72,7 +72,7 @@ class Texel_Density_Check(bpy.types.Operator):
 		if area > 0:
 			for o in start_selected_obj:
 				bpy.ops.object.select_all(action='DESELECT')
-				if o.type == 'MESH' and len(o.data.uv_layers) > 0:
+				if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
 					o.select_set(True)
 					bpy.context.view_layer.objects.active = o
 
@@ -164,7 +164,7 @@ class Texel_Density_Set(bpy.types.Operator):
 
 		for o in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if o.type == 'MESH' and len(o.data.uv_layers) > 0:
+			if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
 				o.select_set(True)
 				bpy.context.view_layer.objects.active = o
 

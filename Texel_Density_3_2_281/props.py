@@ -271,7 +271,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	density_set: StringProperty(
 		name="",
 		description="Texel Density",
-		default="0",
+		default="1.28",
 		update = Filter_Density_Set)
 	
 	tex_size = (('0','512px',''),('1','1024px',''),('2','2048px',''),('3','4096px',''), ('4','Custom',''))
