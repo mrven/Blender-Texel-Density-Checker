@@ -252,8 +252,18 @@ class Checker_Assign(bpy.types.Operator):
 			vc_node = nodes.new(type="ShaderNodeAttribute")
 			vc_node.location = (-500, 0)
 			vc_node.attribute_name = "td_vis"
-			links.new(vc_node.outputs["Color"], mix_node.inputs['Color2'])			
-		
+			links.new(vc_node.outputs["Color"], mix_node.inputs['Color2'])
+
+			mapper_node = nodes.new(type="ShaderNodeMapping")
+			mapper_node.location = (-800, 300)
+			mapper_node.inputs['Scale'].default_value[0] = float(td.checker_uv_scale)
+			mapper_node.inputs['Scale'].default_value[1] = float(td.checker_uv_scale)
+			links.new(mapper_node.outputs["Vector"], tex_node.inputs['Vector'])
+			
+			uv_node = nodes.new(type="ShaderNodeUVMap")
+			uv_node.location = (-1000, 220)
+			links.new(uv_node.outputs["UV"], mapper_node.inputs['Vector'])
+
 		bpy.ops.object.mode_set(mode = 'OBJECT')
 
 		if td.checker_method == '1':

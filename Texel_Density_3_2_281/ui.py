@@ -44,10 +44,14 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row.label(text="Checker Method:")
 			row.prop(td, 'checker_method', expand=False)
 			
-			row = box.row()
+			row = box.row(align=True)
 			row.label(text="Checker Type:")
 			row.prop(td, 'checker_type', expand=False)
-			
+
+			row = box.row(align=True)
+			row.label(text="UV Scale:")
+			row.prop(td, 'checker_uv_scale')
+		
 			row = box.row()
 			row.operator("object.checker_assign", text="Assign Checker Material")
 

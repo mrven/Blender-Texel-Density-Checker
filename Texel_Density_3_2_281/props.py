@@ -164,6 +164,26 @@ def Filter_Density_Set(self, context):
 
 	td['density_set'] = str(density_set)
 
+def Filter_Checker_UV_Scale(self, context):
+	td = context.scene.td
+	checker_uv_scale_filtered = td['checker_uv_scale'].replace(',', '.')
+	
+	try:
+		checker_uv_scale = float(checker_uv_scale_filtered)
+	except:
+		checker_uv_scale = 1
+
+	if (checker_uv_scale<0.01):
+		checker_uv_scale = 0.01
+
+	td['checker_uv_scale'] = str(checker_uv_scale)
+
+	try:
+		nodes = bpy.data.materials['TD_Checker'].node_tree.nodes
+		nodes['Mapping'].inputs['Scale'].default_value[0] = checker_uv_scale
+		nodes['Mapping'].inputs['Scale'].default_value[1] = checker_uv_scale
+	except:
+		print('');
 
 def Filter_Select_Value(self, context):
 	td = context.scene.td
@@ -297,6 +317,12 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 
 	checker_type_list = (('COLOR_GRID','Color Grid',''),('UV_GRID','UV Grid',''))
 	checker_type: EnumProperty(name="", items = checker_type_list, update = Change_Texture_Type)
+
+	checker_uv_scale: StringProperty(
+		name="",
+		description="UV Scale",
+		default="1",
+		update = Filter_Checker_UV_Scale)
 
 	bake_vc_min_td: StringProperty(
 		name="",
