@@ -181,9 +181,7 @@ class Checker_Assign(bpy.types.Operator):
 		td = context.scene.td
 
 		start_mode = bpy.context.object.mode
-
 		start_active_obj = bpy.context.active_object
-		
 		need_select_again_obj = bpy.context.selected_objects
 
 		if start_mode == 'OBJECT':
@@ -353,14 +351,18 @@ class Checker_Assign(bpy.types.Operator):
 						bpy.ops.object.material_slot_assign()
 						bpy.ops.object.mode_set(mode = 'OBJECT')
 
-			bpy.ops.object.mode_set(mode = 'OBJECT')
-			bpy.ops.object.select_all(action='DESELECT')
-			for j in need_select_again_obj:
-				j.select_set(True)
-			bpy.context.view_layer.objects.active = start_active_obj
+		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.select_all(action='DESELECT')
+		
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
 
-		bpy.ops.object.mode_set(mode = start_mode)
-				
+		bpy.context.view_layer.objects.active = start_active_obj
+		for j in need_select_again_obj:
+			j.select_set(True)
+		
 		return {'FINISHED'}
 
 
@@ -372,8 +374,8 @@ class Checker_Restore(bpy.types.Operator):
 	
 	def execute(self, context):
 		start_mode = bpy.context.object.mode
-
 		start_active_obj = bpy.context.active_object
+		need_select_again_obj = bpy.context.selected_objects
 
 		if start_mode == 'OBJECT':
 			start_selected_obj = bpy.context.selected_objects
@@ -384,8 +386,8 @@ class Checker_Restore(bpy.types.Operator):
 				bpy.ops.object.mode_set(mode = 'OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')
 				if obj.type == 'MESH':
-					obj.select_set(True)
 					bpy.context.view_layer.objects.active = obj
+					bpy.context.view_layer.objects.active.select_set(True)
 					#Restore Material Assignments and Delete FaceMaps
 					if len(obj.face_maps) > 0:
 						bpy.ops.object.mode_set(mode = 'EDIT')
@@ -413,7 +415,7 @@ class Checker_Restore(bpy.types.Operator):
 									obj.data.materials.pop(index = q)
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in start_selected_obj:
+		for x in need_select_again_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
 
@@ -430,8 +432,8 @@ class Clear_Checker_Face_Maps(bpy.types.Operator):
 
 	def execute(self, context):
 		start_mode = bpy.context.object.mode
-
 		start_active_obj = bpy.context.active_object
+		need_select_again_obj = bpy.context.selected_objects
 
 		if start_mode == 'OBJECT':
 			start_selected_obj = bpy.context.selected_objects
@@ -442,8 +444,8 @@ class Clear_Checker_Face_Maps(bpy.types.Operator):
 				bpy.ops.object.mode_set(mode = 'OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')
 				if obj.type == 'MESH':
-					obj.select_set(True)
 					bpy.context.view_layer.objects.active = obj
+					bpy.context.view_layer.objects.active.select_set(True)
 					#Delete FaceMaps
 					if len(obj.face_maps) > 0:
 						for fm_index in reversed(range(len(obj.face_maps))):
@@ -452,7 +454,7 @@ class Clear_Checker_Face_Maps(bpy.types.Operator):
 								bpy.ops.object.face_map_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in start_selected_obj:
+		for x in need_select_again_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
 
@@ -473,6 +475,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		#save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_mode = bpy.context.object.mode
+		need_select_again_obj = bpy.context.selected_objects
 
 		if start_mode == 'OBJECT':
 			start_selected_obj = bpy.context.selected_objects
@@ -496,8 +499,8 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0):
-				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
+				bpy.context.view_layer.objects.active.select_set(True)
 								
 				face_count = len(bpy.context.active_object.data.polygons)
 
@@ -596,7 +599,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						bpy.context.active_object.data.polygons[face_id].select = True
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in start_selected_obj:
+		for x in need_select_again_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
 		bpy.ops.object.mode_set(mode = start_mode)
@@ -616,9 +619,9 @@ class Clear_TD_VC(bpy.types.Operator):
 
 	def execute(self, context):
 		start_mode = bpy.context.object.mode
-
 		start_active_obj = bpy.context.active_object
-		
+		need_select_again_obj = bpy.context.selected_objects
+
 		if start_mode == 'OBJECT':
 			start_selected_obj = bpy.context.selected_objects
 		elif start_mode == 'EDIT':
@@ -628,8 +631,8 @@ class Clear_TD_VC(bpy.types.Operator):
 				bpy.ops.object.mode_set(mode = 'OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')
 				if obj.type == 'MESH':
-					obj.select_set(True)
 					bpy.context.view_layer.objects.active = obj
+					bpy.context.view_layer.objects.active.select_set(True)
 					#Delete FaceMaps
 					if len(obj.data.vertex_colors) > 0:
 						for vc in obj.data.vertex_colors:
@@ -638,7 +641,7 @@ class Clear_TD_VC(bpy.types.Operator):
 								bpy.ops.mesh.vertex_color_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in start_selected_obj:
+		for x in need_select_again_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
 
