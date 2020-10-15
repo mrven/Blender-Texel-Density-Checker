@@ -98,9 +98,14 @@ class Select_By_TD_Space(bpy.types.Operator):
 	def execute(self, context):
 		td = context.scene.td
 		
-		#save current mode and active object
+		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
-		start_selected_obj = bpy.context.objects_in_mode
+		need_select_again_obj = bpy.context.selected_objects
+
+		if start_mode == 'OBJECT':
+			start_selected_obj = bpy.context.selected_objects
+		elif start_mode == 'EDIT':
+			start_selected_obj = bpy.context.objects_in_mode
 		
 		search_value = float(td.select_value)
 		select_threshold = float(td.select_threshold)
@@ -114,8 +119,8 @@ class Select_By_TD_Space(bpy.types.Operator):
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if (x.type == 'MESH' and len(x.data.uv_layers) > 0) and len(x.data.polygons) > 0:
-				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
+				bpy.context.view_layer.objects.active.select_set(True)
 				
 				face_count = len(bpy.context.active_object.data.polygons)
 				
@@ -220,12 +225,17 @@ class Select_By_TD_Space(bpy.types.Operator):
 					for face_id in searched_faces:
 						bpy.context.active_object.data.polygons[face_id].select = True
 
-		#Select Objects Again
-		for x in start_selected_obj:
-			x.select_set(True)
-		bpy.context.view_layer.objects.active = start_active_obj
+		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.select_all(action='DESELECT')
+		
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
 
-		bpy.ops.object.mode_set(mode='EDIT')
+		bpy.context.view_layer.objects.active = start_active_obj
+		for j in need_select_again_obj:
+			j.select_set(True)
 
 		return {'FINISHED'}
 

@@ -17,6 +17,7 @@ class Texel_Density_Check(bpy.types.Operator):
 		#save current mode and active object
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
+		need_select_again_obj = bpy.context.selected_objects
 
 		if start_mode == 'OBJECT':
 			start_selected_obj = bpy.context.selected_objects
@@ -31,9 +32,9 @@ class Texel_Density_Check(bpy.types.Operator):
 		for o in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
-				o.select_set(True)
 				bpy.context.view_layer.objects.active = o
-				
+				bpy.context.view_layer.objects.active.select_set(True)
+
 				selected_faces = []
 				bpy.ops.object.mode_set(mode='OBJECT')
 				face_count = len(bpy.context.active_object.data.polygons)
@@ -78,8 +79,8 @@ class Texel_Density_Check(bpy.types.Operator):
 			for o in start_selected_obj:
 				bpy.ops.object.select_all(action='DESELECT')
 				if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
-					o.select_set(True)
 					bpy.context.view_layer.objects.active = o
+					bpy.context.view_layer.objects.active.select_set(True)
 
 					selected_faces = []
 					bpy.ops.object.mode_set(mode='OBJECT')
@@ -135,12 +136,17 @@ class Texel_Density_Check(bpy.types.Operator):
 			td.uv_space = '0 %'
 			td.density = '0'
 
-		#Select Objects Again
-		for x in start_selected_obj:
-			x.select_set(True)
-				
+		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.select_all(action='DESELECT')
+		
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
+
 		bpy.context.view_layer.objects.active = start_active_obj
-		bpy.ops.object.mode_set(mode=start_mode)
+		for j in need_select_again_obj:
+			j.select_set(True)
 
 		return {'FINISHED'}
 
@@ -157,6 +163,7 @@ class Texel_Density_Set(bpy.types.Operator):
 		#save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_mode = bpy.context.object.mode
+		need_select_again_obj = bpy.context.selected_objects
 
 		if start_mode == 'OBJECT':
 			start_selected_obj = bpy.context.selected_objects
@@ -175,8 +182,8 @@ class Texel_Density_Set(bpy.types.Operator):
 		for o in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
-				o.select_set(True)
 				bpy.context.view_layer.objects.active = o
+				bpy.context.view_layer.objects.active.select_set(True)
 
 				#save start selected in 3d view faces
 				start_selected_faces = []
@@ -241,10 +248,17 @@ class Texel_Density_Set(bpy.types.Operator):
 					bpy.context.active_object.data.polygons[face_id].select = True
 
 		#Select Objects Again
-		for x in start_selected_obj:
-			x.select_set(True)
+		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.select_all(action='DESELECT')
+		
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
+
 		bpy.context.view_layer.objects.active = start_active_obj
-		bpy.ops.object.mode_set(mode=start_mode)
+		for j in need_select_again_obj:
+			j.select_set(True)
 
 		bpy.ops.object.texel_density_check()
 

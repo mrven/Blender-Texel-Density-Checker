@@ -415,11 +415,14 @@ class Checker_Restore(bpy.types.Operator):
 									obj.data.materials.pop(index = q)
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in need_select_again_obj:
-			x.select_set(True)
-		bpy.context.view_layer.objects.active = start_active_obj
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
 
-		bpy.ops.object.mode_set(mode = start_mode)
+		bpy.context.view_layer.objects.active = start_active_obj
+		for j in need_select_again_obj:
+			j.select_set(True)
 
 		return {'FINISHED'}
 
@@ -454,11 +457,14 @@ class Clear_Checker_Face_Maps(bpy.types.Operator):
 								bpy.ops.object.face_map_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in need_select_again_obj:
-			x.select_set(True)
-		bpy.context.view_layer.objects.active = start_active_obj
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
 
-		bpy.ops.object.mode_set(mode = start_mode)
+		bpy.context.view_layer.objects.active = start_active_obj
+		for j in need_select_again_obj:
+			j.select_set(True)
 
 		return {'FINISHED'}
 
@@ -599,10 +605,15 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						bpy.context.active_object.data.polygons[face_id].select = True
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in need_select_again_obj:
-			x.select_set(True)
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
+
 		bpy.context.view_layer.objects.active = start_active_obj
-		bpy.ops.object.mode_set(mode = start_mode)
+		for j in need_select_again_obj:
+			j.select_set(True)
+			
 		bpy.context.space_data.shading.color_type = 'VERTEX'
 
 		if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
@@ -641,11 +652,14 @@ class Clear_TD_VC(bpy.types.Operator):
 								bpy.ops.mesh.vertex_color_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
-		for x in need_select_again_obj:
-			x.select_set(True)
-		bpy.context.view_layer.objects.active = start_active_obj
+		if start_mode == 'EDIT':
+			for o in start_selected_obj:
+				bpy.context.view_layer.objects.active = o
+				bpy.ops.object.mode_set(mode = 'EDIT')
 
-		bpy.ops.object.mode_set(mode = start_mode)
+		bpy.context.view_layer.objects.active = start_active_obj
+		for j in need_select_again_obj:
+			j.select_set(True)
 
 		return {'FINISHED'}
 
