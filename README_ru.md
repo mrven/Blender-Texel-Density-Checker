@@ -9,10 +9,11 @@ Texel Density Checker – Аддон для Blender, который позвол
 
 ***Скачать последнюю версию:***
 
-* ***[Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
-* ***[Blender 2.80 (Windows, Linux)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280.zip)***
-* ***[Blender 2.80 (MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280_MacOS.zip)***
-* ***[Blender 2.81 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_2_281.zip)***
+* ***[(3.2.1) Blender 2.83+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_2_1_283.zip)***
+* ***[(3.2) Blender 2.81 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_2_281.zip)***
+* ***[(2.0) Blender 2.80 (Windows, Linux)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280.zip)***
+* ***[(2.0) Blender 2.80 (MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2_0_280_MacOS.zip)***
+* ***[(1.0.9) Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
 
 Если вы хотите поддержать меня, то можете купить аддон на следующих площадках:
 * ***[Gumroad (Свободная цена)](https://gumroad.com/l/CEIOR)***

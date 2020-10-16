@@ -5,7 +5,7 @@ bl_info = {
 	"wiki_url": "https://gumroad.com/l/CEIOR",
 	"tracker_url": "https://blenderartists.org/t/texel-density-checker-3-0-update-09-04-20/685566",
 	"version": (3, 2, 1),
-	"blender": (2, 90, 0),
+	"blender": (2, 83, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }
