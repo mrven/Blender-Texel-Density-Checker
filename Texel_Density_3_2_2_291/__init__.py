@@ -4,7 +4,7 @@ bl_info = {
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
 	"wiki_url": "https://gumroad.com/l/CEIOR",
 	"tracker_url": "https://blenderartists.org/t/texel-density-checker-3-0-update-09-04-20/685566",
-	"version": (3, 2, 1),
+	"version": (3, 2, 2),
 	"blender": (2, 91, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",

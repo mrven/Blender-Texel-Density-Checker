@@ -201,14 +201,7 @@ class Texel_Density_Set(bpy.types.Operator):
 				if start_mode == 'OBJECT' or td.selected_faces == False:	
 					bpy.ops.mesh.reveal()
 					bpy.ops.mesh.select_all(action='SELECT')
-
-				#Get current TD Value from object or faces
-				bpy.ops.object.texel_density_check()
-				density_current_value = float(td.density)
-				if density_current_value < 0.0001:
-					density_current_value = 0.0001
-
-				scale_fac = density_new_value/density_current_value
+				
 				#check opened image editor window
 				ie_areas = []
 				flag_exist_area = False
@@ -232,9 +225,17 @@ class Texel_Density_Set(bpy.types.Operator):
 				if bpy.context.scene.tool_settings.use_uv_select_sync == False:
 					bpy.ops.uv.select_all(action = 'SELECT')
 				
-				bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
 				if td.set_method == '0':
 					bpy.ops.uv.average_islands_scale()
+
+				bpy.ops.object.texel_density_check()
+				density_current_value = float(td.density)
+				if density_current_value < 0.0001:
+					density_current_value = 0.0001
+				scale_fac = density_new_value/density_current_value
+
+				bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
+				
 				bpy.context.area.type = 'VIEW_3D'
 				
 				if flag_exist_area == True:
