@@ -468,15 +468,35 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bake_vc_min_space = float(td.bake_vc_min_space)
 		bake_vc_max_space = float(td.bake_vc_max_space)
 
-		if (bake_vc_min_td == bake_vc_max_td) and (td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC"):
-			self.report({'INFO'}, "Value Range is wrong")
-			return {'CANCELLED'}
-
-		if (bake_vc_min_space == bake_vc_max_space) and td.bake_vc_mode == "UV_SPACE_TO_VC":
-			self.report({'INFO'}, "Value Range is wrong")
-			return {'CANCELLED'}
-
 		bpy.ops.object.mode_set(mode='OBJECT')
+
+		#Automatic Min/Max TD
+		if td.bake_vc_auto_min_max:
+			td_area_list = []
+			for x in start_selected_obj:
+				bpy.ops.object.select_all(action='DESELECT')
+				if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0):
+					bpy.context.view_layer.objects.active = x
+					bpy.context.view_layer.objects.active.select_set(True)
+					
+					td_area_list.append(utils.Calculate_TD_Area_To_List())
+
+			#Found Min and Max TD
+			if len(td_area_list) > 0:
+				min_calculated_td = 9999999
+				max_calculated_td = 0
+				for obj_td_list in td_area_list:
+					for face_td_area_value in obj_td_list:
+						if face_td_area_value[0] < min_calculated_td:
+							min_calculated_td = face_td_area_value[0]
+						if face_td_area_value[0] > max_calculated_td:
+							max_calculated_td = face_td_area_value[0]
+
+				bake_vc_min_td = min_calculated_td
+				bake_vc_max_td = max_calculated_td
+				td.bake_vc_min_td = '%.3f' % round(min_calculated_td, 3)
+				td.bake_vc_max_td = '%.3f' % round(max_calculated_td, 3)
+		
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0):

@@ -4,8 +4,11 @@ import math
 import colorsys
 
 def Value_To_Color(value, range_min, range_max):
-	remaped_value = (value - range_min) / (range_max - range_min)
-	remaped_value = Saturate(remaped_value)
+	if range_min == range_max:
+		remaped_value = 0.5
+	else:
+		remaped_value = (value - range_min) / (range_max - range_min)
+		remaped_value = Saturate(remaped_value)
 	hue = (1 - remaped_value) * 0.67
 	color = colorsys.hsv_to_rgb(hue, 1, 1)
 	color4 = (color[0], color[1], color[2], 1)

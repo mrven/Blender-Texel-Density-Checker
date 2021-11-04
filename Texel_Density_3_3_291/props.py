@@ -342,6 +342,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default = False,
 		update = Show_Gradient)
 
+	bake_vc_auto_min_max: BoolProperty(
+		name="Auto Min/Max Value",
+		description="Auto Min/Max Value",
+		default = True)
+
 	bake_vc_mode_list = (('TD_FACES_TO_VC','Texel (By Face)',''), ('TD_ISLANDS_TO_VC','Texel (By Island)',''),('UV_ISLANDS_TO_VC','UV Islands',''), ('UV_SPACE_TO_VC','UV Space (%)',''))
 	bake_vc_mode: EnumProperty(name="", items = bake_vc_mode_list, update = Change_Bake_VC_Mode)
 

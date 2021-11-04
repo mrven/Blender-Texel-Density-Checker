@@ -203,6 +203,9 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row.prop(td, "bake_vc_mode", expand=False)
 			
 			if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC":
+				row = box.row()
+				row.prop(td, "bake_vc_auto_min_max", text="Auto Min/Max Value")
+				
 				row = box.row(align=True)
 				row.label(text="Min TD Value:")
 				row.label(text="Max TD Value:")
