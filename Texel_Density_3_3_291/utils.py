@@ -4,7 +4,7 @@ import math
 import colorsys
 
 def Value_To_Color(value, range_min, range_max):
-	if range_min == range_max:
+	if range_min == range_max or abs(range_max - range_min) < 0.001:
 		remaped_value = 0.5
 	else:
 		remaped_value = (value - range_min) / (range_max - range_min)

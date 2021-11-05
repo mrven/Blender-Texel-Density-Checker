@@ -154,15 +154,16 @@ def Filter_Density_Set(self, context):
 	td = context.scene.td
 	density_set_filtered = td['density_set'].replace(',', '.')
 	
-	try:
-		density_set = float(density_set_filtered)
-	except:
-		density_set = 2.0
+	if td.density_set != "Double" and td.density_set != "Half":
+		try:
+			density_set = float(density_set_filtered)
+		except:
+			density_set = 2.0
 
-	if (density_set<0.001):
-		density_set = 0.001
+		if (density_set<0.001):
+			density_set = 0.001
 
-	td['density_set'] = str(density_set)
+		td['density_set'] = str(density_set)
 
 def Filter_Checker_UV_Scale(self, context):
 	td = context.scene.td

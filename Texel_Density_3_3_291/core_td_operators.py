@@ -172,11 +172,12 @@ class Texel_Density_Set(bpy.types.Operator):
 			start_selected_obj = bpy.context.objects_in_mode
 
 		#Get Value for TD Set
-		try:
-			density_new_value = float(td.density_set)
-		except:
-			self.report({'INFO'}, "Density value is wrong")
-			return {'CANCELLED'}
+		if td.density_set != "Double" and td.density_set != "Half":
+			try:
+				density_new_value = float(td.density_set)
+			except:
+				self.report({'INFO'}, "Density value is wrong")
+				return {'CANCELLED'}
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -233,7 +234,13 @@ class Texel_Density_Set(bpy.types.Operator):
 				density_current_value = float(td.density)
 				if density_current_value < 0.0001:
 					density_current_value = 0.0001
-				scale_fac = density_new_value/density_current_value
+				
+				if td.density_set == "Double":
+					scale_fac = 2
+				elif td.density_set == "Half":
+					scale_fac = 0.5
+				else:
+					scale_fac = density_new_value/density_current_value
 
 				bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
 				

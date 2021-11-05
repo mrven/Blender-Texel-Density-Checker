@@ -83,8 +83,14 @@ class Preset_Set(bpy.types.Operator):
 	def execute(self, context):
 		td = context.scene.td
 		
-		td.density_set = self.td_value
-		bpy.ops.object.texel_density_set()
+		if self.td_value == "Half" or self.td_value == "Double":
+			saved_td_value = td.density_set
+			td.density_set = self.td_value
+			bpy.ops.object.texel_density_set()
+			td.density_set = saved_td_value
+		else:
+			td.density_set = self.td_value
+			bpy.ops.object.texel_density_set()
 				
 		return {'FINISHED'}
 		

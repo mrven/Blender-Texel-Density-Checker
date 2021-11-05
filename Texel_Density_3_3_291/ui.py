@@ -148,7 +148,11 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.operator("object.preset_set", text="78.029").td_value="78.029"
 				row.operator("object.preset_set", text="39.014").td_value="39.014"
 				row.operator("object.preset_set", text="19.507").td_value="19.507"
-					
+
+			row = box.row(align=True)
+			row.operator("object.preset_set", text="Half TD").td_value="Half"
+			row.operator("object.preset_set", text="Double TD").td_value="Double"
+
 			if context.object.mode == 'OBJECT':
 				row = layout.row()
 				row.operator("object.texel_density_copy", text="TD from Active to Others")
@@ -373,6 +377,10 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				row.operator("object.preset_set", text="78.029").td_value="78.029"
 				row.operator("object.preset_set", text="39.014").td_value="39.014"
 				row.operator("object.preset_set", text="19.507").td_value="19.507"
+
+			row = box.row(align=True)
+			row.operator("object.preset_set", text="Half TD").td_value="Half"
+			row.operator("object.preset_set", text="Double TD").td_value="Double"
 
 			box = layout.box()
 			row = box.row(align=True)
