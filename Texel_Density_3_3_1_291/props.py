@@ -9,54 +9,55 @@ from bpy.props import (
 
 from . import viz_operators
 
+# Update Event Function for Changing Size of Texture
 def Change_Texture_Size(self, context):
 	td = context.scene.td
-	
-	#Check exist texture image
+
+	# Check exist texture image
 	flag_exist_texture = False
 	for t in range(len(bpy.data.images)):
 		if bpy.data.images[t].name == 'TD_Checker':
 			flag_exist_texture = True
-				
-	checker_rexolution_x = 1024
-	checker_rexolution_y = 1024
-	
-	#Get texture size from panel
+
+	checker_resolution_x = 1024
+	checker_resolution_y = 1024
+
+	# Get texture size from panel
 	if td.texture_size == '0':
-		checker_rexolution_x = 512
-		checker_rexolution_y = 512
+		checker_resolution_x = 512
+		checker_resolution_y = 512
 	if td.texture_size == '1':
-		checker_rexolution_x = 1024
-		checker_rexolution_y = 1024
+		checker_resolution_x = 1024
+		checker_resolution_y = 1024
 	if td.texture_size == '2':
-		checker_rexolution_x = 2048
-		checker_rexolution_y = 2048
+		checker_resolution_x = 2048
+		checker_resolution_y = 2048
 	if td.texture_size == '3':
-		checker_rexolution_x = 4096
-		checker_rexolution_y = 4096
+		checker_resolution_x = 4096
+		checker_resolution_y = 4096
 	if td.texture_size == '4':
 		try:
-			checker_rexolution_x = int(td.custom_width)
+			checker_resolution_x = int(td.custom_width)
 		except:
-			checker_rexolution_x = 1024
+			checker_resolution_x = 1024
 			td['custom_width'] = '1024'
-			
+
 		try:
-			checker_rexolution_y = int(td.custom_height)
+			checker_resolution_y = int(td.custom_height)
 		except:
-			checker_rexolution_y = 1024
+			checker_resolution_y = 1024
 			td['custom_height'] = '1024'
 
-	if checker_rexolution_x < 1 or checker_rexolution_y < 1:
-		checker_rexolution_x = 1024
-		checker_rexolution_y = 1024
+	if checker_resolution_x < 1 or checker_resolution_y < 1:
+		checker_resolution_x = 1024
+		checker_resolution_y = 1024
 		td['custom_width'] = '1024'
 		td['custom_height'] = '1024'
 
 	if flag_exist_texture:
-		bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
-		bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
-		bpy.data.images['TD_Checker'].generated_type=td.checker_type
+		bpy.data.images['TD_Checker'].generated_width = checker_resolution_x
+		bpy.data.images['TD_Checker'].generated_height = checker_resolution_y
+		bpy.data.images['TD_Checker'].generated_type = td.checker_type
 
 	bpy.ops.object.texel_density_check()
 
@@ -67,13 +68,13 @@ def Change_Units(self, context):
 
 def Change_Texture_Type(self, context):
 	td = context.scene.td
-	
+
 	#Check exist texture image
 	flag_exist_texture = False
 	for t in range(len(bpy.data.images)):
 		if bpy.data.images[t].name == 'TD_Checker':
 			flag_exist_texture = True
-			
+
 	if flag_exist_texture:
 		bpy.data.images['TD_Checker'].generated_type=td.checker_type
 
@@ -81,7 +82,7 @@ def Change_Texture_Type(self, context):
 def Filter_Bake_VC_Min_TD(self, context):
 	td = context.scene.td
 	bake_vc_min_td_filtered = td['bake_vc_min_td'].replace(',', '.')
-	
+
 	try:
 		bake_vc_min_td = float(bake_vc_min_td_filtered)
 	except:
@@ -91,7 +92,7 @@ def Filter_Bake_VC_Min_TD(self, context):
 		bake_vc_min_td = 0.01
 
 	td['bake_vc_min_td'] = str(bake_vc_min_td)
-	
+
 	if bpy.context.preferences.addons[__package__].preferences['automatic_recalc']:
 		bpy.ops.object.bake_td_uv_to_vc()
 
@@ -99,7 +100,7 @@ def Filter_Bake_VC_Min_TD(self, context):
 def Filter_Bake_VC_Max_TD(self, context):
 	td = context.scene.td
 	bake_vc_max_td_filtered = td['bake_vc_max_td'].replace(',', '.')
-	
+
 	try:
 		bake_vc_max_td = float(bake_vc_max_td_filtered)
 	except:
@@ -108,7 +109,7 @@ def Filter_Bake_VC_Max_TD(self, context):
 	if (bake_vc_max_td<0.01):
 		bake_vc_max_td = 0.01
 
-	td['bake_vc_max_td'] = str(bake_vc_max_td)	
+	td['bake_vc_max_td'] = str(bake_vc_max_td)
 
 	if bpy.context.preferences.addons[__package__].preferences['automatic_recalc']:
 		bpy.ops.object.bake_td_uv_to_vc()
@@ -117,7 +118,7 @@ def Filter_Bake_VC_Max_TD(self, context):
 def Filter_Bake_VC_Min_Space(self, context):
 	td = context.scene.td
 	bake_vc_min_space_filtered = td['bake_vc_min_space'].replace(',', '.')
-	
+
 	try:
 		bake_vc_min_space = float(bake_vc_min_space_filtered)
 	except:
@@ -126,8 +127,8 @@ def Filter_Bake_VC_Min_Space(self, context):
 	if (bake_vc_min_space<0.00001):
 		bake_vc_min_space = 0.00001
 
-	td['bake_vc_min_space'] = str(bake_vc_min_space)	
-	
+	td['bake_vc_min_space'] = str(bake_vc_min_space)
+
 	if bpy.context.preferences.addons[__package__].preferences['automatic_recalc']:
 		bpy.ops.object.bake_td_uv_to_vc()
 
@@ -135,7 +136,7 @@ def Filter_Bake_VC_Min_Space(self, context):
 def Filter_Bake_VC_Max_Space(self, context):
 	td = context.scene.td
 	bake_vc_max_space_filtered = td['bake_vc_max_space'].replace(',', '.')
-	
+
 	try:
 		bake_vc_max_space = float(bake_vc_max_space_filtered)
 	except:
@@ -144,7 +145,7 @@ def Filter_Bake_VC_Max_Space(self, context):
 	if (bake_vc_max_space<0.00001):
 		bake_vc_max_space = 0.00001
 
-	td['bake_vc_max_space'] = str(bake_vc_max_space)	
+	td['bake_vc_max_space'] = str(bake_vc_max_space)
 
 	if bpy.context.preferences.addons[__package__].preferences['automatic_recalc']:
 		bpy.ops.object.bake_td_uv_to_vc()
@@ -153,7 +154,7 @@ def Filter_Bake_VC_Max_Space(self, context):
 def Filter_Density_Set(self, context):
 	td = context.scene.td
 	density_set_filtered = td['density_set'].replace(',', '.')
-	
+
 	if td.density_set != "Double" and td.density_set != "Half":
 		try:
 			density_set = float(density_set_filtered)
@@ -168,7 +169,7 @@ def Filter_Density_Set(self, context):
 def Filter_Checker_UV_Scale(self, context):
 	td = context.scene.td
 	checker_uv_scale_filtered = td['checker_uv_scale'].replace(',', '.')
-	
+
 	try:
 		checker_uv_scale = float(checker_uv_scale_filtered)
 	except:
@@ -189,7 +190,7 @@ def Filter_Checker_UV_Scale(self, context):
 def Filter_Select_Value(self, context):
 	td = context.scene.td
 	select_value_filtered = td['select_value'].replace(',', '.')
-	
+
 	try:
 		select_value = float(select_value_filtered)
 	except:
@@ -199,7 +200,7 @@ def Filter_Select_Value(self, context):
 		select_value = 0.00001
 
 	td['select_value'] = str(select_value)
-	
+
 	if bpy.context.preferences.addons[__package__].preferences['automatic_recalc']:
 		bpy.ops.object.select_by_td_space()
 
@@ -207,7 +208,7 @@ def Filter_Select_Value(self, context):
 def Filter_Select_Threshold(self, context):
 	td = context.scene.td
 	select_threshold_filtered = td['select_threshold'].replace(',', '.')
-	
+
 	try:
 		select_threshold = float(select_threshold_filtered)
 	except:
@@ -217,7 +218,7 @@ def Filter_Select_Threshold(self, context):
 		select_threshold = 0.00001
 
 	td['select_threshold'] = str(select_threshold)
-	
+
 	if bpy.context.preferences.addons[__package__].preferences['automatic_recalc']:
 		bpy.ops.object.select_by_td_space()
 
@@ -263,41 +264,48 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		name="",
 		description="wasting of uv space",
 		default="0 %")
-	
+
 	density: StringProperty(
 		name="",
 		description="Texel Density",
 		default="0")
-	
+
 	density_set: StringProperty(
 		name="",
 		description="Texel Density",
 		default="1.28",
-		update = Filter_Density_Set)
-	
-	tex_size = (('0','512px',''),('1','1024px',''),('2','2048px',''),('3','4096px',''), ('4','Custom',''))
+		update=Filter_Density_Set)
+
+	tex_size = (('0', '512px', ''),
+				('1', '1024px', ''),
+				('2', '2048px', ''),
+				('3', '4096px', ''),
+				('4', 'Custom', ''))
 	texture_size: EnumProperty(name="", items = tex_size, update = Change_Texture_Size)
-	
+
 	selected_faces: BoolProperty(
 		name="Selected Faces",
 		description="Operate only on selected faces",
 		default = True)
-	
+
 	custom_width: StringProperty(
 		name="",
 		description="Custom Width",
 		default="1024",
 		update = Change_Texture_Size)
-	
+
 	custom_height: StringProperty(
 		name="",
 		description="Custom Height",
 		default="1024",
 		update = Change_Texture_Size)
-	
-	units_list = (('0','px/cm',''),('1','px/m',''), ('2','px/in',''), ('3','px/ft',''))
+
+	units_list = (('0', 'px/cm', ''),
+					('1', 'px/m', ''),
+					('2', 'px/in', ''),
+					('3', 'px/ft', ''))
 	units: EnumProperty(name="", items = units_list, update = Change_Units)
-	
+
 	select_value: StringProperty(
 		name="",
 		description="Select Value",
@@ -309,7 +317,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		description="Select Threshold",
 		default="0.1",
 		update = Filter_Select_Threshold)
-	
+
 	set_method_list = (('0','Each',''),('1','Average',''))
 	set_method: EnumProperty(name="", items = set_method_list)
 
@@ -377,7 +385,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 
 classes = (
 	TD_Addon_Props,
-)	
+)
 
 
 def register():

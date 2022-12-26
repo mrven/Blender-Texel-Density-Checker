@@ -14,14 +14,14 @@ from bpy.props import StringProperty
 from . import utils
 from . import props
 
-
+# Draw Reference Gradient Line for Color Visualizer
 def Draw_Callback_Px(self, context):
 	td = bpy.context.scene.td
 	"""Draw on the viewports"""
-	#drawing routine
-	#Get Parameters
+
+	# Get Parameters
 	region = bpy.context.region
-	screen_texel_x = 2/region.width
+	screen_texel_x = 2/region.width		# 2 because Screen Space -1.0 to 1.0
 	screen_texel_y = 2/region.height
 
 	font_size = 12
@@ -36,7 +36,7 @@ def Draw_Callback_Px(self, context):
 	bake_max_value = 0
 	bake_value_precision = 3
 
-	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC":	
+	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC":
 		bake_min_value = float(td.bake_vc_min_td)
 		bake_max_value = float(td.bake_vc_max_td)
 
@@ -44,6 +44,7 @@ def Draw_Callback_Px(self, context):
 		bake_min_value = float(td.bake_vc_min_space)
 		bake_max_value = float(td.bake_vc_max_space)
 
+	# Number of Symbols after Point for TD Values for Gradient
 	if abs(bake_max_value - bake_min_value) <= 3:
 		bake_value_precision = 5
 	elif abs(bake_max_value - bake_min_value) <= 12:
@@ -55,8 +56,8 @@ def Draw_Callback_Px(self, context):
 	else:
 		bake_value_precision = 1
 
-
-	#Calculate Text Position from Anchor
+	# Calculate Text Position from Anchor
+	# Anchor and offset set in Preferences
 	if anchor_pos == 'LEFT_BOTTOM':
 		font_start_pos_x = 0 + offset_x
 		font_start_pos_y = 0 + offset_y
@@ -70,7 +71,7 @@ def Draw_Callback_Px(self, context):
 		font_start_pos_x = region.width - offset_x - 250
 		font_start_pos_y = region.height - offset_y - 15
 
-	#Draw TD Values in Viewport via BLF
+	# Draw TD Values (Text) in Viewport via BLF
 	blf.position(font_id, font_start_pos_x, font_start_pos_y + 18, 0)
 	blf.draw(font_id, str(round(bake_min_value, bake_value_precision)))
 
@@ -86,7 +87,7 @@ def Draw_Callback_Px(self, context):
 	blf.position(font_id, font_start_pos_x + 177, font_start_pos_y - 15, 0)
 	blf.draw(font_id, str(round((bake_max_value - bake_min_value) * 0.75 + bake_min_value, bake_value_precision)))
 
-	#Draw Gradient via shader
+	# Draw Gradient Line via Shader
 	vertex_shader = '''
 	in vec2 position;
 	out vec3 pos;
@@ -106,21 +107,25 @@ def Draw_Callback_Px(self, context):
 
 	void main()
 	{
-		vec4 b = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-		vec4 c = vec4(0.0f, 1.0f, 1.0f, 1.0f);
-		vec4 g = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-		vec4 y = vec4(1.0f, 1.0f, 0.0f, 1.0f);
-		vec4 r = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+		// Pure Colors
+		vec4 b = vec4(0.0f, 0.0f, 1.0f, 1.0f);	// Blue	0%
+		vec4 c = vec4(0.0f, 1.0f, 1.0f, 1.0f);	// Cyan	25%
+		vec4 g = vec4(0.0f, 1.0f, 0.0f, 1.0f);	// Green	50%
+		vec4 y = vec4(1.0f, 1.0f, 0.0f, 1.0f);	// Yellow	75%
+		vec4 r = vec4(1.0f, 0.0f, 0.0f, 1.0f);	// Red	100%
 
+		// Screen Space Coordinates for Intermediate Pure Colors
 		float pos_x_25 = (pos_x_max - pos_x_min) * 0.25 + pos_x_min;
 		float pos_x_50 = (pos_x_max - pos_x_min) * 0.5 + pos_x_min;
 		float pos_x_75 = (pos_x_max - pos_x_min) * 0.75 + pos_x_min;
 
+		// Intermediate Blend Values (0% - 25% => 0 - 1, 25% - 50% => 0 - 1, etc.)
 		float blendColor1 = (pos.x - pos_x_min)/(pos_x_25 - pos_x_min);
 		float blendColor2 = (pos.x - pos_x_25)/(pos_x_50 - pos_x_25);
 		float blendColor3 = (pos.x - pos_x_50)/(pos_x_75 - pos_x_50);
 		float blendColor4 = (pos.x - pos_x_75)/(pos_x_max - pos_x_75);
 
+		// Calculate Final Colors - Pure Colors and Blends between them 
 		gl_FragColor = (c * blendColor1 + b * (1 - blendColor1)) * step(pos.x, pos_x_25) +
 						(g * blendColor2 + c * (1 - blendColor2)) * step(pos.x, pos_x_50) * step(pos_x_25, pos.x) +
 						(y * blendColor3 + g * (1 - blendColor3)) * step(pos.x, pos_x_75) * step(pos_x_50, pos.x) +
@@ -128,11 +133,14 @@ def Draw_Callback_Px(self, context):
 	}
 	'''
 
+	# Gradient Bounds with range 0.0 - 2.0
 	gradient_x_min = screen_texel_x * offset_x
-	gradient_x_max = screen_texel_x * (offset_x + 250)
+	gradient_x_max = screen_texel_x * (offset_x + 250)		# 250 is width of gradient line TODO:Move to constant var
 	gradient_y_min = screen_texel_y * offset_y
-	gradient_y_max = screen_texel_y * (offset_y + 15)
+	gradient_y_max = screen_texel_y * (offset_y + 15)		# 15 is height of gradient line	TODO:Move to constant var
 
+	# Calculate vertices coordinates relative from the anchor
+	# And X Min/Max in Screen Space (-1.0 - 1.0). It's Transferring to shader
 	if anchor_pos == 'LEFT_BOTTOM':
 		vertices = (
 			(-1.0 + gradient_x_min, -1.0 + gradient_y_max), (-1.0 + gradient_x_max, -1.0 + gradient_y_max),
@@ -158,9 +166,8 @@ def Draw_Callback_Px(self, context):
 		pos_x_min = 1.0 - gradient_x_max
 		pos_x_max = 1.0 - gradient_x_min
 
-
-	indices = (
-    (0, 1, 2), (2, 1, 3))
+	# Set Shader Parameters and Draw
+	indices = ((0, 1, 2), (2, 1, 3))
 
 	shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
 	batch = batch_for_shader(shader, 'TRIS', {"position": vertices}, indices=indices)
@@ -170,13 +177,13 @@ def Draw_Callback_Px(self, context):
 	shader.uniform_float("pos_x_max", pos_x_max)
 	batch.draw(shader)
 
-
+# Assign of Checker Material
 class Checker_Assign(bpy.types.Operator):
 	"""Assign Checker Material"""
 	bl_idname = "object.checker_assign"
 	bl_label = "Assign Checker Material"
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	def execute(self, context):
 		td = context.scene.td
 
@@ -189,176 +196,186 @@ class Checker_Assign(bpy.types.Operator):
 		elif start_mode == 'EDIT':
 			start_selected_obj = bpy.context.objects_in_mode
 
-		checker_rexolution_x = 1024
-		checker_rexolution_y = 1024
-		
-		#Get texture size from panel
+		# Get texture size from panel
+		checker_resolution_x = 1024
+		checker_resolution_y = 1024
+
 		if td.texture_size == '0':
-			checker_rexolution_x = 512
-			checker_rexolution_y = 512
+			checker_resolution_x = 512
+			checker_resolution_y = 512
 		if td.texture_size == '1':
-			checker_rexolution_x = 1024
-			checker_rexolution_y = 1024
+			checker_resolution_x = 1024
+			checker_resolution_y = 1024
 		if td.texture_size == '2':
-			checker_rexolution_x = 2048
-			checker_rexolution_y = 2048
+			checker_resolution_x = 2048
+			checker_resolution_y = 2048
 		if td.texture_size == '3':
-			checker_rexolution_x = 4096
-			checker_rexolution_y = 4096
+			checker_resolution_x = 4096
+			checker_resolution_y = 4096
 		if td.texture_size == '4':
-			try:
-				checker_rexolution_x = int(td.custom_width)
+			try:		# TODO: Maybe need delete this checking, because uses update function Change_Texture_Size
+				checker_resolution_x = int(td.custom_width)
 			except:
-				checker_rexolution_x = 1024
+				checker_resolution_x = 1024
 			try:
-				checker_rexolution_y = int(td.custom_height)
+				checker_resolution_y = int(td.custom_height)
 			except:
-				checker_rexolution_y = 1024
+				checker_resolution_y = 1024
 
-		if checker_rexolution_x < 1 or checker_rexolution_y < 1:
-			checker_rexolution_x = 1024
-			checker_rexolution_y = 1024
+		if checker_resolution_x < 1 or checker_resolution_y < 1:
+			checker_resolution_x = 1024
+			checker_resolution_y = 1024
 
-		#Check exist texture image
+		# Check exist texture image
 		flag_exist_texture = False
 		for t in range(len(bpy.data.images)):
 			if bpy.data.images[t].name == 'TD_Checker':
 				flag_exist_texture = True
-				
-		# create or not texture
-		if flag_exist_texture == False:
-			bpy.ops.image.new(name='TD_Checker', width = checker_rexolution_x, height = checker_rexolution_y, generated_type=td.checker_type)
-		else:
-			bpy.data.images['TD_Checker'].generated_width = checker_rexolution_x
-			bpy.data.images['TD_Checker'].generated_height = checker_rexolution_y
-			bpy.data.images['TD_Checker'].generated_type=td.checker_type
 
-		#Check exist TD_Checker_mat
+		# Create Checker Texture (if not Exist yet) with parameters from Panel
+		if flag_exist_texture is False:
+			bpy.ops.image.new(name='TD_Checker', width=checker_resolution_x, height=checker_resolution_y,
+																					generated_type=td.checker_type)
+		else:
+			bpy.data.images['TD_Checker'].generated_width = checker_resolution_x
+			bpy.data.images['TD_Checker'].generated_height = checker_resolution_y
+			bpy.data.images['TD_Checker'].generated_type = td.checker_type
+
+		# Check exist TD_Checker_mat
 		flag_exist_material = False
 		for m in range(len(bpy.data.materials)):
 			if bpy.data.materials[m].name == 'TD_Checker':
 				flag_exist_material = True
-				
-		# create or not material
-		if flag_exist_material == False:
+
+		# Create material (if not Exist yet) and Setup nodes
+		if flag_exist_material is False:
 			td_checker_mat = bpy.data.materials.new('TD_Checker')
 			td_checker_mat.use_nodes = True
 			nodes = td_checker_mat.node_tree.nodes
 			links = td_checker_mat.node_tree.links
+			# Color Mix Node for Blending Checker Texture with VC
 			mix_node = nodes.new(type="ShaderNodeMixRGB")
-			mix_node.location = (-200,200)
+			mix_node.location = (-200, 200)
 			mix_node.blend_type = 'COLOR'
 			mix_node.inputs['Fac'].default_value = 1
 			links.new(mix_node.outputs["Color"], nodes['Principled BSDF'].inputs['Base Color'])
-
+			# Get Checker Texture
 			tex_node = nodes.new('ShaderNodeTexImage')
-			tex_node.location = (-500,300)
+			tex_node.location = (-500, 300)
 			tex_node.image = bpy.data.images['TD_Checker']
 			tex_node.interpolation = 'Closest'
 			links.new(tex_node.outputs["Color"], mix_node.inputs['Color1'])
-
+			# Get VC with baked TD
 			vc_node = nodes.new(type="ShaderNodeAttribute")
 			vc_node.location = (-500, 0)
 			vc_node.attribute_name = "td_vis"
 			links.new(vc_node.outputs["Color"], mix_node.inputs['Color2'])
-
+			# UV Mapping for Checker Texture
 			mapper_node = nodes.new(type="ShaderNodeMapping")
 			mapper_node.location = (-800, 300)
+			# Scale of UV Mapping sets from Panel (UV Scale)
 			mapper_node.inputs['Scale'].default_value[0] = float(td.checker_uv_scale)
 			mapper_node.inputs['Scale'].default_value[1] = float(td.checker_uv_scale)
 			links.new(mapper_node.outputs["Vector"], tex_node.inputs['Vector'])
-			
 			uv_node = nodes.new(type="ShaderNodeUVMap")
 			uv_node.location = (-1000, 220)
 			links.new(uv_node.outputs["UV"], mapper_node.inputs['Vector'])
 
-		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.mode_set(mode='OBJECT')
 
+		# Store Real Materials and Replace to Checker Material
 		if td.checker_method == '1':
 			bpy.ops.object.mode_set(mode = 'OBJECT')
 			bpy.ops.object.select_all(action='DESELECT')
-			
+
 			for obj in start_selected_obj:
 				if obj.type == 'MESH':
 					bpy.context.view_layer.objects.active = obj
 					bpy.context.view_layer.objects.active.select_set(True)
 
-					#Check save mats on this object or not
+					# Check save mats on this object or not
 					save_this_object = True
-					if len(obj.td_settings) > 0:
-							save_this_object = False
 
+					# td_settings is Custom Property per Object
+					# for saving Real Materials Assignment (Index, Mat Slot)
+					if len(obj.td_settings) > 0:
+						save_this_object = False
+
+					# Save Real Materials Assignment
 					if save_this_object:
 						if len(obj.data.materials) > 0:
 							bpy.ops.object.mode_set(mode='OBJECT')
 							face_count = len(bpy.context.active_object.data.polygons)
-							bpy.ops.object.mode_set(mode = 'EDIT')
+							bpy.ops.object.mode_set(mode='EDIT')
 							bm = bmesh.from_edit_mesh(obj.data)
 							bm.faces.ensure_lookup_table()
 							for face_id in range (face_count):
-								obj.td_settings.add() 
+								obj.td_settings.add()
 								obj.td_settings[len(obj.td_settings) - 1].TriIndex = face_id
 								obj.td_settings[len(obj.td_settings) - 1].MatIndex = bm.faces[face_id].material_index
-							bpy.ops.object.mode_set(mode = 'OBJECT')
+							bpy.ops.object.mode_set(mode='OBJECT')
 
+		# Destroy Real Materials Slots and Assign Checker Material
 		if td.checker_method == '0':
 			for o in start_selected_obj:
 				if o.type == 'MESH' and len(o.data.materials) > 0:
 					for q in reversed(range(len(o.data.materials))):
 						bpy.context.object.active_material_index = q
-						o.data.materials.pop(index = q)
+						o.data.materials.pop(index=q)
 
 			for o in start_selected_obj:
 				if o.type == 'MESH':
 					o.data.materials.append(bpy.data.materials['TD_Checker'])
 
-
+		# If Store and Replace Method
 		if td.checker_method == '1':
 			for o in start_selected_obj:
-				bpy.ops.object.mode_set(mode = 'OBJECT')
+				bpy.ops.object.mode_set(mode='OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')
 
 				if o.type == 'MESH':
 					bpy.context.view_layer.objects.active = o
 					bpy.context.view_layer.objects.active.select_set(True)
 
+					# Check object already has slot with Checker Material
 					is_assign_td_mat = True
 					for q in reversed(range(len(o.data.materials))):
-						if obj.active_material != None:
-							if obj.active_material.name_full == 'TD_Checker':
+						if o.active_material is not None:
+							if o.active_material.name_full == 'TD_Checker':
 								is_assign_td_mat = False
 
+					# Added New Material Slot for Checker Material and Assign him to all faces
 					if is_assign_td_mat:
 						o.data.materials.append(bpy.data.materials['TD_Checker'])
 						mat_index = len(o.data.materials) - 1
-						bpy.ops.object.mode_set(mode = 'EDIT')
+						bpy.ops.object.mode_set(mode='EDIT')
 						bpy.ops.mesh.reveal()
 						bpy.ops.mesh.select_all(action='SELECT')
 						bpy.context.object.active_material_index = mat_index
 						bpy.ops.object.material_slot_assign()
-						bpy.ops.object.mode_set(mode = 'OBJECT')
+						bpy.ops.object.mode_set(mode='OBJECT')
 
-		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.mode_set(mode='OBJECT')
 		bpy.ops.object.select_all(action='DESELECT')
-		
+
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
 				bpy.context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode = 'EDIT')
+				bpy.ops.object.mode_set(mode='EDIT')
 
 		bpy.context.view_layer.objects.active = start_active_obj
 		for j in need_select_again_obj:
 			j.select_set(True)
-		
+
 		return {'FINISHED'}
 
-
+# Restore Real Materials
 class Checker_Restore(bpy.types.Operator):
 	"""Restore Saved Materials"""
 	bl_idname = "object.checker_restore"
 	bl_label = "Restore Saved Materials"
 	bl_options = {'REGISTER'}
-	
+
 	def execute(self, context):
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
@@ -370,34 +387,37 @@ class Checker_Restore(bpy.types.Operator):
 			start_selected_obj = bpy.context.objects_in_mode
 
 		for obj in start_selected_obj:
-				bpy.ops.object.mode_set(mode = 'OBJECT')
-				bpy.ops.object.select_all(action='DESELECT')
-				if obj.type == 'MESH':
-					bpy.context.view_layer.objects.active = obj
-					bpy.context.view_layer.objects.active.select_set(True)
-					face_count = len(bpy.context.active_object.data.polygons)
-					bpy.ops.object.mode_set(mode = 'EDIT')
-					bm = bmesh.from_edit_mesh(obj.data)
-					bm.faces.ensure_lookup_table()
-					if len(obj.td_settings) > 0:
-						for face_id in range (face_count):
-							bm.faces[face_id].material_index = obj.td_settings[face_id].MatIndex
-					bpy.ops.object.mode_set(mode = 'OBJECT')
-					obj.td_settings.clear()
-					
-					#Delete Checker Material
-					if len(obj.data.materials) > 0:
-						for q in reversed(range(len(obj.data.materials))):
-							obj.active_material_index = q
-							if obj.active_material != None:
-								if obj.active_material.name_full == 'TD_Checker':
-									obj.data.materials.pop(index = q)
+			bpy.ops.object.mode_set(mode='OBJECT')
+			bpy.ops.object.select_all(action='DESELECT')
+
+			if obj.type == 'MESH':
+				bpy.context.view_layer.objects.active = obj
+				bpy.context.view_layer.objects.active.select_set(True)
+				face_count = len(bpy.context.active_object.data.polygons)
+				bpy.ops.object.mode_set(mode='EDIT')
+				bm = bmesh.from_edit_mesh(obj.data)
+				bm.faces.ensure_lookup_table()
+				# Read and Apply Saved pairs (face, material index) from custom property td_settings
+				if len(obj.td_settings) > 0:
+					for face_id in range(face_count):
+						bm.faces[face_id].material_index = obj.td_settings[face_id].MatIndex
+				bpy.ops.object.mode_set(mode='OBJECT')
+				# Delete all saved pairs
+				obj.td_settings.clear()
+
+				# Delete Checker Material from object
+				if len(obj.data.materials) > 0:
+					for q in reversed(range(len(obj.data.materials))):
+						obj.active_material_index = q
+						if obj.active_material is not None:
+							if obj.active_material.name_full == 'TD_Checker':
+								obj.data.materials.pop(index=q)
 
 		bpy.ops.object.select_all(action='DESELECT')
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
 				bpy.context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode = 'EDIT')
+				bpy.ops.object.mode_set(mode='EDIT')
 
 		bpy.context.view_layer.objects.active = start_active_obj
 		for j in need_select_again_obj:
@@ -405,7 +425,7 @@ class Checker_Restore(bpy.types.Operator):
 
 		return {'FINISHED'}
 
-
+# Clear Saved Real Materials and Delete Material Slots (except Checker) from Objects
 class Clear_Saved_Materials(bpy.types.Operator):
 	"""Clear Stored Materials"""
 	bl_idname = "object.clear_checker_materials"
@@ -444,16 +464,16 @@ class Clear_Saved_Materials(bpy.types.Operator):
 
 		return {'FINISHED'}
 
-
+# Bake TD to VC
 class Bake_TD_UV_to_VC(bpy.types.Operator):
 	"""Bake Texel Density/UV Islands to Vertex Color"""
 	bl_idname = "object.bake_td_uv_to_vc"
 	bl_label = "Bake TD to Vertex Color"
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	def execute(self, context):
 		td = context.scene.td
-		
+
 		#save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_mode = bpy.context.object.mode
@@ -479,7 +499,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0):
 					bpy.context.view_layer.objects.active = x
 					bpy.context.view_layer.objects.active.select_set(True)
-					
+
 					td_area_list.append(utils.Calculate_TD_Area_To_List())
 
 			#Found Min and Max TD
@@ -497,13 +517,13 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				bake_vc_max_td = max_calculated_td
 				td.bake_vc_min_td = '%.3f' % round(min_calculated_td, 3)
 				td.bake_vc_max_td = '%.3f' % round(max_calculated_td, 3)
-		
+
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0):
 				bpy.context.view_layer.objects.active = x
 				bpy.context.view_layer.objects.active.select_set(True)
-								
+
 				face_count = len(bpy.context.active_object.data.polygons)
 
 				start_selected_faces = []
@@ -526,12 +546,12 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				islands_list = []
 				face_td_area_list = []
 
-				
+
 				if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
 					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
 				else:
 					islands_list = utils.Get_UV_Islands()
-				
+
 				face_td_area_list = utils.Calculate_TD_Area_To_List()
 
 				bpy.ops.object.mode_set(mode='EDIT')
@@ -560,9 +580,9 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
 					for uv_island in islands_list:
 						island_area = 0
-						for face_id in uv_island:						
+						for face_id in uv_island:
 							island_area += face_td_area_list[face_id][1]
-						
+
 						island_area *= 100
 
 						color = utils.Value_To_Color(island_area, bake_vc_min_space, bake_vc_max_space)
@@ -582,7 +602,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						if island_area == 0:
 							island_area = 0.000001
 
-						for face_id in uv_island:						
+						for face_id in uv_island:
 							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
 
 						color = utils.Value_To_Color(island_td, bake_vc_min_td, bake_vc_max_td)
@@ -590,9 +610,9 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						for face_id in uv_island:
 							for loop in bm.faces[face_id].loops:
 								loop[bm.loops.layers.color.active] = color
-				
+
 				bpy.ops.object.mode_set(mode='OBJECT')
-					
+
 				if start_mode == "EDIT":
 					bpy.ops.object.mode_set(mode='EDIT')
 					bpy.ops.mesh.select_all(action='DESELECT')
@@ -609,7 +629,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bpy.context.view_layer.objects.active = start_active_obj
 		for j in need_select_again_obj:
 			j.select_set(True)
-			
+
 		bpy.context.space_data.shading.color_type = 'VERTEX'
 
 		if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
@@ -617,7 +637,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 		return {'FINISHED'}
 
-
+# Clear Baked TD form VC
 class Clear_TD_VC(bpy.types.Operator):
 	"""Clear TD Baked into Vertex Color"""
 	bl_idname = "object.clear_td_vc"
@@ -666,7 +686,7 @@ classes = (
 	Clear_Saved_Materials,
 	Bake_TD_UV_to_VC,
 	Clear_TD_VC,
-)	
+)
 
 
 def register():
