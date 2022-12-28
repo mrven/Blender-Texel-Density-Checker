@@ -235,7 +235,7 @@ class Checker_Assign(bpy.types.Operator):
 				flag_exist_texture = True
 
 		# Create Checker Texture (if not Exist yet) with parameters from Panel
-		if flag_exist_texture is False:
+		if not flag_exist_texture:
 			bpy.ops.image.new(name='TD_Checker', width=checker_resolution_x, height=checker_resolution_y,
 							  generated_type=td.checker_type)
 		else:
@@ -250,7 +250,7 @@ class Checker_Assign(bpy.types.Operator):
 				flag_exist_material = True
 
 		# Create material (if not Exist yet) and Setup nodes
-		if flag_exist_material is False:
+		if not flag_exist_material:
 			td_checker_mat = bpy.data.materials.new('TD_Checker')
 			td_checker_mat.use_nodes = True
 			nodes = td_checker_mat.node_tree.nodes
@@ -311,10 +311,12 @@ class Checker_Assign(bpy.types.Operator):
 							bpy.ops.object.mode_set(mode='EDIT')
 							bm = bmesh.from_edit_mesh(obj.data)
 							bm.faces.ensure_lookup_table()
+
 							for face_id in range(face_count):
 								obj.td_settings.add()
 								obj.td_settings[len(obj.td_settings) - 1].TriIndex = face_id
 								obj.td_settings[len(obj.td_settings) - 1].MatIndex = bm.faces[face_id].material_index
+
 							bpy.ops.object.mode_set(mode='OBJECT')
 
 		# Destroy Real Materials Slots and Assign Checker Material
@@ -647,8 +649,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 		# Activate VC shading in viewport and show gradient line
 		bpy.context.space_data.shading.color_type = 'VERTEX'
-		if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" \
-				or td.bake_vc_mode == "UV_SPACE_TO_VC":
+		if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
 			props.Show_Gradient(self, context)
 
 		return {'FINISHED'}

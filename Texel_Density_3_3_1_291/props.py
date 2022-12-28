@@ -318,8 +318,8 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default="0.1",
 		update = Filter_Select_Threshold)
 
-	set_method_list = (('0','Each',''),('1','Average',''))
-	set_method: EnumProperty(name="", items = set_method_list)
+	set_method_list = (('0', 'Each', ''),('1', 'Average', ''))
+	set_method: EnumProperty(name="", items=set_method_list)
 
 	checker_method_list = (('0','Replace',''), ('1','Store and Replace',''))
 	checker_method: EnumProperty(name="", items = checker_method_list, default = '1')

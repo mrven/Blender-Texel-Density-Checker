@@ -14,7 +14,7 @@ def Value_To_Color(value, range_min, range_max):
 	color4 = (color[0], color[1], color[2], 1)
 	return color4
 
-
+# Sync selection between UV Editor and 3D View
 def Sync_UV_Selection():
 	mesh = bpy.context.active_object.data
 	bm = bmesh.from_edit_mesh(mesh)
@@ -23,7 +23,7 @@ def Sync_UV_Selection():
 	uv_selected_faces = []
 	face_count = len(bm.faces)
 
-	for face_id in range (face_count):
+	for face_id in range(face_count):
 		face_is_selected = True
 		for loop in bm.faces[face_id].loops:
 			if not(loop[uv_layer].select):
@@ -32,7 +32,7 @@ def Sync_UV_Selection():
 		if face_is_selected and bm.faces[face_id].select:
 			uv_selected_faces.append(face_id)
 	
-	for face_id in range (face_count):
+	for face_id in range(face_count):
 		for loop in bm.faces[face_id].loops:
 			loop[uv_layer].select = False
 

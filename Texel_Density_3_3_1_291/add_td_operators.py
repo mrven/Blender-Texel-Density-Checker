@@ -5,7 +5,7 @@ from bpy.props import StringProperty
 
 from . import utils
 
-
+# Copy average TD from object to object
 class Texel_Density_Copy(bpy.types.Operator):
 	"""Copy Density"""
 	bl_idname = "object.texel_density_copy"
@@ -15,18 +15,18 @@ class Texel_Density_Copy(bpy.types.Operator):
 	def execute(self, context):
 		td = context.scene.td
 		
-		#save current mode and active object
+		# Save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_selected_obj = bpy.context.selected_objects
-		start_mode = bpy.context.object.mode
 
-		#Calculate TD for Active Object and copy value to Set TD Value Field
+		# Calculate TD for active object only and copy value to "Set TD Value" field
 		bpy.ops.object.select_all(action='DESELECT')
 		start_active_obj.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
 		bpy.ops.object.texel_density_check()
 		td.density_set = td.density
 
+		# Set calculated TD for all other selected objects
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0) and not x == start_active_obj:
@@ -34,14 +34,14 @@ class Texel_Density_Copy(bpy.types.Operator):
 				bpy.context.view_layer.objects.active = x
 				bpy.ops.object.texel_density_set()
 
-		#Select Objects Again
+		# Select Objects Again
 		for x in start_selected_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
 		
 		return {'FINISHED'}
 
-
+# Copy last calculated value of TD to "Set TD Value" field
 class Calculated_To_Set(bpy.types.Operator):
 	"""Copy Calc to Set"""
 	bl_idname = "object.calculate_to_set"
@@ -50,12 +50,11 @@ class Calculated_To_Set(bpy.types.Operator):
 
 	def execute(self, context):
 		td = context.scene.td
-		
 		td.density_set = td.density
 		
 		return {'FINISHED'}
 
-
+# Copy last calculated value to "Select Value" field
 class Calculated_To_Select(bpy.types.Operator):
 	"""Copy Calc to Set"""
 	bl_idname = "object.calculate_to_select"
@@ -64,15 +63,16 @@ class Calculated_To_Select(bpy.types.Operator):
 
 	def execute(self, context):
 		td = context.scene.td
-		
+
+		# Copying UV area or TD depends on current select mode
 		if td.select_mode == "ISLANDS_BY_SPACE":
 			td['select_value'] = td.uv_space[:-2]
 		else:
 			td['select_value'] = td.density
 		
 		return {'FINISHED'}
-		
 
+# Buttons "Half/Double TD" and presets with values (0.64 - 20.48 px/cm)
 class Preset_Set(bpy.types.Operator):
 	"""Preset Set Density"""
 	bl_idname = "object.preset_set"
@@ -82,19 +82,24 @@ class Preset_Set(bpy.types.Operator):
 	
 	def execute(self, context):
 		td = context.scene.td
-		
+
+		# self.td_value is parameter
+		# It's using in UI like row.operator("object.preset_set", text="20.48").td_value="20.48"
 		if self.td_value == "Half" or self.td_value == "Double":
+			# In case using buttons "Half/Double TD"
+			# Store value from panel, set preset value and call Set TD
 			saved_td_value = td.density_set
 			td.density_set = self.td_value
 			bpy.ops.object.texel_density_set()
+			# Restore saved value
 			td.density_set = saved_td_value
 		else:
 			td.density_set = self.td_value
 			bpy.ops.object.texel_density_set()
 				
 		return {'FINISHED'}
-		
 
+# Select polygons or islands with same TD or UV space
 class Select_By_TD_Space(bpy.types.Operator):
 	"""Select Faces with same TD"""
 	bl_idname = "object.select_by_td_space"
@@ -108,10 +113,10 @@ class Select_By_TD_Space(bpy.types.Operator):
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
 
-		if start_mode == 'OBJECT':
-			start_selected_obj = bpy.context.selected_objects
-		elif start_mode == 'EDIT':
+		if start_mode == 'EDIT':
 			start_selected_obj = bpy.context.objects_in_mode
+		else:
+			start_selected_obj = bpy.context.selected_objects
 		
 		search_value = float(td.select_value)
 		select_threshold = float(td.select_threshold)
