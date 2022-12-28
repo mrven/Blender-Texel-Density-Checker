@@ -124,7 +124,7 @@ def Calculate_TD_Area_To_List():
 		a = loops_count - 1
 		
 		for b in range(0, loops_count):
-			area +=  (loops[a].x + loops[b].x) * (loops[a].y - loops[b].y)
+			area += (loops[a].x + loops[b].x) * (loops[a].y - loops[b].y)
 			a = b
 		
 		area = abs(0.5 * area)
