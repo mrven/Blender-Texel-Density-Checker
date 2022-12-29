@@ -257,8 +257,7 @@ draw_info = {
 def Show_Gradient(self, context):
 	td = context.scene.td
 	if td.bake_vc_show_gradient and draw_info["handler"] is None:
-		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None),
-																	  'WINDOW', 'POST_PIXEL')
+		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None), 'WINDOW', 'POST_PIXEL')
 	elif (not td.bake_vc_show_gradient) and draw_info["handler"] is not None:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
 		draw_info["handler"] = None

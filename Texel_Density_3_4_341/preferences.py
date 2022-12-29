@@ -74,12 +74,12 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 	offset_x: StringProperty(
 		name="",
 		description="Offset X from Anchor",
-		default="250", update=Filter_Gradient_Offset_X)
+		default="60", update=Filter_Gradient_Offset_X)
 
 	offset_y: StringProperty(
 		name="",
 		description="Offset Y from Anchor",
-		default="20", update=Filter_Gradient_Offset_Y)
+		default="30", update=Filter_Gradient_Offset_Y)
 
 	anchor_pos_list = (('LEFT_TOP', 'Left Top', ''), ('LEFT_BOTTOM', 'Left Bottom', ''),
 						('RIGHT_TOP', 'Right Top', ''), ('RIGHT_BOTTOM', 'Right Bottom', ''))

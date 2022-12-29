@@ -57,7 +57,7 @@ def Draw_Callback_Px(self, context):
 	else:
 		bake_value_precision = 1
 
-	# Calculate Text Position from Anchor
+	# Calculate Text Position from Anchor.
 	# Anchor and offset set in Preferences
 	if anchor_pos == 'LEFT_BOTTOM':
 		font_start_pos_x = 0 + offset_x
@@ -89,22 +89,32 @@ def Draw_Callback_Px(self, context):
 	blf.draw(font_id, str(round((bake_max_value - bake_min_value) * 0.75 + bake_min_value, bake_value_precision)))
 
 	# Draw Gradient Line via Shader
-	vertex_shader = '''
-	in vec2 position;
-	out vec3 pos;
+	vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
+	vert_out.smooth('VEC3', "pos")
+
+	shader_info = gpu.types.GPUShaderCreateInfo()
+	shader_info.push_constant('FLOAT', "pos_x_min")
+	shader_info.push_constant('FLOAT', "pos_x_max")
+	shader_info.vertex_in(0, 'VEC2', "position")
+	shader_info.vertex_out(vert_out)
+	shader_info.fragment_out(0, 'VEC4', "FragColor")
+
+	shader_info.vertex_source('''
+	//in vec2 position;
+	//out vec3 pos;
 
 	void main()
 	{
 		pos = vec3(position, 0.0f);
 		gl_Position = vec4(position, 0.0f, 1.0f);
 	}
-	'''
+	''')
 
-	fragment_shader = '''
-	uniform float pos_x_min;
-	uniform float pos_x_max;
+	shader_info.fragment_source('''
+	//uniform float pos_x_min;
+	//uniform float pos_x_max;
 
-	in vec3 pos;
+	//in vec3 pos;
 
 	void main()
 	{
@@ -127,12 +137,12 @@ def Draw_Callback_Px(self, context):
 		float blendColor4 = (pos.x - pos_x_75)/(pos_x_max - pos_x_75);
 
 		// Calculate Final Colors - Pure Colors and Blends between them 
-		gl_FragColor = (c * blendColor1 + b * (1 - blendColor1)) * step(pos.x, pos_x_25) +
+		FragColor = (c * blendColor1 + b * (1 - blendColor1)) * step(pos.x, pos_x_25) +
 						(g * blendColor2 + c * (1 - blendColor2)) * step(pos.x, pos_x_50) * step(pos_x_25, pos.x) +
 						(y * blendColor3 + g * (1 - blendColor3)) * step(pos.x, pos_x_75) * step(pos_x_50, pos.x) +
 						(r * blendColor4 + y * (1 - blendColor4)) * step(pos.x, pos_x_max) * step(pos_x_75, pos.x);
 	}
-	'''
+	''')
 
 	# Gradient Bounds with range 0.0 - 2.0
 	gradient_x_min = screen_texel_x * offset_x
@@ -170,7 +180,10 @@ def Draw_Callback_Px(self, context):
 	# Set Shader Parameters and Draw
 	indices = ((0, 1, 2), (2, 1, 3))
 
-	shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
+	shader = gpu.shader.create_from_info(shader_info)
+	del vert_out
+	del shader_info
+
 	batch = batch_for_shader(shader, 'TRIS', {"position": vertices}, indices=indices)
 
 	shader.bind()
@@ -547,8 +560,8 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						should_add_vc = False
 
 				if should_add_vc:
-					bpy.ops.mesh.vertex_color_add()
-					x.data.vertex_colors.active.name = "td_vis"
+					bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
+					x.data.attributes.active_color.name = "td_vis"
 
 				x.data.vertex_colors["td_vis"].active = True
 
@@ -684,7 +697,7 @@ class Clear_TD_VC(bpy.types.Operator):
 					for vc in obj.data.vertex_colors:
 						if vc.name == "td_vis":
 							vc.active = True
-							bpy.ops.mesh.vertex_color_remove()
+							bpy.ops.geometry.color_attribute_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
 		if start_mode == 'EDIT':
