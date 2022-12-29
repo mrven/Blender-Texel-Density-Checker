@@ -26,8 +26,8 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row = box.row(align=True)
 			row.label(text="Texture Size:")
 			row.prop(td, 'texture_size', expand=False)
-			#----
 
+			# If custom texture size show fields for width and height
 			if td.texture_size == '4':
 				row = box.row(align=True)
 				row.label(text="Width:")
@@ -55,6 +55,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row = box.row()
 			row.operator("object.checker_assign", text="Assign Checker Material")
 
+			# If Checker Method "Store and Replace"
 			if td.checker_method == '1':
 				row = box.row()
 				row.operator("object.checker_restore", text="Restore Materials")
@@ -91,20 +92,12 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			if context.object.mode == 'EDIT':
 				row = box.row()
 				row.operator("object.calculate_to_select", text="Calc -> Select Value")
-			
 
 			box = layout.box()
 			row = box.row(align=True)
 			row.label(text="Set TD:")			
 			row.prop(td, "density_set")
-			if td.units == '0':
-				row.label(text="px/cm")
-			if td.units == '1':
-				row.label(text="px/m")
-			if td.units == '2':
-				row.label(text="px/in")
-			if td.units == '3':
-				row.label(text="px/ft")
+			row.label(text=cur_units)
 			
 			row = box.row(align=True)
 			row.label(text="Set Method:")
@@ -112,46 +105,47 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			
 			row = box.row()
 			row.operator("object.texel_density_set", text="Set My TD")
-			
+
+			# Preset Buttons
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="20.48").td_value="20.48"
-				row.operator("object.preset_set", text="10.24").td_value="10.24"
-				row.operator("object.preset_set", text="5.12").td_value="5.12"
+				row.operator("object.preset_set", text="20.48").td_value = "20.48"
+				row.operator("object.preset_set", text="10.24").td_value = "10.24"
+				row.operator("object.preset_set", text="5.12").td_value = "5.12"
 			if td.units == '1':
-				row.operator("object.preset_set", text="2048").td_value="2048"
-				row.operator("object.preset_set", text="1024").td_value="1024"
-				row.operator("object.preset_set", text="512").td_value="512"
+				row.operator("object.preset_set", text="2048").td_value = "2048"
+				row.operator("object.preset_set", text="1024").td_value = "1024"
+				row.operator("object.preset_set", text="512").td_value = "512"
 			if td.units == '2':
-				row.operator("object.preset_set", text="52.019").td_value="52.019"
-				row.operator("object.preset_set", text="26.01").td_value="26.01"
-				row.operator("object.preset_set", text="13.005").td_value="13.005"
+				row.operator("object.preset_set", text="52.019").td_value = "52.019"
+				row.operator("object.preset_set", text="26.01").td_value = "26.01"
+				row.operator("object.preset_set", text="13.005").td_value = "13.005"
 			if td.units == '3':
-				row.operator("object.preset_set", text="624.23").td_value="624.23"
-				row.operator("object.preset_set", text="312.115").td_value="312.115"
-				row.operator("object.preset_set", text="156.058").td_value="156.058"
+				row.operator("object.preset_set", text="624.23").td_value = "624.23"
+				row.operator("object.preset_set", text="312.115").td_value = "312.115"
+				row.operator("object.preset_set", text="156.058").td_value = "156.058"
 							
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="2.56").td_value="2.56"
-				row.operator("object.preset_set", text="1.28").td_value="1.28"
-				row.operator("object.preset_set", text="0.64").td_value="0.64"
+				row.operator("object.preset_set", text="2.56").td_value = "2.56"
+				row.operator("object.preset_set", text="1.28").td_value = "1.28"
+				row.operator("object.preset_set", text="0.64").td_value = "0.64"
 			if td.units == '1':
-				row.operator("object.preset_set", text="256").td_value="256"
-				row.operator("object.preset_set", text="128").td_value="128"
-				row.operator("object.preset_set", text="64").td_value="64"
+				row.operator("object.preset_set", text="256").td_value = "256"
+				row.operator("object.preset_set", text="128").td_value = "128"
+				row.operator("object.preset_set", text="64").td_value = "64"
 			if td.units == '2':
-				row.operator("object.preset_set", text="6.502").td_value="6.502"
-				row.operator("object.preset_set", text="3.251").td_value="3.251"
-				row.operator("object.preset_set", text="1.626").td_value="1.626"
+				row.operator("object.preset_set", text="6.502").td_value = "6.502"
+				row.operator("object.preset_set", text="3.251").td_value = "3.251"
+				row.operator("object.preset_set", text="1.626").td_value = "1.626"
 			if td.units == '3':
-				row.operator("object.preset_set", text="78.029").td_value="78.029"
-				row.operator("object.preset_set", text="39.014").td_value="39.014"
-				row.operator("object.preset_set", text="19.507").td_value="19.507"
+				row.operator("object.preset_set", text="78.029").td_value = "78.029"
+				row.operator("object.preset_set", text="39.014").td_value = "39.014"
+				row.operator("object.preset_set", text="19.507").td_value = "19.507"
 
 			row = box.row(align=True)
-			row.operator("object.preset_set", text="Half TD").td_value="Half"
-			row.operator("object.preset_set", text="Double TD").td_value="Double"
+			row.operator("object.preset_set", text="Half TD").td_value = "Half"
+			row.operator("object.preset_set", text="Double TD").td_value = "Double"
 
 			if context.object.mode == 'OBJECT':
 				row = layout.row()
@@ -176,14 +170,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.prop(td, "select_value")
 				
 				if td.select_mode == "FACES_BY_TD" or td.select_mode == "ISLANDS_BY_TD":
-					if td.units == '0':
-						row.label(text="px/cm")
-					if td.units == '1':
-						row.label(text="px/m")
-					if td.units == '2':
-						row.label(text="px/in")
-					if td.units == '3':
-						row.label(text="px/ft")
+					row.label(text=cur_units)
 				elif td.select_mode == "ISLANDS_BY_SPACE":
 					row.label(text="%")
 
@@ -199,7 +186,6 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 					row.operator("object.select_by_td_space", text="Select Islands By TD")
 				elif td.select_mode == "ISLANDS_BY_SPACE":
 					row.operator("object.select_by_td_space", text="Select Islands By UV Space")
-
 
 			box = layout.box()
 			row = box.row(align=True)
@@ -274,7 +260,8 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			row = box.row(align=True)
 			row.label(text="Texture Size:")
 			row.prop(td, 'texture_size', expand=False)
-			
+
+			# If custom texture size show fields for width and height
 			if td.texture_size == '4':
 				row = box.row(align=True)
 				row.label(text="Width:")
@@ -320,14 +307,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			row.label(text="Set TD:")			
 			row.prop(td, "density_set")
 			
-			if td.units == '0':
-				row.label(text="px/cm")
-			if td.units == '1':
-				row.label(text="px/m")
-			if td.units == '2':
-				row.label(text="px/in")
-			if td.units == '3':
-				row.label(text="px/ft")
+			row.label(text=cur_units)
 			
 			row = box.row(align=True)
 			row.label(text="Set Method:")
@@ -335,52 +315,53 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			
 			row = box.row()
 			row.operator("object.texel_density_set", text="Set My TD")
-			
+
+			# Preset Buttons
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="20.48").td_value="20.48"
-				row.operator("object.preset_set", text="10.24").td_value="10.24"
-				row.operator("object.preset_set", text="5.12").td_value="5.12"
+				row.operator("object.preset_set", text="20.48").td_value = "20.48"
+				row.operator("object.preset_set", text="10.24").td_value = "10.24"
+				row.operator("object.preset_set", text="5.12").td_value = "5.12"
 				
 			if td.units == '1':
-				row.operator("object.preset_set", text="2048").td_value="2048"
-				row.operator("object.preset_set", text="1024").td_value="1024"
-				row.operator("object.preset_set", text="512").td_value="512"
+				row.operator("object.preset_set", text="2048").td_value = "2048"
+				row.operator("object.preset_set", text="1024").td_value = "1024"
+				row.operator("object.preset_set", text="512").td_value = "512"
 				
 			if td.units == '2':
-				row.operator("object.preset_set", text="52.019").td_value="52.019"
-				row.operator("object.preset_set", text="26.01").td_value="26.01"
-				row.operator("object.preset_set", text="13.005").td_value="13.005"
+				row.operator("object.preset_set", text="52.019").td_value = "52.019"
+				row.operator("object.preset_set", text="26.01").td_value = "26.01"
+				row.operator("object.preset_set", text="13.005").td_value = "13.005"
 				
 			if td.units == '3':
-				row.operator("object.preset_set", text="624.23").td_value="624.23"
-				row.operator("object.preset_set", text="312.115").td_value="312.115"
-				row.operator("object.preset_set", text="156.058").td_value="156.058"
+				row.operator("object.preset_set", text="624.23").td_value = "624.23"
+				row.operator("object.preset_set", text="312.115").td_value = "312.115"
+				row.operator("object.preset_set", text="156.058").td_value = "156.058"
 				
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="2.56").td_value="2.56"
-				row.operator("object.preset_set", text="1.28").td_value="1.28"
-				row.operator("object.preset_set", text="0.64").td_value="0.64"
+				row.operator("object.preset_set", text="2.56").td_value = "2.56"
+				row.operator("object.preset_set", text="1.28").td_value = "1.28"
+				row.operator("object.preset_set", text="0.64").td_value = "0.64"
 
 			if td.units == '1':
-				row.operator("object.preset_set", text="256").td_value="256"
-				row.operator("object.preset_set", text="128").td_value="128"
-				row.operator("object.preset_set", text="64").td_value="64"
+				row.operator("object.preset_set", text="256").td_value = "256"
+				row.operator("object.preset_set", text="128").td_value = "128"
+				row.operator("object.preset_set", text="64").td_value = "64"
 
 			if td.units == '2':
-				row.operator("object.preset_set", text="6.502").td_value="6.502"
-				row.operator("object.preset_set", text="3.251").td_value="3.251"
-				row.operator("object.preset_set", text="1.626").td_value="1.626"
+				row.operator("object.preset_set", text="6.502").td_value = "6.502"
+				row.operator("object.preset_set", text="3.251").td_value = "3.251"
+				row.operator("object.preset_set", text="1.626").td_value = "1.626"
 
 			if td.units == '3':
-				row.operator("object.preset_set", text="78.029").td_value="78.029"
-				row.operator("object.preset_set", text="39.014").td_value="39.014"
-				row.operator("object.preset_set", text="19.507").td_value="19.507"
+				row.operator("object.preset_set", text="78.029").td_value = "78.029"
+				row.operator("object.preset_set", text="39.014").td_value = "39.014"
+				row.operator("object.preset_set", text="19.507").td_value = "19.507"
 
 			row = box.row(align=True)
-			row.operator("object.preset_set", text="Half TD").td_value="Half"
-			row.operator("object.preset_set", text="Double TD").td_value="Double"
+			row.operator("object.preset_set", text="Half TD").td_value = "Half"
+			row.operator("object.preset_set", text="Double TD").td_value = "Double"
 
 			box = layout.box()
 			row = box.row(align=True)
@@ -399,14 +380,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			row.prop(td, "select_value")
 			
 			if td.select_mode == "FACES_BY_TD" or td.select_mode == "ISLANDS_BY_TD":
-				if td.units == '0':
-					row.label(text="px/cm")
-				if td.units == '1':
-					row.label(text="px/m")
-				if td.units == '2':
-					row.label(text="px/in")
-				if td.units == '3':
-					row.label(text="px/ft")
+				row.label(text=cur_units)
 			elif td.select_mode == "ISLANDS_BY_SPACE":
 				row.label(text="%")
 
@@ -414,7 +388,6 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 				row = box.row(align=True)
 				row.label(text="Select Threshold:")
 				row.prop(td, "select_threshold")
-				#----
 			
 			row = box.row()
 			if td.select_mode == "FACES_BY_TD":

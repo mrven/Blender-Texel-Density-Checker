@@ -108,7 +108,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 
 	def execute(self, context):
 		td = context.scene.td
-		
+
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
@@ -120,26 +120,24 @@ class Select_By_TD_Space(bpy.types.Operator):
 		
 		search_value = float(td.select_value)
 		select_threshold = float(td.select_threshold)
-		
+
+		# Set Selection Mode to Face for 3D View and UV Editor
 		bpy.ops.object.mode_set(mode='EDIT')
 		bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
 		bpy.context.scene.tool_settings.uv_select_mode = 'FACE'
 		
 		bpy.ops.object.mode_set(mode='OBJECT')
-		
+
+		# Select polygons
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if (x.type == 'MESH' and len(x.data.uv_layers) > 0) and len(x.data.polygons) > 0:
 				bpy.context.view_layer.objects.active = x
 				bpy.context.view_layer.objects.active.select_set(True)
-				
 				face_count = len(bpy.context.active_object.data.polygons)
-				
-				searched_faces=[]
+				searched_faces = []
 
-				islands_list = []
-				face_td_area_list = []
-
+				# Get islands and TD and UV areas of each polygon
 				islands_list = utils.Get_UV_Islands()
 				face_td_area_list = utils.Calculate_TD_Area_To_List()
 
@@ -161,13 +159,15 @@ class Select_By_TD_Space(bpy.types.Operator):
 					for uv_island in islands_list:
 						island_td = 0
 						island_area = 0
-						#Calculate Total Island Area
+
+						# Calculate total island UV area
 						for face_id in uv_island:
 							island_area += face_td_area_list[face_id][1]
 
 						if island_area == 0:
 							island_area = 0.000001
 
+						# Calculate total island TD
 						for face_id in uv_island:						
 							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
 
@@ -189,9 +189,12 @@ class Select_By_TD_Space(bpy.types.Operator):
 				elif td.select_mode == "ISLANDS_BY_SPACE":
 					for uv_island in islands_list:
 						island_area = 0
-						for face_id in uv_island:						
+
+						# Calculate total island UV area
+						for face_id in uv_island:
 							island_area += face_td_area_list[face_id][1]
-							
+
+						# Convert UV area to percentage
 						island_area *= 100
 
 						if td.select_type == "EQUAL":
@@ -209,7 +212,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 								for face_id in uv_island:
 									searched_faces.append(face_id)
 
-				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and bpy.context.scene.tool_settings.use_uv_select_sync == False:
+				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
 					bpy.ops.object.mode_set(mode='EDIT')
 
 					mesh = bpy.context.active_object.data
@@ -217,6 +220,8 @@ class Select_By_TD_Space(bpy.types.Operator):
 					bm_local.faces.ensure_lookup_table()
 					uv_layer = bm_local.loops.layers.uv.active
 
+					# If called from UV Editor without sync selection deselect all faces
+					# and select only founded faces in UV Editor
 					for uv_id in range(0, len(bm_local.faces)):
 						for loop in bm_local.faces[uv_id].loops:
 							loop[uv_layer].select = False
@@ -233,16 +238,18 @@ class Select_By_TD_Space(bpy.types.Operator):
 					
 					bpy.ops.object.mode_set(mode='OBJECT')
 
+					# If called from UV Editor with sync selection or 3D View
+					# deselect all faces and select only founded faces in 3D View
 					for face_id in searched_faces:
 						bpy.context.active_object.data.polygons[face_id].select = True
 
-		bpy.ops.object.mode_set(mode = 'OBJECT')
+		bpy.ops.object.mode_set(mode='OBJECT')
 		bpy.ops.object.select_all(action='DESELECT')
 		
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
 				bpy.context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode = 'EDIT')
+				bpy.ops.object.mode_set(mode='EDIT')
 
 		bpy.context.view_layer.objects.active = start_active_obj
 		for j in need_select_again_obj:

@@ -8,7 +8,7 @@ from bpy.props import (
 		StringProperty,
 		EnumProperty,
 		BoolProperty
-        )
+		)
 
 
 def update_view3d_panel_category(self, context):
@@ -33,6 +33,7 @@ def update_uv_panel_category(self, context):
 			bpy.utils.unregister_class(UV_PT_texel_density_checker)
 		except:
 			pass
+
 	UV_PT_texel_density_checker.bl_category = category
 	bpy.utils.register_class(UV_PT_texel_density_checker)
 
@@ -45,7 +46,7 @@ def Filter_Gradient_Offset_X(self, context):
 	except:
 		offset_x = 20
 
-	if (offset_x < 0):
+	if offset_x < 0:
 		offset_x = 20
 	
 	bpy.context.preferences.addons[__package__].preferences['offset_x'] = str(offset_x)
@@ -60,7 +61,7 @@ def Filter_Gradient_Offset_Y(self, context):
 	except:
 		offset_y = 20
 
-	if (offset_y < 0):
+	if offset_y < 0:
 		offset_y = 20
 
 	bpy.context.preferences.addons[__package__].preferences['offset_y'] = str(offset_y)
@@ -73,34 +74,34 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 	offset_x: StringProperty(
 		name="",
 		description="Offset X from Anchor",
-		default="250", update = Filter_Gradient_Offset_X)
+		default="250", update=Filter_Gradient_Offset_X)
 
 	offset_y: StringProperty(
 		name="",
 		description="Offset Y from Anchor",
-		default="20", update = Filter_Gradient_Offset_Y)
+		default="20", update=Filter_Gradient_Offset_Y)
 
-	anchor_pos_list = (('LEFT_TOP','Left Top',''),('LEFT_BOTTOM','Left Bottom',''), 
-						('RIGHT_TOP','Right Top',''), ('RIGHT_BOTTOM','Right Bottom',''))
-	anchor_pos: EnumProperty(name="", items = anchor_pos_list, default = 'LEFT_BOTTOM')
+	anchor_pos_list = (('LEFT_TOP', 'Left Top', ''), ('LEFT_BOTTOM', 'Left Bottom', ''),
+						('RIGHT_TOP', 'Right Top', ''), ('RIGHT_BOTTOM', 'Right Bottom', ''))
+	anchor_pos: EnumProperty(name="", items=anchor_pos_list, default='LEFT_BOTTOM')
 
 	automatic_recalc: BoolProperty(
 		name="Calling Select/Bake VC operator after changing Mode/Value",
 		description="Calling Select/Bake VC operator after changing Mode/Value",
-		default = False)
+		default=False)
 
 	view3d_panel_category: StringProperty(
 		name="",
 		description="Choose a name for the category of panel (3D View)",
 		default="Texel Density",
-		update = update_view3d_panel_category
+		update=update_view3d_panel_category
 		)
 
 	uv_panel_category: StringProperty(
 		name="",
 		description="Choose a name for the category of panel (UV Editor)",
 		default="Texel Density",
-		update = update_uv_panel_category
+		update=update_uv_panel_category
 		)
 
 	def draw(self, context):
@@ -128,16 +129,19 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		
 		layout.prop(self, 'automatic_recalc')
 
+
 class TDObjectSetting(bpy.types.PropertyGroup):
-    TriIndex: bpy.props.IntProperty(name="Tri Index", default=0)
-    MatIndex: bpy.props.IntProperty(name="Material Index", default=0)
+	TriIndex: bpy.props.IntProperty(name="Tri Index", default=0)
+	MatIndex: bpy.props.IntProperty(name="Material Index", default=0)
+
 
 classes = (
-    TD_Addon_Preferences,
-    VIEW3D_PT_texel_density_checker,
-    UV_PT_texel_density_checker,
-    TDObjectSetting
+			TD_Addon_Preferences,
+			VIEW3D_PT_texel_density_checker,
+			UV_PT_texel_density_checker,
+			TDObjectSetting
 )
+
 
 def register():
 	for cls in classes:
