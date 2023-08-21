@@ -157,10 +157,18 @@ def Calculate_TD_Area_To_List():
 		td_area_list = [texel_density, area]
 		calculated_obj_td_area.append(td_area_list)
 
-	# Delete duplicated object
 	bpy.ops.object.mode_set(mode='OBJECT')
-	
+
+	# Save name of data for cleanup
+	mesh_data_name = bpy.context.view_layer.objects.active.data.name
+
+	# Delete duplicated object and mesh data
 	bpy.ops.object.delete()
+	try:
+		bpy.data.meshes.remove(bpy.data.meshes[mesh_data_name])
+	except:
+		pass
+
 	bpy.context.view_layer.objects.active = start_active_obj
 	
 	bpy.ops.object.mode_set(mode=start_mode)
