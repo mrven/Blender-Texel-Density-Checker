@@ -1,8 +1,7 @@
 import bpy
 import bmesh
-
 from bpy.props import StringProperty
-
+from datetime import datetime
 from . import utils
 
 # Copy average TD from object to object
@@ -13,6 +12,7 @@ class Texel_Density_Copy(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 		
 		# Save current mode and active object
@@ -38,7 +38,8 @@ class Texel_Density_Copy(bpy.types.Operator):
 		for x in start_selected_obj:
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
-		
+
+		utils.Print_Execution_Time("Copy TD", start_time)
 		return {'FINISHED'}
 
 # Copy last calculated value of TD to "Set TD Value" field
@@ -49,9 +50,11 @@ class Calculated_To_Set(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 		td.density_set = td.density
-		
+
+		utils.Print_Execution_Time("Calculated TD to Set", start_time)
 		return {'FINISHED'}
 
 # Copy last calculated value to "Select Value" field
@@ -62,6 +65,7 @@ class Calculated_To_Select(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 
 		# Copying UV area or TD depends on current select mode
@@ -69,7 +73,8 @@ class Calculated_To_Select(bpy.types.Operator):
 			td['select_value'] = td.uv_space[:-2]
 		else:
 			td['select_value'] = td.density
-		
+
+		utils.Print_Execution_Time("Calculated TD to Select", start_time)
 		return {'FINISHED'}
 
 # Buttons "Half/Double TD" and presets with values (0.64 - 20.48 px/cm)
@@ -81,6 +86,7 @@ class Preset_Set(bpy.types.Operator):
 	td_value: StringProperty()
 	
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 
 		# self.td_value is parameter
@@ -96,7 +102,8 @@ class Preset_Set(bpy.types.Operator):
 		else:
 			td.density_set = self.td_value
 			bpy.ops.object.texel_density_set()
-				
+
+		utils.Print_Execution_Time("Preset TD Set", start_time)
 		return {'FINISHED'}
 
 # Select polygons or islands with same TD or UV space
@@ -107,6 +114,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 
 		start_mode = bpy.context.object.mode
@@ -255,6 +263,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
+		utils.Print_Execution_Time("Select by TD Space", start_time)
 		return {'FINISHED'}
 
 

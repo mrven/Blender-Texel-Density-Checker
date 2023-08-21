@@ -388,6 +388,12 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	select_type_list = (('EQUAL', 'Equal To', ''), ('LESS', 'Less Than', ''), ('GREATER', 'Greater Than', ''))
 	select_type: EnumProperty(name="", items=select_type_list, update=Change_Select_Mode)
 
+	# Debug Property
+	debug: BoolProperty(
+		name="Enable Debug Mode",
+		description="Enable Debug Mode",
+		default=False)
+
 
 classes = (
 	TD_Addon_Props,

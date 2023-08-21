@@ -1,7 +1,7 @@
 import bpy
 import bmesh
 import math
-
+from datetime import datetime
 from . import utils
 
 
@@ -13,6 +13,7 @@ class Texel_Density_Check(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 
 		# Save current mode and active object
@@ -161,9 +162,10 @@ class Texel_Density_Check(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
+		utils.Print_Execution_Time("Calculate TD", start_time)
 		return {'FINISHED'}
 
-
+# Set TD
 class Texel_Density_Set(bpy.types.Operator):
 	"""Set Density"""
 	bl_idname = "object.texel_density_set"
@@ -171,6 +173,7 @@ class Texel_Density_Set(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 
 		# save current mode and active object
@@ -303,19 +306,17 @@ class Texel_Density_Set(bpy.types.Operator):
 		# Calculate TD for getting actual (final) value after resizing
 		bpy.ops.object.texel_density_check()
 
+		utils.Print_Execution_Time("Set TD", start_time)
 		return {'FINISHED'}
-
 
 classes = (
 	Texel_Density_Check,
 	Texel_Density_Set,
 )
 
-
 def register():
 	for cls in classes:
 		bpy.utils.register_class(cls)
-
 
 def unregister():
 	for cls in reversed(classes):

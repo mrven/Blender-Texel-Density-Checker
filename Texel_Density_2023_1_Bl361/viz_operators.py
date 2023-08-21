@@ -10,6 +10,7 @@ import bpy_extras.mesh_utils
 
 from gpu_extras.batch import batch_for_shader
 from bpy.props import StringProperty
+from datetime import datetime
 
 from . import utils
 from . import props
@@ -200,6 +201,7 @@ class Checker_Assign(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 
 		start_mode = bpy.context.object.mode
@@ -384,6 +386,7 @@ class Checker_Assign(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
+		utils.Print_Execution_Time("Assign of Checker Material", start_time)
 		return {'FINISHED'}
 
 
@@ -395,6 +398,7 @@ class Checker_Restore(bpy.types.Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
@@ -441,6 +445,7 @@ class Checker_Restore(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
+		utils.Print_Execution_Time("Restore Materials", start_time)
 		return {'FINISHED'}
 
 
@@ -452,6 +457,7 @@ class Clear_Saved_Materials(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
@@ -481,6 +487,7 @@ class Clear_Saved_Materials(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
+		utils.Print_Execution_Time("Clear Saved Materials", start_time)
 		return {'FINISHED'}
 
 
@@ -492,6 +499,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		td = context.scene.td
 
 		# Save current mode and active object
@@ -665,6 +673,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
 			props.Show_Gradient(self, context)
 
+		utils.Print_Execution_Time("Bake TD to VC", start_time)
 		return {'FINISHED'}
 
 
@@ -676,6 +685,7 @@ class Clear_TD_VC(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
+		start_time = datetime.now()
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
@@ -709,6 +719,7 @@ class Clear_TD_VC(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
+		utils.Print_Execution_Time("Clear Baked TD from VC", start_time)
 		return {'FINISHED'}
 
 

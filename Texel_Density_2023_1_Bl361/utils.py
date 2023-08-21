@@ -2,6 +2,8 @@ import bpy
 import bmesh
 import math
 import colorsys
+from datetime import datetime
+
 
 # Value by range to Color gradient by hue
 def Value_To_Color(value, range_min, range_max):
@@ -261,10 +263,8 @@ def Get_UV_Islands():
 
 	return uv_islands
 
-
 def Saturate(val):
 	return max(min(val, 1), 0)
-
 
 #Get BlenderVersion
 def Get_Version():
@@ -278,3 +278,14 @@ def Get_Version():
 		result = 2.90
 	
 	return result
+
+# Execution Time
+def Print_Execution_Time(function_name, start_time):
+	td = bpy.context.scene.td
+
+	if td.debug:
+		finish_time = datetime.now()
+		execution_time = finish_time - start_time
+		seconds = (execution_time.total_seconds())
+		milliseconds = round(seconds * 1000)
+		print(function_name + " finished in " + str(seconds) + "s (" + str(milliseconds) + "ms)")
