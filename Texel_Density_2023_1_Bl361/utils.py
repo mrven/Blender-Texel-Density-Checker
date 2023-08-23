@@ -3,6 +3,7 @@ import bmesh
 import math
 import colorsys
 from datetime import datetime
+import os
 
 
 # Value by range to Color gradient by hue
@@ -297,3 +298,10 @@ def Print_Execution_Time(function_name, start_time):
 		seconds = (execution_time.total_seconds())
 		milliseconds = round(seconds * 1000)
 		print(function_name + " finished in " + str(seconds) + "s (" + str(milliseconds) + "ms)")
+
+
+def Get_Addon_Name():
+	return os.path.basename(os.path.dirname(os.path.realpath(__file__)))
+
+def Get_Preferences():
+	return bpy.context.preferences.addons[Get_Addon_Name()].preferences
