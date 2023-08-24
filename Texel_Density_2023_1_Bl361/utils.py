@@ -109,6 +109,7 @@ def Calculate_TD_Area_To_List():
 
 	# Duplicate and Triangulate Object
 	bpy.ops.object.duplicate()
+	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
 	aspect_ratio = texture_size_cur_x / texture_size_cur_y
