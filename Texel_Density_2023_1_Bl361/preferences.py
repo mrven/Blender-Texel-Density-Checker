@@ -104,6 +104,16 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		update=update_uv_panel_category
 		)
 
+	view3d_panel_category_enable: BoolProperty(
+		name="View 3D TD Panel",
+		description="Show/Hide View 3D View UI Panel",
+		default=True)
+
+	uv_panel_enable: BoolProperty(
+		name="UV Editor TD Panel",
+		description="Show/Hide UV Editor TD UI Panel",
+		default=True)
+
 	def draw(self, context):
 		layout = self.layout
 		box = layout.box()
@@ -121,12 +131,14 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		
 		box = layout.box()
 		row = box.row(align=True)
-		row.label(text='Panel Category (3D View):')
-		row.prop(self, 'view3d_panel_category')
+		row.prop(self, 'view3d_panel_category_enable')
+		if self.view3d_panel_category_enable:
+			row.prop(self, 'view3d_panel_category', text="Panel")
 		row = box.row(align=True)
-		row.label(text='Panel Category (UV Editor):')
-		row.prop(self, 'uv_panel_category')
-		
+		row.prop(self, 'uv_panel_enable')
+		if self.uv_panel_enable:
+			row.prop(self, 'uv_panel_category', text="Panel")
+
 		layout.prop(self, 'automatic_recalc')
 
 

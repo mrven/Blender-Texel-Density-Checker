@@ -1,5 +1,5 @@
 import bpy
-
+from . import utils
 
 # Panel in 3D View
 class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
@@ -10,11 +10,11 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 
 	@classmethod
 	def poll(self, context):
-		return (context.object is not None)
+		preferences = bpy.context.preferences.addons[__package__].preferences
+		return (context.object is not None) and preferences.view3d_panel_category_enable
 
 	def draw(self, context):
 		td = context.scene.td
-		
 		if context.active_object.type == 'MESH' and len(context.active_object.data.uv_layers) > 0:
 			layout = self.layout
 
@@ -102,6 +102,10 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row = box.row(align=True)
 			row.label(text="Set Method:")
 			row.prop(td, 'set_method', expand=False)
+
+			row = box.row(align=True)
+			row.label(text="Scale Anchor:")
+			row.prop(td, 'rescale_anchor', expand=False)
 			
 			row = box.row()
 			row.operator("object.texel_density_set", text="Set My TD")
@@ -244,11 +248,12 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 
 	@classmethod
 	def poll(self, context):
-		return (context.object is not None) and context.mode == 'EDIT_MESH'
+		preferences = bpy.context.preferences.addons[__package__].preferences
+		return (context.object is not None) and context.mode == 'EDIT_MESH' and preferences.uv_panel_enable
 
 	def draw(self, context):
 		td = context.scene.td
-		
+
 		if context.object.mode == 'EDIT' and context.space_data.mode == 'UV' and len(context.active_object.data.uv_layers) > 0:
 			layout = self.layout
 
@@ -312,6 +317,10 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			row = box.row(align=True)
 			row.label(text="Set Method:")
 			row.prop(td, 'set_method', expand=False)
+
+			row = box.row(align=True)
+			row.label(text="Scale Anchor:")
+			row.prop(td, 'rescale_anchor', expand=False)
 			
 			row = box.row()
 			row.operator("object.texel_density_set", text="Set My TD")

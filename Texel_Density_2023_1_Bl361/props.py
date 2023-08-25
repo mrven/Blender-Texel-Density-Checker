@@ -268,7 +268,7 @@ def Show_Gradient(self, context):
 class TD_Addon_Props(bpy.types.PropertyGroup):
 	uv_space: StringProperty(
 		name="",
-		description="wasting of uv space",
+		description="Wasting of uv space",
 		default="0 %")
 
 	density: StringProperty(
@@ -389,6 +389,15 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 
 	select_type_list = (('EQUAL', 'Equal To', ''), ('LESS', 'Less Than', ''), ('GREATER', 'Greater Than', ''))
 	select_type: EnumProperty(name="", items=select_type_list, update=Change_Select_Mode)
+
+	rescale_anchor_list = (('SELECTION', 'Selection', ''),
+				('UV_CENTER', 'UV Center', ''),
+				('UV_LEFT_TOP', 'UV Left Top', ''),
+				('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
+				('UV_RIGHT_TOP', 'UV Right Top', ''),
+				('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
+				('2D_CURSOR', '2D Cursor', ''))
+	rescale_anchor: EnumProperty(name="", items=rescale_anchor_list)
 
 	# Debug Property
 	debug: BoolProperty(
