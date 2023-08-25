@@ -211,6 +211,25 @@ class Texel_Density_Set(bpy.types.Operator):
 				if bpy.context.space_data.mode != 'UV':
 					bpy.context.space_data.mode = 'UV'
 
+				# Save current 2D Cursor location and scale mode
+				start_cursor_loc = bpy.context.area.spaces.active.cursor_location.copy()
+				start_pivot_mode = bpy.context.space_data.pivot_point
+
+				# Move 2D Cursor if used mot selection scale
+				if td.rescale_anchor != 'SELECTION':
+					bpy.context.space_data.pivot_point = 'CURSOR'
+
+				if td.rescale_anchor == 'UV_CENTER':
+					bpy.ops.uv.cursor_set(location=(0.5, 0.5))
+				if td.rescale_anchor == 'UV_LEFT_TOP':
+					bpy.ops.uv.cursor_set(location=(0, 1))
+				if td.rescale_anchor == 'UV_LEFT_BOTTOM':
+					bpy.ops.uv.cursor_set(location=(0, 0))
+				if td.rescale_anchor == 'UV_RIGHT_TOP':
+					bpy.ops.uv.cursor_set(location=(1, 1))
+				if td.rescale_anchor == 'UV_RIGHT_BOTTOM':
+					bpy.ops.uv.cursor_set(location=(1, 0))
+
 				# If sync selection disabled, then select all polygons
 				# It's not all polygons of object. Only selected in 3d View
 				if not bpy.context.scene.tool_settings.use_uv_select_sync:
@@ -237,6 +256,10 @@ class Texel_Density_Set(bpy.types.Operator):
 
 				# Rescale selected islands in UV Editor
 				bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
+
+				# Restore selection mode and cursor location
+				bpy.ops.uv.cursor_set(location=(start_cursor_loc.x, start_cursor_loc.y))
+				bpy.context.space_data.pivot_point = start_pivot_mode
 
 				# Switch active area to 3D View and restore UV Editor windows
 				bpy.context.area.type = 'VIEW_3D'
