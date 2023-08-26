@@ -18,7 +18,7 @@ Texel Density Checker – Аддон для Blender, который позвол
 Если вы хотите поддержать меня, то можете купить аддон на следующих площадках:
 * ***[Gumroad (Свободная цена)](https://gumroad.com/l/CEIOR)***
 
-## New in Texel Density Checker 2023
+## Новое в версии Texel Density Checker 2023
 ### Увеличение скорости работы на 25%
 ![Speed_Increase](/images/pngs/2023/01_Performance.png)
 
