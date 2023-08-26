@@ -193,6 +193,12 @@ class Texel_Density_Set(bpy.types.Operator):
 						ie_areas.append(area)
 						flag_exist_area = True
 
+				# Get cursor location from existing UV Editor
+				ie_cursor_loc = (0, 0)
+
+				if flag_exist_area:
+					ie_cursor_loc = bpy.context.screen.areas[ie_areas[0]].spaces.active.cursor_location.copy()
+
 				# Switch these areas to Image Editor(s)
 				# because below switch active window to UV Editor
 				# This guarantees only one window with UV Editor
@@ -229,6 +235,8 @@ class Texel_Density_Set(bpy.types.Operator):
 					bpy.ops.uv.cursor_set(location=(1, 1))
 				if td.rescale_anchor == 'UV_RIGHT_BOTTOM':
 					bpy.ops.uv.cursor_set(location=(1, 0))
+				if td.rescale_anchor == '2D_CURSOR' and flag_exist_area:
+					bpy.ops.uv.cursor_set(location=ie_cursor_loc)
 
 				# If sync selection disabled, then select all polygons
 				# It's not all polygons of object. Only selected in 3d View
