@@ -177,7 +177,7 @@ def Calculate_TD_Area_To_List():
 
 	return calculated_obj_td_area
 
-# Get list of islands
+# Get list of islands (slow)
 def Get_UV_Islands():
 	start_selected_3d_faces = []
 	start_selected_uv_faces = []
@@ -272,6 +272,72 @@ def Get_UV_Islands():
 	bpy.ops.object.mode_set(mode=start_mode)
 
 	return uv_islands
+
+# Example for use get_selected_islands()
+
+#data = bpy.context.active_object.data
+#bm = bmesh.from_edit_mesh(data)
+#uv_layers = bm.loops.layers.uv.verify()
+#islands = get_selected_islands(bm, uv_layers)
+
+# Get list of islands (fast)
+def get_selected_islands(bm, uv_layers):
+    islands = []
+    island = []
+    
+    sync = bpy.context.scene.tool_settings.use_uv_select_sync
+    
+    faces = bm.faces
+    # Reset tags for unselected (if tag is False - skip)
+    if sync is False:
+        for face in faces:
+            face.tag = all(l[uv_layers].select for l in face.loops)
+    else:
+        for face in faces:
+            face.tag = face.select
+
+    for face in faces:
+        # Skip unselected and appended faces
+        if face.tag is False:
+            continue
+        
+        # Tag first element in island (for dont add again)
+        face.tag = False
+        
+        # Container collector of island elements
+        parts_of_island = [face]
+        
+        # Conteiner for get elements from loop from parts_of_island
+        temp=[]
+        
+        # Blank list == all faces of the island taken
+        while parts_of_island:
+            for f in parts_of_island:
+                # Running through all the neighboring faces
+                for l in f.loops:                
+                    link_face = l.link_loop_radial_next.face
+                    # Skip appended
+                    if link_face.tag is False:
+                        continue
+                    
+                    for ll in link_face.loops:
+                        if ll.face.tag is False:
+                            continue
+                        # If the coordinates of the vertices of adjacent 
+                        # faces on the uv match, then this is part of the
+                        # island and we append face to the list
+                        co = l[uv_layers].uv
+                        if ll[uv_layers].uv == co:
+                            temp.append(ll.face)
+                            ll.face.tag = False
+                            
+            island.extend(parts_of_island)
+            parts_of_island = temp      
+            temp = []
+        islands.append(island)
+        island = []
+    return islands
+
 
 def Saturate(val):
 	return max(min(val, 1), 0)
