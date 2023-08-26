@@ -29,12 +29,12 @@ If you want to support me you can buy this addon:
 ### 25% speed increase
 ![Speed_Increase](/images/pngs/2023/01_Performance.png)
 
-### Select anchor for scaling uv when using "Set TD"
-Select Origin for Rescale UV: Avarage point of Selection, Corner of UV, Center of UV or 2D Cursor. Before that Rescale origin was from average point of selection of UV.\
+### Select anchor for scaling UV when using "Set TD"
+Select Origin for Rescale UV: Average point of Selection, Corner of UV, Center of UV or 2D Cursor. Before that Rescale origin was from average point of selection of UV.\
 ![Select_Anchor_1](/images/pngs/2023/02_Select_Anchor_1.png)\
 ![Select_Anchor_2](/images/pngs/2023/03_Select_Anchor_2.png)\
 
-### Vizualization of Distortion UV
+### Visualization of Distortion UV
 Shows the ratio between the percentage of UV occupied area and the percentage of the object's geometry area.\
 ![Distortion](/images/pngs/2023/04_Distortion.png)
 
