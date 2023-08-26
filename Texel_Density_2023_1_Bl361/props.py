@@ -136,6 +136,24 @@ def Filter_Bake_VC_Min_Space(self, context):
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
+def Filter_Bake_VC_Distortion_Range(self, context):
+	td = context.scene.td
+	bake_vc_min_space_filtered = td['bake_vc_distortion_range'].replace(',', '.')
+
+	try:
+		bake_vc_distortion_range = float(bake_vc_min_space_filtered)
+	except:
+		bake_vc_distortion_range = 50
+
+	if bake_vc_distortion_range < 1:
+		bake_vc_distortion_range = 1
+
+	td['bake_vc_distortion_range'] = str(bake_vc_distortion_range)
+
+	if utils.Get_Preferences()['automatic_recalc']:
+		bpy.ops.object.bake_td_uv_to_vc()
+
+
 def Filter_Bake_VC_Max_Space(self, context):
 	td = context.scene.td
 	bake_vc_max_space_filtered = td['bake_vc_max_space'].replace(',', '.')
@@ -365,7 +383,8 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	bake_vc_mode_list = (('TD_FACES_TO_VC', 'Texel (By Face)', ''),
 							('TD_ISLANDS_TO_VC', 'Texel (By Island)', ''),
 							('UV_ISLANDS_TO_VC', 'UV Islands', ''),
-							('UV_SPACE_TO_VC', 'UV Space (%)', ''))
+							('UV_SPACE_TO_VC', 'UV Space (%)', ''),
+						 	('DISTORTION', 'UV Distortion', ''))
 	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=Change_Bake_VC_Mode)
 
 	bake_vc_min_space: StringProperty(
@@ -379,6 +398,12 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		description="Max UV Space",
 		default="2.0",
 		update=Filter_Bake_VC_Max_Space)
+
+	bake_vc_distortion_range: StringProperty(
+		name="",
+		description="Range",
+		default="50",
+		update=Filter_Bake_VC_Distortion_Range)
 
 	uv_islands_to_vc_mode_list = (('ISLAND', 'By Island', ''), ('OVERLAP', 'By Overlap', ''))
 	uv_islands_to_vc_mode: EnumProperty(name="", items=uv_islands_to_vc_mode_list, update=Change_UV_Islands_Mode)

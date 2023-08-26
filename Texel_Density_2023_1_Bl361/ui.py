@@ -235,6 +235,17 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = box.row()
 				row.operator("object.bake_td_uv_to_vc", text="UV Space to VC")
 
+			elif td.bake_vc_mode == 'DISTORTION':
+				row = box.row(align=True)
+				row.label(text="Range:")
+				row.prop(td, "bake_vc_distortion_range")
+				row.label(text="%")
+
+				row = box.row()
+				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+				row = box.row()
+				row.operator("object.bake_td_uv_to_vc", text="Distortion UV to VC")
+
 			row = box.row()
 			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
 

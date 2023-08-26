@@ -46,6 +46,13 @@ def Draw_Callback_Px(self, context):
 		bake_min_value = float(td.bake_vc_min_space)
 		bake_max_value = float(td.bake_vc_max_space)
 
+	elif td.bake_vc_mode == 'DISTORTION':
+		# Calculate Min/Max for range
+		bake_min_value = 100 - float(td.bake_vc_distortion_range)
+		if bake_min_value < 0:
+			bake_min_value = 0
+		bake_max_value = 100 + float(td.bake_vc_distortion_range)
+
 	# Number of Symbols after Point for TD Values for Gradient
 	if abs(bake_max_value - bake_min_value) <= 3:
 		bake_value_precision = 5
@@ -519,10 +526,13 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bake_vc_min_space = float(td.bake_vc_min_space)
 		bake_vc_max_space = float(td.bake_vc_max_space)
 
+		# Range for baking UV Distortion
+		bake_vc_distortion_range = float(td.bake_vc_distortion_range)
+
 		bpy.ops.object.mode_set(mode='OBJECT')
 
 		# Automatic Min/Max TD
-		if td.bake_vc_auto_min_max:
+		if td.bake_vc_auto_min_max and (td.bake_vc_mode == 'FACES_BY_TD' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC'):
 			td_area_list = []
 			for x in start_selected_obj:
 				bpy.ops.object.select_all(action='DESELECT')
@@ -556,12 +566,14 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 				face_count = len(bpy.context.active_object.data.polygons)
 
+				# Save selected faces
 				start_selected_faces = []
 				if start_mode == "EDIT":
 					for f in bpy.context.active_object.data.polygons:
 						if f.select:
 							start_selected_faces.append(f.index)
 
+				# Add vertex color group for visualization over material
 				should_add_vc = True
 				for vc in x.data.vertex_colors:
 					if vc.name == "td_vis":
@@ -647,6 +659,41 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 							for loop in bm.faces[face_id].loops:
 								loop[bm.loops.layers.color.active] = color
 
+				elif td.bake_vc_mode == 'DISTORTION':
+					uv_area_total = 0
+					geom_area_total = 0
+					geom_area_list = []
+
+					# Get Total UV and Geometry areas and Geometry area for each poly
+					for face_id in range(0, face_count):
+						# Geometry Area
+						gm_area = bpy.context.active_object.data.polygons[face_id].area
+						geom_area_total += gm_area
+						geom_area_list.append(gm_area)
+						#Total UV Area
+						uv_area_total += face_td_area_list[face_id][1]
+
+					# Protection from zero division
+					if uv_area_total < 0.0001:
+						uv_area_total = 0.0001
+					if geom_area_total < 0.0001:
+						geom_area_total = 0.0001
+
+					# Calculate Min/Max for range
+					min_range = 1 - (bake_vc_distortion_range / 100)
+					if min_range < 0:
+						min_range = 0
+					max_range = 1 + (bake_vc_distortion_range / 100)
+
+					for face_id in range(0, face_count):
+						uv_percent = face_td_area_list[face_id][1] / uv_area_total
+						geom_percent = geom_area_list[face_id] / geom_area_total
+
+						color = utils.Value_To_Color(uv_percent / geom_percent, min_range, max_range)
+
+						for loop in bm.faces[face_id].loops:
+							loop[bm.loops.layers.color.active] = color
+
 				bpy.ops.object.mode_set(mode='OBJECT')
 
 				if start_mode == "EDIT":
@@ -670,7 +717,8 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 		# Activate VC shading in viewport and show gradient line
 		bpy.context.space_data.shading.color_type = 'VERTEX'
-		if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
+		if td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC' \
+				or td.bake_vc_mode == 'UV_SPACE_TO_VC' or td.bake_vc_mode == 'DISTORTION':
 			props.Show_Gradient(self, context)
 
 		utils.Print_Execution_Time("Bake TD to VC", start_time)
