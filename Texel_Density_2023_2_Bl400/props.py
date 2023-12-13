@@ -96,7 +96,7 @@ def Filter_Bake_VC_Min_TD(self, context):
 
 	td['bake_vc_min_td'] = str(bake_vc_min_td)
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
@@ -114,7 +114,7 @@ def Filter_Bake_VC_Max_TD(self, context):
 
 	td['bake_vc_max_td'] = str(bake_vc_max_td)
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
@@ -132,7 +132,7 @@ def Filter_Bake_VC_Min_Space(self, context):
 
 	td['bake_vc_min_space'] = str(bake_vc_min_space)
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
@@ -150,7 +150,7 @@ def Filter_Bake_VC_Distortion_Range(self, context):
 
 	td['bake_vc_distortion_range'] = str(bake_vc_distortion_range)
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
@@ -168,7 +168,7 @@ def Filter_Bake_VC_Max_Space(self, context):
 
 	td['bake_vc_max_space'] = str(bake_vc_max_space)
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
@@ -224,7 +224,7 @@ def Filter_Select_Value(self, context):
 
 	td['select_value'] = str(select_value)
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.select_by_td_space()
 
 
@@ -242,7 +242,7 @@ def Filter_Select_Threshold(self, context):
 
 	td['select_threshold'] = str(select_threshold)
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.select_by_td_space()
 
 
@@ -255,17 +255,17 @@ def Change_Bake_VC_Mode(self, context):
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
 		draw_info["handler"] = None
 
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
 def Change_Select_Mode(self, context):
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.select_by_td_space()
 
 
 def Change_UV_Islands_Mode(self, context):
-	if utils.Get_Preferences()['automatic_recalc']:
+	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
 
 

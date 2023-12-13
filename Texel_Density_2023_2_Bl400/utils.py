@@ -371,4 +371,8 @@ def Get_Addon_Name():
 	return os.path.basename(os.path.dirname(os.path.realpath(__file__)))
 
 def Get_Preferences():
-	return bpy.context.preferences.addons[Get_Addon_Name()].preferences
+	preferences = bpy.context.preferences
+	addon_prefs = preferences.addons[__package__].preferences
+
+	return addon_prefs
+	# return bpy.context.preferences.addons[Get_Addon_Name()].preferences

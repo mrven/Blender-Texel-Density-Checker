@@ -4,8 +4,9 @@ bl_info = {
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
 	"wiki_url": "https://gumroad.com/l/CEIOR",
 	"tracker_url": "https://github.com/mrven/Blender-Texel-Density-Checker/issues",
-	"version": (2023, 1),
-	"blender": (3, 6, 1),
+	"doc_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
+	"version": (2023, 2),
+	"blender": (4, 0, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }

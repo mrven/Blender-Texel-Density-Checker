@@ -31,7 +31,7 @@ def Draw_Callback_Px(self, context):
 	offset_y = int(bpy.context.preferences.addons[__package__].preferences.offset_y)
 	anchor_pos = bpy.context.preferences.addons[__package__].preferences.anchor_pos
 	font_id = 0
-	blf.size(font_id, font_size, 72)
+	blf.size(font_id, font_size)
 	blf.color(font_id, 1, 1, 1, 1)
 
 	bake_min_value = 0
@@ -532,7 +532,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode='OBJECT')
 
 		# Automatic Min/Max TD
-		if td.bake_vc_auto_min_max and (td.bake_vc_mode == 'FACES_BY_TD' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC'):
+		if td.bake_vc_auto_min_max and (td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC'):
 			td_area_list = []
 			for x in start_selected_obj:
 				bpy.ops.object.select_all(action='DESELECT')
@@ -555,6 +555,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 				bake_vc_min_td = min_calculated_td
 				bake_vc_max_td = max_calculated_td
+
 				td.bake_vc_min_td = '%.3f' % round(min_calculated_td, 3)
 				td.bake_vc_max_td = '%.3f' % round(max_calculated_td, 3)
 
