@@ -77,19 +77,9 @@ def Calculate_TD_Area_To_List():
     texture_size_cur_y = 1024
 
     # Get texture size from panel
-    if td.texture_size == '0':
-        texture_size_cur_x = 512
-        texture_size_cur_y = 512
-    if td.texture_size == '1':
-        texture_size_cur_x = 1024
-        texture_size_cur_y = 1024
-    if td.texture_size == '2':
-        texture_size_cur_x = 2048
-        texture_size_cur_y = 2048
-    if td.texture_size == '3':
-        texture_size_cur_x = 4096
-        texture_size_cur_y = 4096
-    if td.texture_size == '4':
+    if td.texture_size != 'CUSTOM':
+        texture_size_cur_x = texture_size_cur_y = int(td.texture_size)
+    else:
         try:
             texture_size_cur_x = int(td.custom_width)
         except:

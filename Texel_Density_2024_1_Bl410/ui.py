@@ -28,7 +28,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row.prop(td, 'texture_size', expand=False)
 
 			# If custom texture size show fields for width and height
-			if td.texture_size == '4':
+			if td.texture_size == 'CUSTOM':
 				row = box.row(align=True)
 				row.label(text="Width:")
 				row.prop(td, "custom_width")
@@ -56,7 +56,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row.operator("object.checker_assign", text="Assign Checker Material")
 
 			# If Checker Method "Store and Replace"
-			if td.checker_method == '1':
+			if td.checker_method == 'STORE':
 				row = box.row()
 				row.operator("object.checker_restore", text="Restore Materials")
 				row = box.row()
@@ -71,15 +71,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row.label(text="UV Space:")
 			row.label(text=td.uv_space)
 			
-			cur_units = "px/cm"
-			if td.units == '0':
-				cur_units = "px/cm"
-			if td.units == '1':
-				cur_units = "px/m"
-			if td.units == '2':
-				cur_units = "px/in"
-			if td.units == '3':
-				cur_units = "px/ft"
+			cur_units = td.units_list[int(td.units)][1]
 
 			row = box.row(align=True)
 			row.label(text="Density:")
@@ -278,7 +270,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			row.prop(td, 'texture_size', expand=False)
 
 			# If custom texture size show fields for width and height
-			if td.texture_size == '4':
+			if td.texture_size == 'CUSTOM':
 				row = box.row(align=True)
 				row.label(text="Width:")
 				row.prop(td, "custom_width")
@@ -297,15 +289,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			row.label(text="UV Space:")
 			row.label(text=td.uv_space)
 			
-			cur_units = "px/cm"
-			if td.units == '0':
-				cur_units = "px/cm"
-			if td.units == '1':
-				cur_units = "px/m"
-			if td.units == '2':
-				cur_units = "px/in"
-			if td.units == '3':
-				cur_units = "px/ft"
+			cur_units = td.units_list[int(td.units)][1]
 
 			row = box.row(align=True)
 			row.label(text="Density:")

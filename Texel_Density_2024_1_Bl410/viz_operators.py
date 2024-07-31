@@ -224,20 +224,10 @@ class Checker_Assign(bpy.types.Operator):
 		checker_resolution_x = 1024
 		checker_resolution_y = 1024
 
-		if td.texture_size == '0':
-			checker_resolution_x = 512
-			checker_resolution_y = 512
-		if td.texture_size == '1':
-			checker_resolution_x = 1024
-			checker_resolution_y = 1024
-		if td.texture_size == '2':
-			checker_resolution_x = 2048
-			checker_resolution_y = 2048
-		if td.texture_size == '3':
-			checker_resolution_x = 4096
-			checker_resolution_y = 4096
-		if td.texture_size == '4':
-			try:  # TODO: Maybe need delete this checking, because uses update function Change_Texture_Size
+		if td.texture_size != 'CUSTOM':
+			checker_resolution_x = checker_resolution_y = int(td.texture_size)
+		else:
+			try:
 				checker_resolution_x = int(td.custom_width)
 			except:
 				checker_resolution_x = 1024
@@ -308,7 +298,7 @@ class Checker_Assign(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode='OBJECT')
 
 		# Store Real Materials and Replace to Checker Material
-		if td.checker_method == '1':
+		if td.checker_method == 'STORE':
 			bpy.ops.object.mode_set(mode='OBJECT')
 			bpy.ops.object.select_all(action='DESELECT')
 
@@ -342,7 +332,7 @@ class Checker_Assign(bpy.types.Operator):
 							bpy.ops.object.mode_set(mode='OBJECT')
 
 		# Destroy Real Materials Slots and Assign Checker Material
-		if td.checker_method == '0':
+		if td.checker_method == 'REPLACE':
 			for o in start_selected_obj:
 				if o.type == 'MESH' and len(o.data.materials) > 0:
 					for q in reversed(range(len(o.data.materials))):
@@ -354,7 +344,7 @@ class Checker_Assign(bpy.types.Operator):
 					o.data.materials.append(bpy.data.materials['TD_Checker'])
 
 		# If Store and Replace Method
-		if td.checker_method == '1':
+		if td.checker_method == 'STORE':
 			for o in start_selected_obj:
 				bpy.ops.object.mode_set(mode='OBJECT')
 				bpy.ops.object.select_all(action='DESELECT')

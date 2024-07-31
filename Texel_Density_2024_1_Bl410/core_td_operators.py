@@ -245,7 +245,7 @@ class Texel_Density_Set(bpy.types.Operator):
 
 				# If set each method, rescale all islands to unified TD
 				# This use for single rescale factor for all
-				if td.set_method == '0':
+				if td.set_method == 'EACH':
 					bpy.ops.uv.average_islands_scale()
 
 				# Calculate and get current value of TD

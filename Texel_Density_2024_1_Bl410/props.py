@@ -26,19 +26,9 @@ def Change_Texture_Size(self, context):
 	checker_resolution_y = 1024
 
 	# Get texture size from panel
-	if td.texture_size == '0':
-		checker_resolution_x = 512
-		checker_resolution_y = 512
-	if td.texture_size == '1':
-		checker_resolution_x = 1024
-		checker_resolution_y = 1024
-	if td.texture_size == '2':
-		checker_resolution_x = 2048
-		checker_resolution_y = 2048
-	if td.texture_size == '3':
-		checker_resolution_x = 4096
-		checker_resolution_y = 4096
-	if td.texture_size == '4':
+	if td.texture_size != 'CUSTOM':
+		checker_resolution_x = checker_resolution_y = int(td.texture_size)
+	else:
 		try:
 			checker_resolution_x = int(td.custom_width)
 		except:
@@ -300,11 +290,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default="1.28",
 		update=Filter_Density_Set)
 
-	tex_size = (('0', '512px', ''),
-				('1', '1024px', ''),
-				('2', '2048px', ''),
-				('3', '4096px', ''),
-				('4', 'Custom', ''))
+	tex_size = (('512', '512px', ''),
+				('1024', '1024px', ''),
+				('2048', '2048px', ''),
+				('4096', '4096px', ''),
+				('CUSTOM', 'Custom', ''))
 	texture_size: EnumProperty(name="", items=tex_size, update=Change_Texture_Size)
 
 	selected_faces: BoolProperty(
@@ -342,11 +332,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default="0.1",
 		update=Filter_Select_Threshold)
 
-	set_method_list = (('0', 'Each', ''), ('1', 'Average', ''))
+	set_method_list = (('EACH', 'Each', ''), ('AVERAGE', 'Average', ''))
 	set_method: EnumProperty(name="", items=set_method_list)
 
-	checker_method_list = (('0', 'Replace', ''), ('1', 'Store and Replace', ''))
-	checker_method: EnumProperty(name="", items=checker_method_list, default='1')
+	checker_method_list = (('REPLACE', 'Replace', ''), ('STORE', 'Store and Replace', ''))
+	checker_method: EnumProperty(name="", items=checker_method_list, default='STORE')
 
 	checker_type_list = (('COLOR_GRID', 'Color Grid', ''), ('UV_GRID', 'UV Grid', ''))
 	checker_type: EnumProperty(name="", items=checker_type_list, update=Change_Texture_Type)
