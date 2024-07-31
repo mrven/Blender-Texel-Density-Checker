@@ -1,12 +1,12 @@
 bl_info = {
 	"name": "Texel Density Checker",
-	"description": "Tools for for checking Texel Density and wasting of uv space",
-	"author": "Ivan 'mrven' Vostrikov, Toomas Laik",
+	"description": "Toolset for working with Texel Density",
+	"author": "Ivan 'mrven' Vostrikov, Toomas Laik, Oxicid",
 	"wiki_url": "https://gumroad.com/l/CEIOR",
 	"tracker_url": "https://github.com/mrven/Blender-Texel-Density-Checker/issues",
 	"doc_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
-	"version": (2023, 2),
-	"blender": (4, 0, 0),
+	"version": (2024, 1, 0),
+	"blender": (4, 1, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }
@@ -15,7 +15,7 @@ modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_o
 
 modules_full_names = {}
 for current_module_name in modules_names:
-	modules_full_names[current_module_name] = ('{}.{}'.format(__name__, current_module_name))
+	modules_full_names[current_module_name] = ('{}.{}'.format(__package__, current_module_name))
 
 import sys
 import importlib
