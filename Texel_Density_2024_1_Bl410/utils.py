@@ -343,20 +343,6 @@ def Saturate(val):
     return max(min(val, 1), 0)
 
 
-#Get BlenderVersion
-def Get_Version():
-    result = 0
-    version = bpy.app.version_string[:4]
-    if version[-1:] == ".":
-        version = version[:3]
-    try:
-        result = float(version)
-    except:
-        result = 2.90
-
-    return result
-
-
 # Execution Time
 def Print_Execution_Time(function_name, start_time):
     td = bpy.context.scene.td

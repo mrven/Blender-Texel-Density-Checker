@@ -380,8 +380,8 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		description="Auto Min/Max Value",
 		default=True)
 
-	bake_vc_mode_list = (('TD_FACES_TO_VC', 'Texel (By Face)', ''),
-							('TD_ISLANDS_TO_VC', 'Texel (By Island)', ''),
+	bake_vc_mode_list = (('TD_FACES_TO_VC', 'Texel (by Face)', ''),
+							('TD_ISLANDS_TO_VC', 'Texel (by Island)', ''),
 							('UV_ISLANDS_TO_VC', 'UV Islands', ''),
 							('UV_SPACE_TO_VC', 'UV Space (%)', ''),
 						 	('DISTORTION', 'UV Distortion', ''))
@@ -408,8 +408,8 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	uv_islands_to_vc_mode_list = (('ISLAND', 'By Island', ''), ('OVERLAP', 'By Overlap', ''))
 	uv_islands_to_vc_mode: EnumProperty(name="", items=uv_islands_to_vc_mode_list, update=Change_UV_Islands_Mode)
 
-	select_mode_list = (('FACES_BY_TD', 'Faces (By Texel)', ''), ('ISLANDS_BY_TD', 'Islands (By Texel)', ''),
-						('ISLANDS_BY_SPACE', 'Islands (By UV Space)', ''))
+	select_mode_list = (('FACES_BY_TD', 'Faces (by Texel)', ''), ('ISLANDS_BY_TD', 'Islands (by Texel)', ''),
+						('ISLANDS_BY_SPACE', 'Islands (by UV Space)', ''))
 	select_mode: EnumProperty(name="", items=select_mode_list, update=Change_Select_Mode)
 
 	select_type_list = (('EQUAL', 'Equal To', ''), ('LESS', 'Less Than', ''), ('GREATER', 'Greater Than', ''))

@@ -97,7 +97,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row = box.row(align=True)
 			row.label(text="Set TD:")			
 			row.prop(td, "density_set")
-			row.label(text=cur_units)
+			row.label(text=" " + cur_units)
 			
 			row = box.row(align=True)
 			row.label(text="Set Method:")
@@ -174,9 +174,9 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.prop(td, "select_value")
 				
 				if td.select_mode == "FACES_BY_TD" or td.select_mode == "ISLANDS_BY_TD":
-					row.label(text=cur_units)
+					row.label(text=" " + cur_units)
 				elif td.select_mode == "ISLANDS_BY_SPACE":
-					row.label(text="%")
+					row.label(text=" %")
 
 				if td.select_type == "EQUAL":
 					row = box.row(align=True)
@@ -239,12 +239,12 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = box.row(align=True)
 				row.label(text="Range:")
 				row.prop(td, "bake_vc_distortion_range")
-				row.label(text="%")
+				row.label(text=" %")
 
 				row = box.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
 				row = box.row()
-				row.operator("object.bake_td_uv_to_vc", text="Distortion UV to VC")
+				row.operator("object.bake_td_uv_to_vc", text="UV Distortion to VC")
 
 			row = box.row()
 			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
