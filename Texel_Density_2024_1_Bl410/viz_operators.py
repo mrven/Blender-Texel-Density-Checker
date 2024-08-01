@@ -661,7 +661,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						gm_area = bpy.context.active_object.data.polygons[face_id].area
 						geom_area_total += gm_area
 						geom_area_list.append(gm_area)
-						#Total UV Area
+						# Total UV Area
 						uv_area_total += face_td_area_list[face_id][1]
 
 					# Protection from zero division

@@ -267,7 +267,8 @@ draw_info = {
 def Show_Gradient(self, context):
 	td = context.scene.td
 	if td.bake_vc_show_gradient and draw_info["handler"] is None:
-		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None), 'WINDOW', 'POST_PIXEL')
+		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None),
+																	  'WINDOW', 'POST_PIXEL')
 	elif (not td.bake_vc_show_gradient) and draw_info["handler"] is not None:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
 		draw_info["handler"] = None
@@ -371,10 +372,10 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default=True)
 
 	bake_vc_mode_list = (('TD_FACES_TO_VC', 'Texel (by Face)', ''),
-							('TD_ISLANDS_TO_VC', 'Texel (by Island)', ''),
-							('UV_ISLANDS_TO_VC', 'UV Islands', ''),
-							('UV_SPACE_TO_VC', 'UV Space (%)', ''),
-						 	('DISTORTION', 'UV Distortion', ''))
+						 ('TD_ISLANDS_TO_VC', 'Texel (by Island)', ''),
+						 ('UV_ISLANDS_TO_VC', 'UV Islands', ''),
+						 ('UV_SPACE_TO_VC', 'UV Space (%)', ''),
+						 ('DISTORTION', 'UV Distortion', ''))
 	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=Change_Bake_VC_Mode)
 
 	bake_vc_min_space: StringProperty(
@@ -406,12 +407,12 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	select_type: EnumProperty(name="", items=select_type_list, update=Change_Select_Mode)
 
 	rescale_anchor_list = (('SELECTION', 'Selection', ''),
-				('UV_CENTER', 'UV Center', ''),
-				('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
-				('UV_LEFT_TOP', 'UV Left Top', ''),
-				('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
-				('UV_RIGHT_TOP', 'UV Right Top', ''),
-				('2D_CURSOR', '2D Cursor', ''))
+						   ('UV_CENTER', 'UV Center', ''),
+						   ('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
+						   ('UV_LEFT_TOP', 'UV Left Top', ''),
+						   ('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
+						   ('UV_RIGHT_TOP', 'UV Right Top', ''),
+						   ('2D_CURSOR', '2D Cursor', ''))
 	rescale_anchor: EnumProperty(name="", items=rescale_anchor_list)
 
 	# Debug Property

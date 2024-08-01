@@ -126,6 +126,7 @@ class Texel_Density_Check(bpy.types.Operator):
 		utils.Print_Execution_Time("Calculate TD", start_time)
 		return {'FINISHED'}
 
+
 # Set TD
 class Texel_Density_Set(bpy.types.Operator):
 	"""Set Density"""
@@ -189,7 +190,8 @@ class Texel_Density_Set(bpy.types.Operator):
 				ie_areas = []
 				flag_exist_area = False
 				for area in range(len(bpy.context.screen.areas)):
-					if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR' and bpy.context.screen.areas[area].ui_type == 'UV':
+					if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR' and bpy.context.screen.areas[
+						area].ui_type == 'UV':
 						ie_areas.append(area)
 						flag_exist_area = True
 
@@ -301,14 +303,17 @@ class Texel_Density_Set(bpy.types.Operator):
 		utils.Print_Execution_Time("Set TD", start_time)
 		return {'FINISHED'}
 
+
 classes = (
 	Texel_Density_Check,
 	Texel_Density_Set,
 )
 
+
 def register():
 	for cls in classes:
 		bpy.utils.register_class(cls)
+
 
 def unregister():
 	for cls in reversed(classes):

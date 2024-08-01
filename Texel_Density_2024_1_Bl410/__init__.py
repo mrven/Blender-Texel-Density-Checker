@@ -20,7 +20,6 @@ for current_module_name in modules_names:
 import sys
 import importlib
 
-
 for current_module_full_name in modules_full_names.values():
 	if current_module_full_name in sys.modules:
 		importlib.reload(sys.modules[current_module_full_name])
@@ -28,11 +27,13 @@ for current_module_full_name in modules_full_names.values():
 		globals()[current_module_full_name] = importlib.import_module(current_module_full_name)
 		setattr(globals()[current_module_full_name], 'modulesNames', modules_full_names)
 
+
 def register():
 	for current_module_name in modules_full_names.values():
 		if current_module_name in sys.modules:
 			if hasattr(sys.modules[current_module_name], 'register'):
 				sys.modules[current_module_name].register()
+
 
 def unregister():
 	for current_module_name in modules_full_names.values():
