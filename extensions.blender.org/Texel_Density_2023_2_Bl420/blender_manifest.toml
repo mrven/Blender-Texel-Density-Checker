@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "texel_density_checker"
-version = "2023.2.1"
+version = "2023.2.2"
 name = "Texel Density Checker"
 tagline = "Toolset for working with Texel Density"
 maintainer = "Ivan Vostrikov <valday.team@gmail.com>"

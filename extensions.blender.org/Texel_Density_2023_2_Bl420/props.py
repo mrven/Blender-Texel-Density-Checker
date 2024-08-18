@@ -17,28 +17,18 @@ def Change_Texture_Size(self, context):
 	td = context.scene.td
 
 	# Check exist texture image
-	flag_exist_texture = False
-	for t in range(len(bpy.data.images)):
-		if bpy.data.images[t].name == 'TD_Checker':
-			flag_exist_texture = True
+	td_checker_texture = None
+	for tex in bpy.data.images:
+		if tex.is_td_texture:
+			td_checker_texture = tex
 
 	checker_resolution_x = 1024
 	checker_resolution_y = 1024
 
 	# Get texture size from panel
-	if td.texture_size == '0':
-		checker_resolution_x = 512
-		checker_resolution_y = 512
-	if td.texture_size == '1':
-		checker_resolution_x = 1024
-		checker_resolution_y = 1024
-	if td.texture_size == '2':
-		checker_resolution_x = 2048
-		checker_resolution_y = 2048
-	if td.texture_size == '3':
-		checker_resolution_x = 4096
-		checker_resolution_y = 4096
-	if td.texture_size == '4':
+	if td.texture_size != 'CUSTOM':
+		checker_resolution_x = checker_resolution_y = int(td.texture_size)
+	else:
 		try:
 			checker_resolution_x = int(td.custom_width)
 		except:
@@ -57,10 +47,10 @@ def Change_Texture_Size(self, context):
 		td['custom_width'] = '1024'
 		td['custom_height'] = '1024'
 
-	if flag_exist_texture:
-		bpy.data.images['TD_Checker'].generated_width = checker_resolution_x
-		bpy.data.images['TD_Checker'].generated_height = checker_resolution_y
-		bpy.data.images['TD_Checker'].generated_type = td.checker_type
+	if td_checker_texture:
+		td_checker_texture.generated_width = checker_resolution_x
+		td_checker_texture.generated_height = checker_resolution_y
+		td_checker_texture.generated_type = td.checker_type
 
 	bpy.ops.object.texel_density_check()
 
@@ -73,13 +63,13 @@ def Change_Texture_Type(self, context):
 	td = context.scene.td
 
 	# Check exist texture image
-	flag_exist_texture = False
-	for t in range(len(bpy.data.images)):
-		if bpy.data.images[t].name == 'TD_Checker':
-			flag_exist_texture = True
+	td_checker_texture = None
+	for tex in bpy.data.images:
+		if tex.is_td_texture:
+			td_checker_texture = tex
 
-	if flag_exist_texture:
-		bpy.data.images['TD_Checker'].generated_type = td.checker_type
+	if td_checker_texture:
+		td_checker_texture.generated_type = td.checker_type
 
 
 def Filter_Bake_VC_Min_TD(self, context):
@@ -203,9 +193,15 @@ def Filter_Checker_UV_Scale(self, context):
 	td['checker_uv_scale'] = str(checker_uv_scale)
 
 	try:
-		nodes = bpy.data.materials['TD_Checker'].node_tree.nodes
-		nodes['Mapping'].inputs['Scale'].default_value[0] = checker_uv_scale
-		nodes['Mapping'].inputs['Scale'].default_value[1] = checker_uv_scale
+		td_checker_material = None
+		for mat in bpy.data.materials:
+			if mat.is_td_material:
+				td_checker_material = mat
+
+		if td_checker_material:
+			nodes = td_checker_material.node_tree.nodes
+			nodes['Mapping'].inputs['Scale'].default_value[0] = checker_uv_scale
+			nodes['Mapping'].inputs['Scale'].default_value[1] = checker_uv_scale
 	except:
 		print("Can not change Checker UV Scale")
 
@@ -277,7 +273,8 @@ draw_info = {
 def Show_Gradient(self, context):
 	td = context.scene.td
 	if td.bake_vc_show_gradient and draw_info["handler"] is None:
-		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None), 'WINDOW', 'POST_PIXEL')
+		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None),
+																	  'WINDOW', 'POST_PIXEL')
 	elif (not td.bake_vc_show_gradient) and draw_info["handler"] is not None:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
 		draw_info["handler"] = None
@@ -300,11 +297,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default="1.28",
 		update=Filter_Density_Set)
 
-	tex_size = (('0', '512px', ''),
-				('1', '1024px', ''),
-				('2', '2048px', ''),
-				('3', '4096px', ''),
-				('4', 'Custom', ''))
+	tex_size = (('512', '512px', ''),
+				('1024', '1024px', ''),
+				('2048', '2048px', ''),
+				('4096', '4096px', ''),
+				('CUSTOM', 'Custom', ''))
 	texture_size: EnumProperty(name="", items=tex_size, update=Change_Texture_Size)
 
 	selected_faces: BoolProperty(
@@ -342,11 +339,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		default="0.1",
 		update=Filter_Select_Threshold)
 
-	set_method_list = (('0', 'Each', ''), ('1', 'Average', ''))
+	set_method_list = (('EACH', 'Each', ''), ('AVERAGE', 'Average', ''))
 	set_method: EnumProperty(name="", items=set_method_list)
 
-	checker_method_list = (('0', 'Replace', ''), ('1', 'Store and Replace', ''))
-	checker_method: EnumProperty(name="", items=checker_method_list, default='1')
+	checker_method_list = (('REPLACE', 'Replace', ''), ('STORE', 'Store and Replace', ''))
+	checker_method: EnumProperty(name="", items=checker_method_list, default='STORE')
 
 	checker_type_list = (('COLOR_GRID', 'Color Grid', ''), ('UV_GRID', 'UV Grid', ''))
 	checker_type: EnumProperty(name="", items=checker_type_list, update=Change_Texture_Type)
@@ -380,11 +377,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 		description="Auto Min/Max Value",
 		default=True)
 
-	bake_vc_mode_list = (('TD_FACES_TO_VC', 'Texel (By Face)', ''),
-							('TD_ISLANDS_TO_VC', 'Texel (By Island)', ''),
-							('UV_ISLANDS_TO_VC', 'UV Islands', ''),
-							('UV_SPACE_TO_VC', 'UV Space (%)', ''),
-						 	('DISTORTION', 'UV Distortion', ''))
+	bake_vc_mode_list = (('TD_FACES_TO_VC', 'Texel (by Face)', ''),
+						 ('TD_ISLANDS_TO_VC', 'Texel (by Island)', ''),
+						 ('UV_ISLANDS_TO_VC', 'UV Islands', ''),
+						 ('UV_SPACE_TO_VC', 'UV Space (%)', ''),
+						 ('DISTORTION', 'UV Distortion', ''))
 	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=Change_Bake_VC_Mode)
 
 	bake_vc_min_space: StringProperty(
@@ -408,20 +405,20 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	uv_islands_to_vc_mode_list = (('ISLAND', 'By Island', ''), ('OVERLAP', 'By Overlap', ''))
 	uv_islands_to_vc_mode: EnumProperty(name="", items=uv_islands_to_vc_mode_list, update=Change_UV_Islands_Mode)
 
-	select_mode_list = (('FACES_BY_TD', 'Faces (By Texel)', ''), ('ISLANDS_BY_TD', 'Islands (By Texel)', ''),
-						('ISLANDS_BY_SPACE', 'Islands (By UV Space)', ''))
+	select_mode_list = (('FACES_BY_TD', 'Faces (by Texel)', ''), ('ISLANDS_BY_TD', 'Islands (by Texel)', ''),
+						('ISLANDS_BY_SPACE', 'Islands (by UV Space)', ''))
 	select_mode: EnumProperty(name="", items=select_mode_list, update=Change_Select_Mode)
 
 	select_type_list = (('EQUAL', 'Equal To', ''), ('LESS', 'Less Than', ''), ('GREATER', 'Greater Than', ''))
 	select_type: EnumProperty(name="", items=select_type_list, update=Change_Select_Mode)
 
 	rescale_anchor_list = (('SELECTION', 'Selection', ''),
-				('UV_CENTER', 'UV Center', ''),
-				('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
-				('UV_LEFT_TOP', 'UV Left Top', ''),
-				('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
-				('UV_RIGHT_TOP', 'UV Right Top', ''),
-				('2D_CURSOR', '2D Cursor', ''))
+						   ('UV_CENTER', 'UV Center', ''),
+						   ('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
+						   ('UV_LEFT_TOP', 'UV Left Top', ''),
+						   ('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
+						   ('UV_RIGHT_TOP', 'UV Right Top', ''),
+						   ('2D_CURSOR', '2D Cursor', ''))
 	rescale_anchor: EnumProperty(name="", items=rescale_anchor_list)
 
 	# Debug Property
@@ -437,6 +434,16 @@ classes = (
 
 
 def register():
+	bpy.types.Material.is_td_material = BoolProperty(
+		name="Is TD Checker Material",
+		description="Custom Property for Texel Density Checker",
+		default=False)
+
+	bpy.types.Image.is_td_texture = BoolProperty(
+		name="Is TD Checker Texture",
+		description="Custom Property for Texel Density Checker",
+		default=False)
+
 	for cls in classes:
 		bpy.utils.register_class(cls)
 
@@ -450,5 +457,8 @@ def unregister():
 
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
+
+	del bpy.types.Image.is_td_texture
+	del bpy.types.Material.is_td_material
 
 	del bpy.types.Scene.td

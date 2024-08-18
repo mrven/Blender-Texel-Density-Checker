@@ -4,6 +4,7 @@ from bpy.props import StringProperty
 from datetime import datetime
 from . import utils
 
+
 # Copy average TD from object to object
 class Texel_Density_Copy(bpy.types.Operator):
 	"""Copy Density"""
@@ -14,7 +15,7 @@ class Texel_Density_Copy(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-		
+
 		# Save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_selected_obj = bpy.context.selected_objects
@@ -29,7 +30,8 @@ class Texel_Density_Copy(bpy.types.Operator):
 		# Set calculated TD for all other selected objects
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0) and not x == start_active_obj:
+			if (x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(
+					x.data.polygons) > 0) and not x == start_active_obj:
 				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
 				bpy.ops.object.texel_density_set()
@@ -41,6 +43,7 @@ class Texel_Density_Copy(bpy.types.Operator):
 
 		utils.Print_Execution_Time("Copy TD", start_time)
 		return {'FINISHED'}
+
 
 # Copy last calculated value of TD to "Set TD Value" field
 class Calculated_To_Set(bpy.types.Operator):
@@ -56,6 +59,7 @@ class Calculated_To_Set(bpy.types.Operator):
 
 		utils.Print_Execution_Time("Calculated TD to Set", start_time)
 		return {'FINISHED'}
+
 
 # Copy last calculated value to "Select Value" field
 class Calculated_To_Select(bpy.types.Operator):
@@ -77,6 +81,7 @@ class Calculated_To_Select(bpy.types.Operator):
 		utils.Print_Execution_Time("Calculated TD to Select", start_time)
 		return {'FINISHED'}
 
+
 # Buttons "Half/Double TD" and presets with values (0.64 - 20.48 px/cm)
 class Preset_Set(bpy.types.Operator):
 	"""Preset Set Density"""
@@ -84,7 +89,7 @@ class Preset_Set(bpy.types.Operator):
 	bl_label = "Set Texel Density"
 	bl_options = {'REGISTER', 'UNDO'}
 	td_value: StringProperty()
-	
+
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
@@ -106,6 +111,7 @@ class Preset_Set(bpy.types.Operator):
 		utils.Print_Execution_Time("Preset TD Set", start_time)
 		return {'FINISHED'}
 
+
 # Select polygons or islands with same TD or UV space
 class Select_By_TD_Space(bpy.types.Operator):
 	"""Select Faces with same TD"""
@@ -125,7 +131,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 			start_selected_obj = bpy.context.objects_in_mode
 		else:
 			start_selected_obj = bpy.context.selected_objects
-		
+
 		search_value = float(td.select_value)
 		select_threshold = float(td.select_threshold)
 
@@ -133,7 +139,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode='EDIT')
 		bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
 		bpy.context.scene.tool_settings.uv_select_mode = 'FACE'
-		
+
 		bpy.ops.object.mode_set(mode='OBJECT')
 
 		# Select polygons
@@ -152,9 +158,10 @@ class Select_By_TD_Space(bpy.types.Operator):
 				if td.select_mode == "FACES_BY_TD":
 					for face_id in range(0, face_count):
 						if td.select_type == "EQUAL":
-							if (face_td_area_list[face_id][0] >= (search_value - select_threshold)) and (face_td_area_list[face_id][0] <= (search_value + select_threshold)):
+							if (face_td_area_list[face_id][0] >= (search_value - select_threshold)) and (
+									face_td_area_list[face_id][0] <= (search_value + select_threshold)):
 								searched_faces.append(face_id)
-						
+
 						elif td.select_type == "LESS":
 							if face_td_area_list[face_id][0] <= search_value:
 								searched_faces.append(face_id)
@@ -176,22 +183,23 @@ class Select_By_TD_Space(bpy.types.Operator):
 							island_area = 0.000001
 
 						# Calculate total island TD
-						for face_id in uv_island:						
-							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1]/island_area
+						for face_id in uv_island:
+							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / island_area
 
 						if td.select_type == "EQUAL":
-							if (island_td >= (search_value - select_threshold)) and (island_td <= (search_value + select_threshold)):
-								for face_id in uv_island:	
+							if (island_td >= (search_value - select_threshold)) and (
+									island_td <= (search_value + select_threshold)):
+								for face_id in uv_island:
 									searched_faces.append(face_id)
 
 						elif td.select_type == "LESS":
 							if island_td <= search_value:
-								for face_id in uv_island:	
+								for face_id in uv_island:
 									searched_faces.append(face_id)
 
 						elif td.select_type == "GREATER":
 							if island_td >= search_value:
-								for face_id in uv_island:	
+								for face_id in uv_island:
 									searched_faces.append(face_id)
 
 				elif td.select_mode == "ISLANDS_BY_SPACE":
@@ -206,7 +214,8 @@ class Select_By_TD_Space(bpy.types.Operator):
 						island_area *= 100
 
 						if td.select_type == "EQUAL":
-							if (island_area >= (search_value - select_threshold)) and (island_area <= (search_value + select_threshold)):
+							if (island_area >= (search_value - select_threshold)) and (
+									island_area <= (search_value + select_threshold)):
 								for face_id in uv_island:
 									searched_faces.append(face_id)
 
@@ -243,7 +252,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 				else:
 					bpy.ops.object.mode_set(mode='EDIT')
 					bpy.ops.mesh.select_all(action='DESELECT')
-					
+
 					bpy.ops.object.mode_set(mode='OBJECT')
 
 					# If called from UV Editor with sync selection or 3D View
@@ -253,7 +262,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 		bpy.ops.object.select_all(action='DESELECT')
-		
+
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
 				bpy.context.view_layer.objects.active = o
@@ -274,7 +283,7 @@ classes = (
 	Preset_Set,
 	Select_By_TD_Space,
 )
-	
+
 
 def register():
 	for cls in classes:

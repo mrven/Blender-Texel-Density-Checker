@@ -5,16 +5,16 @@ from . import ui
 from .ui import VIEW3D_PT_texel_density_checker, UV_PT_texel_density_checker
 
 from bpy.props import (
-		StringProperty,
-		EnumProperty,
-		BoolProperty
-		)
+	StringProperty,
+	EnumProperty,
+	BoolProperty
+)
 
 
 def update_view3d_panel_category(self, context):
 	is_panel = hasattr(bpy.types, 'VIEW3D_PT_texel_density_checker')
 	category = bpy.context.preferences.addons[__package__].preferences.view3d_panel_category
-	
+
 	if is_panel:
 		try:
 			bpy.utils.unregister_class(VIEW3D_PT_texel_density_checker)
@@ -27,7 +27,7 @@ def update_view3d_panel_category(self, context):
 def update_uv_panel_category(self, context):
 	is_panel = hasattr(bpy.types, 'UV_PT_texel_density_checker')
 	category = bpy.context.preferences.addons[__package__].preferences.uv_panel_category
-	
+
 	if is_panel:
 		try:
 			bpy.utils.unregister_class(UV_PT_texel_density_checker)
@@ -40,7 +40,7 @@ def update_uv_panel_category(self, context):
 
 def Filter_Gradient_Offset_X(self, context):
 	offset_x_filtered = bpy.context.preferences.addons[__package__].preferences['offset_x'].replace(',', '.')
-	
+
 	try:
 		offset_x = int(offset_x_filtered)
 	except:
@@ -48,14 +48,14 @@ def Filter_Gradient_Offset_X(self, context):
 
 	if offset_x < 0:
 		offset_x = 20
-	
+
 	bpy.context.preferences.addons[__package__].preferences['offset_x'] = str(offset_x)
 	return None
 
 
-def Filter_Gradient_Offset_Y(self, context):	
+def Filter_Gradient_Offset_Y(self, context):
 	offset_y_filtered = bpy.context.preferences.addons[__package__].preferences['offset_y'].replace(',', '.')
-	
+
 	try:
 		offset_y = int(offset_y_filtered)
 	except:
@@ -82,7 +82,7 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		default="30", update=Filter_Gradient_Offset_Y)
 
 	anchor_pos_list = (('LEFT_TOP', 'Left Top', ''), ('LEFT_BOTTOM', 'Left Bottom', ''),
-						('RIGHT_TOP', 'Right Top', ''), ('RIGHT_BOTTOM', 'Right Bottom', ''))
+					   ('RIGHT_TOP', 'Right Top', ''), ('RIGHT_BOTTOM', 'Right Bottom', ''))
 	anchor_pos: EnumProperty(name="", items=anchor_pos_list, default='LEFT_BOTTOM')
 
 	automatic_recalc: BoolProperty(
@@ -95,14 +95,14 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		description="Choose a name for the category of panel (3D View)",
 		default="Texel Density",
 		update=update_view3d_panel_category
-		)
+	)
 
 	uv_panel_category: StringProperty(
 		name="",
 		description="Choose a name for the category of panel (UV Editor)",
 		default="Texel Density",
 		update=update_uv_panel_category
-		)
+	)
 
 	view3d_panel_category_enable: BoolProperty(
 		name="View 3D TD Panel",
@@ -128,7 +128,7 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		row = box.row(align=True)
 		row.label(text='Offset Y:')
 		row.prop(self, 'offset_y')
-		
+
 		box = layout.box()
 		row = box.row(align=True)
 		row.prop(self, 'view3d_panel_category_enable')
@@ -148,10 +148,10 @@ class TDObjectSetting(bpy.types.PropertyGroup):
 
 
 classes = (
-			TD_Addon_Preferences,
-			VIEW3D_PT_texel_density_checker,
-			UV_PT_texel_density_checker,
-			TDObjectSetting
+	TD_Addon_Preferences,
+	VIEW3D_PT_texel_density_checker,
+	UV_PT_texel_density_checker,
+	TDObjectSetting
 )
 
 
