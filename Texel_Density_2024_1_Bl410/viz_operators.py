@@ -241,32 +241,34 @@ class Checker_Assign(bpy.types.Operator):
 			checker_resolution_y = 1024
 
 		# Check exist texture image
-		flag_exist_texture = False
-		for t in range(len(bpy.data.images)):
-			if bpy.data.images[t].name == 'TD_Checker':
-				flag_exist_texture = True
+		td_checker_texture = None
+		for tex in bpy.data.images:
+			if tex.is_td_texture:
+				td_checker_texture = tex
 
 		# Create Checker Texture (if not Exist yet) with parameters from Panel
-		if not flag_exist_texture:
-			bpy.ops.image.new(name='TD_Checker', width=checker_resolution_x, height=checker_resolution_y,
-							  generated_type=td.checker_type)
+		if not td_checker_texture:
+			td_checker_texture = bpy.data.images.new(name='TD_Checker', width=checker_resolution_x, height=checker_resolution_y)
+			td_checker_texture.generated_type=td.checker_type
+			td_checker_texture.is_td_texture = True
 		else:
-			bpy.data.images['TD_Checker'].generated_width = checker_resolution_x
-			bpy.data.images['TD_Checker'].generated_height = checker_resolution_y
-			bpy.data.images['TD_Checker'].generated_type = td.checker_type
+			td_checker_texture.generated_width = checker_resolution_x
+			td_checker_texture.generated_height = checker_resolution_y
+			td_checker_texture.generated_type = td.checker_type
 
 		# Check exist TD_Checker_mat
-		flag_exist_material = False
-		for m in range(len(bpy.data.materials)):
-			if bpy.data.materials[m].name == 'TD_Checker':
-				flag_exist_material = True
+		td_checker_material = None
+		for mat in bpy.data.materials:
+			if mat.is_td_material:
+				td_checker_material = mat
 
 		# Create material (if not Exist yet) and Setup nodes
-		if not flag_exist_material:
-			td_checker_mat = bpy.data.materials.new('TD_Checker')
-			td_checker_mat.use_nodes = True
-			nodes = td_checker_mat.node_tree.nodes
-			links = td_checker_mat.node_tree.links
+		if not td_checker_material:
+			td_checker_material = bpy.data.materials.new('TD_Checker')
+			td_checker_material.is_td_material = True
+			td_checker_material.use_nodes = True
+			nodes = td_checker_material.node_tree.nodes
+			links = td_checker_material.node_tree.links
 			# Color Mix Node for Blending Checker Texture with VC
 			mix_node = nodes.new(type="ShaderNodeMixRGB")
 			mix_node.location = (-200, 200)
@@ -276,7 +278,7 @@ class Checker_Assign(bpy.types.Operator):
 			# Get Checker Texture
 			tex_node = nodes.new('ShaderNodeTexImage')
 			tex_node.location = (-500, 300)
-			tex_node.image = bpy.data.images['TD_Checker']
+			tex_node.image = td_checker_texture
 			tex_node.interpolation = 'Closest'
 			links.new(tex_node.outputs["Color"], mix_node.inputs['Color1'])
 			# Get VC with baked TD
@@ -341,7 +343,7 @@ class Checker_Assign(bpy.types.Operator):
 
 			for o in start_selected_obj:
 				if o.type == 'MESH':
-					o.data.materials.append(bpy.data.materials['TD_Checker'])
+					o.data.materials.append(td_checker_material)
 
 		# If Store and Replace Method
 		if td.checker_method == 'STORE':
@@ -357,12 +359,12 @@ class Checker_Assign(bpy.types.Operator):
 					is_assign_td_mat = True
 					for q in reversed(range(len(o.data.materials))):
 						if o.active_material is not None:
-							if o.active_material.name_full == 'TD_Checker':
+							if o.active_material.is_td_material:
 								is_assign_td_mat = False
 
 					# Added New Material Slot for Checker Material and Assign him to all faces
 					if is_assign_td_mat:
-						o.data.materials.append(bpy.data.materials['TD_Checker'])
+						o.data.materials.append(td_checker_material)
 						mat_index = len(o.data.materials) - 1
 						bpy.ops.object.mode_set(mode='EDIT')
 						bpy.ops.mesh.reveal()
@@ -429,7 +431,7 @@ class Checker_Restore(bpy.types.Operator):
 					for q in reversed(range(len(obj.data.materials))):
 						obj.active_material_index = q
 						if obj.active_material is not None:
-							if obj.active_material.name_full == 'TD_Checker':
+							if obj.active_material.is_td_material:
 								obj.data.materials.pop(index=q)
 
 		bpy.ops.object.select_all(action='DESELECT')

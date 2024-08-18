@@ -17,10 +17,10 @@ def Change_Texture_Size(self, context):
 	td = context.scene.td
 
 	# Check exist texture image
-	flag_exist_texture = False
-	for t in range(len(bpy.data.images)):
-		if bpy.data.images[t].name == 'TD_Checker':
-			flag_exist_texture = True
+	td_checker_texture = None
+	for tex in bpy.data.images:
+		if tex.is_td_texture:
+			td_checker_texture = tex
 
 	checker_resolution_x = 1024
 	checker_resolution_y = 1024
@@ -47,10 +47,10 @@ def Change_Texture_Size(self, context):
 		td['custom_width'] = '1024'
 		td['custom_height'] = '1024'
 
-	if flag_exist_texture:
-		bpy.data.images['TD_Checker'].generated_width = checker_resolution_x
-		bpy.data.images['TD_Checker'].generated_height = checker_resolution_y
-		bpy.data.images['TD_Checker'].generated_type = td.checker_type
+	if td_checker_texture:
+		td_checker_texture.generated_width = checker_resolution_x
+		td_checker_texture.generated_height = checker_resolution_y
+		td_checker_texture.generated_type = td.checker_type
 
 	bpy.ops.object.texel_density_check()
 
@@ -63,13 +63,13 @@ def Change_Texture_Type(self, context):
 	td = context.scene.td
 
 	# Check exist texture image
-	flag_exist_texture = False
-	for t in range(len(bpy.data.images)):
-		if bpy.data.images[t].name == 'TD_Checker':
-			flag_exist_texture = True
+	td_checker_texture = None
+	for tex in bpy.data.images:
+		if tex.is_td_texture:
+			td_checker_texture = tex
 
-	if flag_exist_texture:
-		bpy.data.images['TD_Checker'].generated_type = td.checker_type
+	if td_checker_texture:
+		td_checker_texture.generated_type = td.checker_type
 
 
 def Filter_Bake_VC_Min_TD(self, context):
@@ -193,9 +193,15 @@ def Filter_Checker_UV_Scale(self, context):
 	td['checker_uv_scale'] = str(checker_uv_scale)
 
 	try:
-		nodes = bpy.data.materials['TD_Checker'].node_tree.nodes
-		nodes['Mapping'].inputs['Scale'].default_value[0] = checker_uv_scale
-		nodes['Mapping'].inputs['Scale'].default_value[1] = checker_uv_scale
+		td_checker_material = None
+		for mat in bpy.data.materials:
+			if mat.is_td_material:
+				td_checker_material = mat
+
+		if td_checker_material:
+			nodes = td_checker_material.node_tree.nodes
+			nodes['Mapping'].inputs['Scale'].default_value[0] = checker_uv_scale
+			nodes['Mapping'].inputs['Scale'].default_value[1] = checker_uv_scale
 	except:
 		print("Can not change Checker UV Scale")
 
@@ -428,6 +434,16 @@ classes = (
 
 
 def register():
+	bpy.types.Material.is_td_material = BoolProperty(
+		name="Is TD Checker Material",
+		description="Custom Property for Texel Density Checker",
+		default=False)
+
+	bpy.types.Image.is_td_texture = BoolProperty(
+		name="Is TD Checker Texture",
+		description="Custom Property for Texel Density Checker",
+		default=False)
+
 	for cls in classes:
 		bpy.utils.register_class(cls)
 
@@ -441,5 +457,8 @@ def unregister():
 
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
+
+	del bpy.types.Image.is_td_texture
+	del bpy.types.Material.is_td_material
 
 	del bpy.types.Scene.td
