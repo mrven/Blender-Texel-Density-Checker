@@ -599,7 +599,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						color = utils.Value_To_Color(face_td_area_list[face_id][0], bake_vc_min_td, bake_vc_max_td)
 
 						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.active] = color
+							loop[bm.loops.layers.color.get("td_vis")] = color
 
 				# Assign random color for each island
 				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
@@ -612,7 +612,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 						for face_id in uv_island:
 							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.active] = color4
+								loop[bm.loops.layers.color.get("td_vis")] = color4
 
 				# Calculate and assign color from UV area to VC for each island (UV areas sum of polygons of island)
 				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
@@ -627,7 +627,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 						for face_id in uv_island:
 							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.active] = color
+								loop[bm.loops.layers.color.get("td_vis")] = color
 
 				# Calculate and assign color from TD to VC for each island (average TD between polygons of island)
 				elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
@@ -650,7 +650,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 						for face_id in uv_island:
 							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.active] = color
+								loop[bm.loops.layers.color.get("td_vis")] = color
 
 				elif td.bake_vc_mode == 'DISTORTION':
 					uv_area_total = 0
@@ -685,7 +685,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						color = utils.Value_To_Color(uv_percent / geom_percent, min_range, max_range)
 
 						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.active] = color
+							loop[bm.loops.layers.color.get("td_vis")] = color
 
 				bpy.ops.object.mode_set(mode='OBJECT')
 
