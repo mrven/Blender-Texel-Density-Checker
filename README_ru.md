@@ -9,6 +9,7 @@ Texel Density Checker – Аддон для Blender, который позвол
 
 ***Скачать последнюю версию:***
 
+* ***[(2023.2) Blender 4.2+ (с Blender Extensions)](https://extensions.blender.org/add-ons/texel-density-checker/)***
 * ***[(2023.2) Blender 4.0+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2023_2_Bl400.zip)***
 * ***[(2023.2) Blender 3.6+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2023_2_Bl361.zip)***
 * ***[(3.4) Blender 3.4+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_4_341.zip)***
@@ -17,7 +18,7 @@ Texel Density Checker – Аддон для Blender, который позвол
 * ***[(1.0.9) Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
 
 Если вы хотите поддержать меня, то можете купить аддон на следующих площадках:
-* ***[Gumroad (Свободная цена)](https://gumroad.com/l/CEIOR)***
+* ***[Blender Market](https://blendermarket.com/products/texel-density-checker)***
 
 ## Новое в версии Texel Density Checker 2023
 ### Увеличение скорости работы на 25%

@@ -16,6 +16,7 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 
 ***Download latest version:***
 
+* ***[(2023.2) Blender 4.2+ (from Blender Extensions)](https://extensions.blender.org/add-ons/texel-density-checker/)***
 * ***[(2023.2) Blender 4.0+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2023_2_Bl400.zip)***
 * ***[(2023.2) Blender 3.6+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2023_2_Bl361.zip)***
 * ***[(3.4) Blender 3.4+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_4_341.zip)***
@@ -24,7 +25,7 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 * ***[(1.0.9) Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
 
 If you want to support me you can buy this addon:
-* ***[Gumroad (Pay what you want)](https://gumroad.com/l/CEIOR)***
+* ***[Blender Market](https://blendermarket.com/products/texel-density-checker)***
 
 ## New in Texel Density Checker 2023
 ### 25% speed increase
