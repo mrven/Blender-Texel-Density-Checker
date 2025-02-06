@@ -1,12 +1,12 @@
 bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Toolset for working with Texel Density",
-	"author": "Ivan 'mrven' Vostrikov, Toomas Laik, Oxicid",
-	"wiki_url": "https://gumroad.com/l/CEIOR",
+	"author": "Ivan 'mrven' Vostrikov, Toomas Laik, Oxicid, johnwildauer",
+	"wiki_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
 	"tracker_url": "https://github.com/mrven/Blender-Texel-Density-Checker/issues",
 	"doc_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
-	"version": (2024, 1, 0),
-	"blender": (4, 1, 0),
+	"version": (2025, 1, 0),
+	"blender": (4, 2, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }
