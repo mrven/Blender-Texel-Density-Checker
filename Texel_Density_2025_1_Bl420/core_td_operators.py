@@ -77,7 +77,7 @@ class Texel_Density_Check(bpy.types.Operator):
 						if bpy.context.active_object.data.polygons[face_id].select:
 							selected_faces.append(face_id)
 
-				face_td_area_list = utils.Calculate_TD_Area_To_List()
+				face_td_area_list = utils.Calculate_TD_Area_To_List_CPP()
 
 				local_area = 0
 				local_texel_density = 0

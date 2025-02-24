@@ -1,2 +1,5 @@
-# Default ignored files
 .idea/
+.vs/
+.clang-format
+x64/
+*.vcxproj*

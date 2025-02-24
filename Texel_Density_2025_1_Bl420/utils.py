@@ -4,6 +4,8 @@ import math
 import colorsys
 from datetime import datetime
 import os
+import ctypes
+import numpy as np
 
 
 # Value by range to Color gradient by hue
@@ -168,8 +170,106 @@ def Calculate_TD_Area_To_List():
 
 	bpy.ops.object.mode_set(mode=start_mode)
 
+	# for item in range(0, len(calculated_obj_td_area)):
+	# 	print(f"Polygon: {item} TD:{calculated_obj_td_area[item][0]} Area:{calculated_obj_td_area[item][1]}")
+
 	return calculated_obj_td_area
 
+
+# Calculate UV Area and Texel Density for each polygon with C++
+def Calculate_TD_Area_To_List_CPP():
+	td = bpy.context.scene.td
+
+	# Save current mode and active object
+	start_active_obj = bpy.context.active_object
+	start_mode = bpy.context.object.mode
+
+	# DLL Link
+	addon_path = os.path.dirname(os.path.abspath(__file__))
+	tdcore_path = os.path.join(addon_path, "tdcore.dll")
+	tdcore = ctypes.CDLL(tdcore_path)
+
+	tdcore.CalculateTDAreaArray.argtypes = [
+		ctypes.POINTER(ctypes.c_float),  	# UVs
+		ctypes.c_int,  						# UVs Count
+		ctypes.POINTER(ctypes.c_float),  	# Areas
+		ctypes.POINTER(ctypes.c_int),  		# Vertex Count by Polygon
+		ctypes.c_int,  						# Poly Count
+		ctypes.c_int,  						# Texture X Size
+		ctypes.c_int,  						# Texture Y Size
+		ctypes.c_float,  					# Scale Length
+		ctypes.c_int,  						# Units
+		ctypes.POINTER(ctypes.c_float)  	# Results
+	]
+
+	# Get texture size from panel
+	if td.texture_size != 'CUSTOM':
+		texture_size_x = texture_size_y = int(td.texture_size)
+	else:
+		try:
+			texture_size_x = int(td.custom_width)
+		except:
+			texture_size_x = 1024
+		try:
+			texture_size_y = int(td.custom_height)
+		except:
+			texture_size_y = 1024
+
+	if texture_size_x < 1 or texture_size_y < 1:
+		texture_size_x = 1024
+		texture_size_y = 1024
+
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	face_count = len(start_active_obj.data.polygons)
+	mesh_data = start_active_obj.data
+
+	# Get UV-coordinates
+	uv_layer = mesh_data.uv_layers.active.data
+	uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
+	uv_layer.foreach_get("uv", uvs)
+	uvs = uvs.reshape(-1, 2).flatten()
+
+	# Get Geometry Area
+	areas = np.empty(len(mesh_data.polygons), dtype=np.float32)
+	mesh_data.polygons.foreach_get("area", areas)
+
+	# Get Vertex Count
+	vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
+	mesh_data.polygons.foreach_get("loop_total", vertex_counts)
+
+	# Results Buffer (Poly Count * 2 float: uv_area)
+	result = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
+
+	# Duplicate and Triangulate Object
+	bpy.ops.object.duplicate()
+	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+
+	# Call function from DLL
+	tdcore.CalculateTDAreaArray(
+		uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		uvs.size,
+		areas.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		vertex_counts.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
+		areas.size,
+		texture_size_x,
+		texture_size_y,
+		bpy.context.scene.unit_settings.scale_length,
+		int(td.units),
+		result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+	)
+
+	calculated_obj_td_area = []
+	for i in range(0, areas.size):
+		td_area_list = [result[i * 2], result[i * 2 + 1]]
+		calculated_obj_td_area.append(td_area_list)
+
+	bpy.context.view_layer.objects.active = start_active_obj
+
+	bpy.ops.object.mode_set(mode=start_mode)
+
+	return calculated_obj_td_area
 
 # Get list of islands (slow)
 def Get_UV_Islands():
