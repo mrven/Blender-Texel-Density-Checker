@@ -1,10 +1,16 @@
 #pragma once
 
+#ifdef _WIN32
+    #define EXPORT_API __declspec(dllexport)
+#else
+    #define EXPORT_API __attribute__((visibility("default")))
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-    __declspec(dllexport) void CalculateTDAreaArray(
+    EXPORT_API void CalculateTDAreaArray(
         float* UVs,
         int UVCount,
         float* Areas,

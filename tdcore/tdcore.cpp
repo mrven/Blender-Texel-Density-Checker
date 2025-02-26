@@ -1,7 +1,10 @@
 #include "tdcore.h"
 #include <cmath>
 #include <iostream>
-#include <windows.h> // Для DllMain
+
+#ifdef _WIN32
+    #include <windows.h> // Windows
+#endif
 
 void CalculateTDAreaArray(
     float* UVs,
@@ -80,16 +83,18 @@ void CalculateTDAreaArray(
     }
 }
 
-// Опциональная точка входа для DLL
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-    switch (ul_reason_for_call)
+// Optional Entry Point (Windows)
+#ifdef _WIN32
+    BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
     {
-        case DLL_PROCESS_ATTACH:
-        case DLL_THREAD_ATTACH:
-        case DLL_THREAD_DETACH:
-        case DLL_PROCESS_DETACH:
-            break;
+        switch (ul_reason_for_call)
+        {
+            case DLL_PROCESS_ATTACH:
+            case DLL_THREAD_ATTACH:
+            case DLL_THREAD_DETACH:
+            case DLL_PROCESS_DETACH:
+                break;
+        }
+        return TRUE;
     }
-    return TRUE;
-}
+#endif

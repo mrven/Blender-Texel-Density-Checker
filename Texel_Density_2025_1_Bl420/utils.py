@@ -5,7 +5,9 @@ import colorsys
 from datetime import datetime
 import os
 import ctypes
+import ctypes.util
 import numpy as np
+import sys
 
 
 # Value by range to Color gradient by hue
@@ -184,10 +186,8 @@ def Calculate_TD_Area_To_List_CPP():
 	start_active_obj = bpy.context.active_object
 	start_mode = bpy.context.object.mode
 
-	# DLL Link
-	addon_path = os.path.dirname(os.path.abspath(__file__))
-	tdcore_path = os.path.join(addon_path, "tdcore.dll")
-	tdcore = ctypes.CDLL(tdcore_path)
+	# Get Library
+	tdcore = get_td_core_dll()
 
 	tdcore.CalculateTDAreaArray.argtypes = [
 		ctypes.POINTER(ctypes.c_float),  	# UVs
@@ -221,8 +221,12 @@ def Calculate_TD_Area_To_List_CPP():
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
-	face_count = len(start_active_obj.data.polygons)
-	mesh_data = start_active_obj.data
+	# Duplicate and Apply Transforms
+	bpy.ops.object.duplicate()
+	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+
+	mesh_data = bpy.context.active_object.data
 
 	# Get UV-coordinates
 	uv_layer = mesh_data.uv_layers.active.data
@@ -241,12 +245,7 @@ def Calculate_TD_Area_To_List_CPP():
 	# Results Buffer (Poly Count * 2 float: uv_area)
 	result = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
 
-	# Duplicate and Triangulate Object
-	bpy.ops.object.duplicate()
-	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-
-	# Call function from DLL
+	# Call function from Library
 	tdcore.CalculateTDAreaArray(
 		uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
 		uvs.size,
@@ -264,6 +263,16 @@ def Calculate_TD_Area_To_List_CPP():
 	for i in range(0, areas.size):
 		td_area_list = [result[i * 2], result[i * 2 + 1]]
 		calculated_obj_td_area.append(td_area_list)
+
+	# Save name of data for cleanup
+	mesh_data_name = mesh_data.name
+
+	# Delete duplicated object and mesh data
+	bpy.ops.object.delete()
+	try:
+		bpy.data.meshes.remove(bpy.data.meshes[mesh_data_name])
+	except:
+		pass
 
 	bpy.context.view_layer.objects.active = start_active_obj
 
@@ -455,3 +464,28 @@ def Get_Preferences():
 	addon_prefs = preferences.addons[__package__].preferences
 
 	return addon_prefs
+
+
+def get_td_core_dll():
+	if sys.platform.startswith("win"):
+		lib_name = "tdcore.dll"
+	elif sys.platform.startswith("linux"):
+		lib_name = "libtdcore.so"
+	elif sys.platform.startswith("darwin"):  # macOS
+		lib_name = "libtdcore.dylib"
+	else:
+		raise OSError("Unsupported OS")
+
+	addon_path = os.path.dirname(os.path.abspath(__file__))
+	tdcore_path = os.path.join(addon_path, lib_name)
+
+	if not os.path.isfile(tdcore_path):
+		raise FileNotFoundError(f"Library not found: {tdcore_path}")
+
+	try:
+		if sys.platform.startswith("win"):
+			return ctypes.WinDLL(tdcore_path)  # Windows
+		else:
+			return ctypes.CDLL(tdcore_path)  # Linux/macOS
+	except OSError as e:
+		raise OSError(f"Failed to load library: {tdcore_path}") from e
