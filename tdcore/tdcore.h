@@ -23,6 +23,20 @@ extern "C"
         float* Result
     );
 
+    EXPORT_API void CalculateTotalTDArea(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result);
+
+    EXPORT_API void CalculateTDAreaArray_Internal(
+        float* UVs,
+        int UVCount,
+        float* Areas,
+        int* VertexCount,
+        int PolyCount,
+        int TextureXSize,
+        int TextureYSize,
+        float ScaleLength,
+        int Units,
+        float* Result
+    );
 #ifdef __cplusplus
 }
 #endif
