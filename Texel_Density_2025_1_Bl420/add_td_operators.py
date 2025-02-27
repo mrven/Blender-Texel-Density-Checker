@@ -158,16 +158,16 @@ class Select_By_TD_Space(bpy.types.Operator):
 				if td.select_mode == "FACES_BY_TD":
 					for face_id in range(0, face_count):
 						if td.select_type == "EQUAL":
-							if (face_td_area_list[face_id][0] >= (search_value - select_threshold)) and (
-									face_td_area_list[face_id][0] <= (search_value + select_threshold)):
+							if (face_td_area_list[face_id * 2] >= (search_value - select_threshold)) and (
+									face_td_area_list[face_id * 2] <= (search_value + select_threshold)):
 								searched_faces.append(face_id)
 
 						elif td.select_type == "LESS":
-							if face_td_area_list[face_id][0] <= search_value:
+							if face_td_area_list[face_id * 2] <= search_value:
 								searched_faces.append(face_id)
 
 						elif td.select_type == "GREATER":
-							if face_td_area_list[face_id][0] >= search_value:
+							if face_td_area_list[face_id * 2] >= search_value:
 								searched_faces.append(face_id)
 
 				elif td.select_mode == "ISLANDS_BY_TD":
@@ -177,14 +177,14 @@ class Select_By_TD_Space(bpy.types.Operator):
 
 						# Calculate total island UV area
 						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
+							island_area += face_td_area_list[face_id * 2 + 1]
 
 						if island_area == 0:
 							island_area = 0.000001
 
 						# Calculate total island TD
 						for face_id in uv_island:
-							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / island_area
+							island_td += face_td_area_list[face_id * 2] * face_td_area_list[face_id * 2 + 1] / island_area
 
 						if td.select_type == "EQUAL":
 							if (island_td >= (search_value - select_threshold)) and (
@@ -208,7 +208,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 
 						# Calculate total island UV area
 						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
+							island_area += face_td_area_list[face_id * 2 + 1]
 
 						# Convert UV area to percentage
 						island_area *= 100

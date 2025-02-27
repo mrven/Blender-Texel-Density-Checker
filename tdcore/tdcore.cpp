@@ -54,7 +54,7 @@ void CalculateTDAreaArray(
 
         if (PolyUVArea > 0.f && PolyGeometryArea > 0.f)
         {
-            PolyTexelDensity = ((LargestSide / std::sqrtf(AspectRatio)) * std::sqrtf(PolyUVArea)) / (std::sqrtf(PolyGeometryArea) * 100) / ScaleLength;
+            PolyTexelDensity = ((LargestSide / std::sqrt(AspectRatio)) * std::sqrt(PolyUVArea)) / (std::sqrt(PolyGeometryArea) * 100) / ScaleLength;
         }
         else
         {

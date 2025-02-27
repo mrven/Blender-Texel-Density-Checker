@@ -67,117 +67,6 @@ def Sync_UV_Selection():
 	bmesh.update_edit_mesh(mesh)
 
 
-# Get List of TD and UV area for each selected polygon
-def Calculate_TD_Area_To_List():
-	td = bpy.context.scene.td
-	calculated_obj_td_area = []
-
-	# Save current mode and active object
-	start_active_obj = bpy.context.active_object
-	start_mode = bpy.context.object.mode
-
-	# Set default values
-	area = 0
-	gm_area = 0
-	texture_size_cur_x = 1024
-	texture_size_cur_y = 1024
-
-	# Get texture size from panel
-	if td.texture_size != 'CUSTOM':
-		texture_size_cur_x = texture_size_cur_y = int(td.texture_size)
-	else:
-		try:
-			texture_size_cur_x = int(td.custom_width)
-		except:
-			texture_size_cur_x = 1024
-		try:
-			texture_size_cur_y = int(td.custom_height)
-		except:
-			texture_size_cur_y = 1024
-
-	if texture_size_cur_x < 1 or texture_size_cur_y < 1:
-		texture_size_cur_x = 1024
-		texture_size_cur_y = 1024
-
-	bpy.ops.object.mode_set(mode='OBJECT')
-
-	face_count = len(bpy.context.active_object.data.polygons)
-
-	# Duplicate and Triangulate Object
-	bpy.ops.object.duplicate()
-	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-
-	aspect_ratio = texture_size_cur_x / texture_size_cur_y
-
-	if aspect_ratio < 1:
-		aspect_ratio = 1 / aspect_ratio
-	largest_side = texture_size_cur_x if texture_size_cur_x > texture_size_cur_y else texture_size_cur_y
-
-	# Get mesh data from active object
-	bpy.ops.object.mode_set(mode='EDIT')
-	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
-	bm.faces.ensure_lookup_table()
-
-	for x in range(0, face_count):
-		area = 0
-
-		# Calculate total UV area
-		loops = []
-		for loop in bm.faces[x].loops:
-			loops.append(loop[bm.loops.layers.uv.active].uv)
-
-		loops_count = len(loops)
-		a = loops_count - 1
-
-		for b in range(0, loops_count):
-			area += (loops[a].x + loops[b].x) * (loops[a].y - loops[b].y)
-			a = b
-
-		area = abs(0.5 * area)
-
-		# Geometry Area
-		gm_area = bpy.context.active_object.data.polygons[x].area
-
-		# TexelDensity calculating from selected in panel texture size
-		if gm_area > 0 and area > 0:
-			texel_density = ((largest_side / math.sqrt(aspect_ratio)) * math.sqrt(area)) / (
-						math.sqrt(gm_area) * 100) / bpy.context.scene.unit_settings.scale_length
-		else:
-			texel_density = 0.0001
-
-		if td.units == '1':
-			texel_density = texel_density * 100
-		if td.units == '2':
-			texel_density = texel_density * 2.54
-		if td.units == '3':
-			texel_density = texel_density * 30.48
-
-		td_area_list = [texel_density, area]
-		calculated_obj_td_area.append(td_area_list)
-
-	bpy.ops.object.mode_set(mode='OBJECT')
-
-	# Save name of data for cleanup
-	mesh_data_name = bpy.context.view_layer.objects.active.data.name
-
-	# Delete duplicated object and mesh data
-	bpy.ops.object.delete()
-	try:
-		bpy.data.meshes.remove(bpy.data.meshes[mesh_data_name])
-	except:
-		pass
-
-	bpy.context.view_layer.objects.active = start_active_obj
-
-	bpy.ops.object.mode_set(mode=start_mode)
-
-	# for item in range(0, len(calculated_obj_td_area)):
-	# 	print(f"Polygon: {item} TD:{calculated_obj_td_area[item][0]} Area:{calculated_obj_td_area[item][1]}")
-
-	return calculated_obj_td_area
-
-
 # Calculate UV Area and Texel Density for each polygon with C++
 def Calculate_TD_Area_To_List_CPP():
 	td = bpy.context.scene.td
@@ -242,7 +131,7 @@ def Calculate_TD_Area_To_List_CPP():
 	vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
 	mesh_data.polygons.foreach_get("loop_total", vertex_counts)
 
-	# Results Buffer (Poly Count * 2 float: uv_area)
+	# Results Buffer (Poly Count * 2 float: TD and uv_area)
 	result = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
 
 	# Call function from Library
@@ -259,11 +148,6 @@ def Calculate_TD_Area_To_List_CPP():
 		result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 	)
 
-	calculated_obj_td_area = []
-	for i in range(0, areas.size):
-		td_area_list = [result[i * 2], result[i * 2 + 1]]
-		calculated_obj_td_area.append(td_area_list)
-
 	# Save name of data for cleanup
 	mesh_data_name = mesh_data.name
 
@@ -278,7 +162,7 @@ def Calculate_TD_Area_To_List_CPP():
 
 	bpy.ops.object.mode_set(mode=start_mode)
 
-	return calculated_obj_td_area
+	return result
 
 # Get list of islands (slow)
 def Get_UV_Islands():

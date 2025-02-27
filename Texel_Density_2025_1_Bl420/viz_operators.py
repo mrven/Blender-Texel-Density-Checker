@@ -539,11 +539,11 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				min_calculated_td = 9999999
 				max_calculated_td = 0
 				for obj_td_list in td_area_list:
-					for face_td_area_value in obj_td_list:
-						if face_td_area_value[0] < min_calculated_td:
-							min_calculated_td = face_td_area_value[0]
-						if face_td_area_value[0] > max_calculated_td:
-							max_calculated_td = face_td_area_value[0]
+					for index in range(0, int(len(obj_td_list) / 2)):
+						if obj_td_list[index * 2] < min_calculated_td:
+							min_calculated_td = obj_td_list[index * 2]
+						if obj_td_list[index * 2] > max_calculated_td:
+							max_calculated_td = obj_td_list[index * 2]
 
 				bake_vc_min_td = min_calculated_td
 				bake_vc_max_td = max_calculated_td
@@ -596,7 +596,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 				# Calculate and assign color from TD to VC for each polygon
 				if td.bake_vc_mode == "TD_FACES_TO_VC":
 					for face_id in range(0, face_count):
-						color = utils.Value_To_Color(face_td_area_list[face_id][0], bake_vc_min_td, bake_vc_max_td)
+						color = utils.Value_To_Color(face_td_area_list[face_id * 2], bake_vc_min_td, bake_vc_max_td)
 
 						for loop in bm.faces[face_id].loops:
 							loop[bm.loops.layers.color.get("td_vis")] = color
@@ -619,7 +619,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 					for uv_island in islands_list:
 						island_area = 0
 						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
+							island_area += face_td_area_list[face_id * 2 + 1]
 
 						# Convert island area value to percentage of area
 						island_area *= 100
@@ -637,14 +637,14 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 
 						# Calculate Total Island Area
 						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
+							island_area += face_td_area_list[face_id * 2 + 1]
 
 						if island_area == 0:
 							island_area = 0.000001
 
 						# Calculate Average Island TD
 						for face_id in uv_island:
-							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / island_area
+							island_td += face_td_area_list[face_id * 2] * face_td_area_list[face_id * 2 + 1] / island_area
 
 						color = utils.Value_To_Color(island_td, bake_vc_min_td, bake_vc_max_td)
 
@@ -664,7 +664,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 						geom_area_total += gm_area
 						geom_area_list.append(gm_area)
 						# Total UV Area
-						uv_area_total += face_td_area_list[face_id][1]
+						uv_area_total += face_td_area_list[face_id * 2 + 1]
 
 					# Protection from zero division
 					if uv_area_total < 0.0001:
@@ -679,7 +679,7 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 					max_range = 1 + (bake_vc_distortion_range / 100)
 
 					for face_id in range(0, face_count):
-						uv_percent = face_td_area_list[face_id][1] / uv_area_total
+						uv_percent = face_td_area_list[face_id * 2 + 1] / uv_area_total
 						geom_percent = geom_area_list[face_id] / geom_area_total
 
 						color = utils.Value_To_Color(uv_percent / geom_percent, min_range, max_range)

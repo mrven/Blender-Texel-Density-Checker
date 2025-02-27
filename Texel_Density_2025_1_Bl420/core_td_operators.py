@@ -84,10 +84,10 @@ class Texel_Density_Check(bpy.types.Operator):
 
 				# Calculate UV area and TD per object
 				for face_id in selected_faces:
-					local_area += face_td_area_list[face_id][1]
+					local_area += face_td_area_list[face_id * 2 + 1]
 
 				for face_id in selected_faces:
-					local_texel_density += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / local_area
+					local_texel_density += face_td_area_list[face_id * 2] * face_td_area_list[face_id * 2 + 1] / local_area
 
 				# Store local Area and local TD to lists
 				local_area_list.append(local_area)
