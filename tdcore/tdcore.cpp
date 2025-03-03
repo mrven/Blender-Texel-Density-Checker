@@ -30,9 +30,17 @@ EXPORT_API void CalculateTotalTDArea(float* TDsAreas, unsigned char* SelectedPol
     {
         if (SelectedPoly[i] > 0)
         {
-            TotalTD += TDsAreas[i * 2];
-            TotalUVArea += TDsAreas[i * 2 + 1];
+            float UVArea = TDsAreas[i * 2 + 1];
+            float TexelDensity = TDsAreas[i * 2];
+
+            TotalUVArea += UVArea;
+            TotalTD += TexelDensity * UVArea;
         }
+    }
+
+    if (TotalUVArea > 0)
+    {
+        TotalTD /= TotalUVArea;
     }
 
     Result[0] = TotalTD;
