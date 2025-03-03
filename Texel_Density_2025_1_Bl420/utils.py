@@ -1,6 +1,5 @@
 import bpy
 import bmesh
-import math
 import colorsys
 from datetime import datetime
 import os
