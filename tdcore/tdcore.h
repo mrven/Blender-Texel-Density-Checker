@@ -25,6 +25,22 @@ extern "C"
 
     EXPORT_API void CalculateTotalTDArea(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result);
 
+    EXPORT_API void SetTD(
+        float* UVs,
+        int UVCount,
+        float* Areas,
+        int* VertexCount,
+        int PolyCount,
+        int TextureXSize,
+        int TextureYSize,
+        float ScaleLength,
+        int Units,
+        unsigned char* SelectedPoly,
+        float TargetTD,
+        float* OriginCoordinates,
+        float* Result
+    );
+
     EXPORT_API void CalculateTDAreaArray_Internal(
         float* UVs,
         int UVCount,
@@ -37,6 +53,8 @@ extern "C"
         int Units,
         float* Result
     );
+
+    EXPORT_API void CalculateTotalTDArea_Internal(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result);
 #ifdef __cplusplus
 }
 #endif

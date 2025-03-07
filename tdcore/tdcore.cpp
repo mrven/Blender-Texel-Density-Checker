@@ -1,6 +1,7 @@
 #include "tdcore.h"
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 #ifdef _WIN32
     #include <windows.h> // Windows
@@ -22,30 +23,63 @@ void CalculateTDAreaArray(
     CalculateTDAreaArray_Internal(UVs, UVCount, Areas, VertexCount, PolyCount, TextureXSize, TextureYSize, ScaleLength, Units, Result);
 }
 
-EXPORT_API void CalculateTotalTDArea(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result)
-{
-    float TotalTD = 0;
-    float TotalUVArea = 0;
-    for (int i = 0; i < PolyCount; i++)
-    {
-        if (SelectedPoly[i] > 0)
-        {
-            float UVArea = TDsAreas[i * 2 + 1];
-            float TexelDensity = TDsAreas[i * 2];
+EXPORT_API void CalculateTotalTDArea(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result) 
+{ 
+    CalculateTotalTDArea_Internal(TDsAreas, SelectedPoly, PolyCount, Result); 
+}
 
-            TotalUVArea += UVArea;
-            TotalTD += TexelDensity * UVArea;
+EXPORT_API void SetTD(
+    float* UVs,
+    int UVCount,
+    float* Areas,
+    int* VertexCount,
+    int PolyCount,
+    int TextureXSize,
+    int TextureYSize,
+    float ScaleLength,
+    int Units,
+    unsigned char* SelectedPoly,
+    float TargetTD,
+    float* OriginCoordinates,
+    float* Result
+)
+{
+    std::vector<float> TempTDsAreas(PolyCount * 2, 0.0f);
+    CalculateTDAreaArray_Internal(
+        UVs, UVCount, Areas, VertexCount, PolyCount, TextureXSize, TextureYSize, ScaleLength, Units, TempTDsAreas.data()
+    );
+
+    float TotalTDResult[2] = { 0.0f, 0.0f };
+    CalculateTotalTDArea_Internal(TempTDsAreas.data(), SelectedPoly, PolyCount, TotalTDResult);
+    float CurrentTD = std::round(TotalTDResult[0] * 1000.0f) / 1000.0f;
+    float TotalUVArea = TotalTDResult[1];
+
+    if (TotalUVArea > 0.0f)
+    {
+        float ScaleFactor = TargetTD / CurrentTD;
+
+        int VertexIndex = 0;
+        for (int i = 0; i < PolyCount; i++)
+        {
+            if (SelectedPoly[i] > 0)
+            {
+                for (int j = 0; j < VertexCount[i]; j++)
+                {
+                    int Index = VertexIndex + j * 2;
+                    Result[Index] = OriginCoordinates[0] + (UVs[Index] - OriginCoordinates[0]) * ScaleFactor;
+                    Result[Index + 1] = OriginCoordinates[1] + (UVs[Index + 1] - OriginCoordinates[1]) * ScaleFactor;
+                }
+            }
+            VertexIndex += VertexCount[i] * 2;
         }
     }
-
-    if (TotalUVArea > 0)
+    else
     {
-        TotalTD /= TotalUVArea;
+        std::copy(UVs, UVs + UVCount * 2, Result);
     }
-
-    Result[0] = TotalTD;
-    Result[1] = TotalUVArea;
 }
+
+
 
 EXPORT_API void CalculateTDAreaArray_Internal(
     float* UVs,
@@ -124,6 +158,32 @@ EXPORT_API void CalculateTDAreaArray_Internal(
         VertexIndex += VertexCount[i] * 2;
     }
 }
+
+EXPORT_API void CalculateTotalTDArea_Internal(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result)
+{
+    float TotalTD = 0;
+    float TotalUVArea = 0;
+    for (int i = 0; i < PolyCount; i++)
+    {
+        if (SelectedPoly[i] > 0)
+        {
+            float UVArea = TDsAreas[i * 2 + 1];
+            float TexelDensity = TDsAreas[i * 2];
+
+            TotalUVArea += UVArea;
+            TotalTD += TexelDensity * UVArea;
+        }
+    }
+
+    if (TotalUVArea > 0)
+    {
+        TotalTD /= TotalUVArea;
+    }
+
+    Result[0] = TotalTD;
+    Result[1] = TotalUVArea;
+}
+
 
 // Optional Entry Point (Windows)
 #ifdef _WIN32
