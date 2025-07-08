@@ -245,7 +245,7 @@ def Filter_Select_Threshold(self, context):
 def Change_Bake_VC_Mode(self, context):
 	td = context.scene.td
 
-	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
+	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC" or td.bake_vc_mode == "DISTORTION":
 		Show_Gradient(self, context)
 	else:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
@@ -253,6 +253,11 @@ def Change_Bake_VC_Mode(self, context):
 
 	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.bake_td_uv_to_vc()
+
+
+def Change_Bake_VC_Colorization(self, context):
+    # Basically do the same as if Bake VC Mode has been changed
+	Change_Bake_VC_Mode(self, context)
 
 
 def Change_Select_Mode(self, context):
@@ -270,12 +275,17 @@ draw_info = {
 }
 
 
+def Is_Colorization_Showable(enum_value):
+    return enum_value == "TD_COLORIZE_HUE" or enum_value == "TD_COLORIZE_GRAYSCALE_LINEAR" or enum_value == "TD_COLORIZE_GRAYSCALE_SQRT"
+
+
 def Show_Gradient(self, context):
 	td = context.scene.td
-	if td.bake_vc_show_gradient and draw_info["handler"] is None:
+	should_show = td.bake_vc_show_gradient and Is_Colorization_Showable(td.bake_vc_colorization)
+	if should_show and draw_info["handler"] is None:
 		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None),
 																	  'WINDOW', 'POST_PIXEL')
-	elif (not td.bake_vc_show_gradient) and draw_info["handler"] is not None:
+	elif (not should_show) and draw_info["handler"] is not None:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
 		draw_info["handler"] = None
 
@@ -383,6 +393,12 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 						 ('UV_SPACE_TO_VC', 'UV Space (%)', ''),
 						 ('DISTORTION', 'UV Distortion', ''))
 	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=Change_Bake_VC_Mode)
+
+	bake_vc_colorization_list = (('TD_COLORIZE_HUE', 'RGB Hue', 'Bake fully saturated colors into VC.\nCalculated values are mapped to the colors\' hue.'),
+								 ('TD_COLORIZE_GRAYSCALE_LINEAR', 'Grayscale (Linear)', 'Bake grayscale colors into VC.\nCalculated values are mapped to the colors\' value (brightness).'),
+								 ('TD_COLORIZE_GRAYSCALE_SQRT', 'Grayscale (Square Root)', 'Bake grayscale colors into VC.\nCalculated values are first taken the square root of, then mapped to the colors\' value (brightness).'),
+								 ('TD_COLORIZE_FIXED24_RGB8', 'Normalized 24-Bit Fixed-Point (RGB8)', 'Bake values directly into VC.\nCalculated values are normalized (i.e. scaled to range 0 to 1) and converted to 24-bit fixed-point numbers, then bitwise-split into 3 channels and converted to floating-point RGB colors, resulting in non-color RGB values in the final VC.\nData can be recovered with expression: `((round(R * 255.0) << 16) + (round(G * 255.0) << 8) + round(B * 255.0)) / float(0xffffff)`, which gives you the normalized value. To retrieve the original, unnormalized value, you\'ll need to memorize the Min and Max value (displayed above), in some way that suits your need, then scale back manually.'))
+	bake_vc_colorization: EnumProperty(name="", items=bake_vc_colorization_list, update=Change_Bake_VC_Colorization)
 
 	bake_vc_min_space: StringProperty(
 		name="",

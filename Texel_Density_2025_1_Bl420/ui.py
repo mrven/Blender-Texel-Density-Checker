@@ -1,5 +1,6 @@
 import bpy
 from . import utils
+from . import props
 
 
 # Panel in 3D View
@@ -202,7 +203,11 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.prop(td, "bake_vc_max_td")
 
 				row = box.row()
+				row.label(text="Colorization:")
+				row.prop(td, "bake_vc_colorization", expand=False)
+				row = box.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+				row.active = props.Is_Colorization_Showable(td.bake_vc_colorization)
 				row = box.row()
 				row.operator("object.bake_td_uv_to_vc", text="Texel Density to VC")
 
@@ -224,7 +229,11 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.prop(td, "bake_vc_max_space")
 
 				row = box.row()
+				row.label(text="Colorization:")
+				row.prop(td, "bake_vc_colorization", expand=False)
+				row = box.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+				row.active = props.Is_Colorization_Showable(td.bake_vc_colorization)
 				row = box.row()
 				row.operator("object.bake_td_uv_to_vc", text="UV Space to VC")
 
@@ -235,7 +244,11 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.label(text=" %")
 
 				row = box.row()
+				row.label(text="Colorization:")
+				row.prop(td, "bake_vc_colorization", expand=False)
+				row = box.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+				row.active = props.Is_Colorization_Showable(td.bake_vc_colorization)
 				row = box.row()
 				row.operator("object.bake_td_uv_to_vc", text="UV Distortion to VC")
 
