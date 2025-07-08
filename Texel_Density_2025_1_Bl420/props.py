@@ -245,7 +245,7 @@ def Filter_Select_Threshold(self, context):
 def Change_Bake_VC_Mode(self, context):
 	td = context.scene.td
 
-	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
+	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC" or td.bake_vc_mode == "DISTORTION":
 		Show_Gradient(self, context)
 	else:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
