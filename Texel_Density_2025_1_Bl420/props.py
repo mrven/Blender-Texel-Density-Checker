@@ -394,10 +394,10 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 						 ('DISTORTION', 'UV Distortion', ''))
 	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=Change_Bake_VC_Mode)
 
-	bake_vc_colorization_list = (('TD_COLORIZE_HUE', 'RGB Hue', ''),
-								 ('TD_COLORIZE_GRAYSCALE_LINEAR', 'Grayscale (Linear)', ''),
-								 ('TD_COLORIZE_GRAYSCALE_SQRT', 'Grayscale (Square Root)', ''),
-								 ('TD_COLORIZE_FIXED24_RGB8', 'Normalized 24-Bit Fixed-Point (RGB8)', ''))
+	bake_vc_colorization_list = (('TD_COLORIZE_HUE', 'RGB Hue', 'Bake fully saturated colors into VC.\nCalculated values are mapped to the colors\' hue.'),
+								 ('TD_COLORIZE_GRAYSCALE_LINEAR', 'Grayscale (Linear)', 'Bake grayscale colors into VC.\nCalculated values are mapped to the colors\' value (brightness).'),
+								 ('TD_COLORIZE_GRAYSCALE_SQRT', 'Grayscale (Square Root)', 'Bake grayscale colors into VC.\nCalculated values are first taken the square root of, then mapped to the colors\' value (brightness).'),
+								 ('TD_COLORIZE_FIXED24_RGB8', 'Normalized 24-Bit Fixed-Point (RGB8)', 'Bake values directly into VC.\nCalculated values are normalized (i.e. scaled to range 0 to 1) and converted to 24-bit fixed-point numbers, then bitwise-split into 3 channels and converted to floating-point RGB colors, resulting in non-color RGB values in the final VC.\nData can be recovered with expression: `((round(R * 255.0) << 16) + (round(G * 255.0) << 8) + round(B * 255.0)) / float(0xffffff)`, which gives you the normalized value. To retrieve the original, unnormalized value, you\'ll need to memorize the Min and Max value (displayed above), in some way that suits your need, then scale back manually.'))
 	bake_vc_colorization: EnumProperty(name="", items=bake_vc_colorization_list, update=Change_Bake_VC_Colorization)
 
 	bake_vc_min_space: StringProperty(
