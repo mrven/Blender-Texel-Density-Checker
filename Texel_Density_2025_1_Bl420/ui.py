@@ -12,7 +12,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 	@classmethod
 	def poll(self, context):
 		preferences = bpy.context.preferences.addons[__package__].preferences
-		return (context.object is not None) and preferences.view3d_panel_category_enable
+		return (context.object is not None) and (context.active_object is not None) and preferences.view3d_panel_category_enable
 
 	def draw(self, context):
 		td = context.scene.td
@@ -253,7 +253,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 	@classmethod
 	def poll(self, context):
 		preferences = bpy.context.preferences.addons[__package__].preferences
-		return (context.object is not None) and context.mode == 'EDIT_MESH' and preferences.uv_panel_enable
+		return (context.object is not None) and (context.active_object is not None) and context.mode == 'EDIT_MESH' and preferences.uv_panel_enable
 
 	def draw(self, context):
 		td = context.scene.td
