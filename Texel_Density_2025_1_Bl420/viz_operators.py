@@ -118,12 +118,14 @@ def Draw_Callback_Px(self, context):
 	}
 	''')
 
-	shader_info.fragment_source('''
+	fshader_src = '''
 	//uniform float pos_x_min;
 	//uniform float pos_x_max;
 
 	//in vec3 pos;
-
+	'''
+	if td.bake_vc_colorization == "TD_COLORIZE_HUE":
+		fshader_src += '''
 	void main()
 	{
 		// Pure Colors
@@ -150,7 +152,24 @@ def Draw_Callback_Px(self, context):
 						(y * blendColor3 + g * (1 - blendColor3)) * step(pos.x, pos_x_75) * step(pos_x_50, pos.x) +
 						(r * blendColor4 + y * (1 - blendColor4)) * step(pos.x, pos_x_max) * step(pos_x_75, pos.x);
 	}
-	''')
+		'''
+	elif td.bake_vc_colorization == "TD_COLORIZE_GRAYSCALE":
+		fshader_src += '''
+	void main()
+	{
+		float pos_x_normalized = (pos.x - pos_x_min) / (pos_x_max - pos_x_min);
+		FragColor = vec4(pos_x_normalized, pos_x_normalized, pos_x_normalized, 1.0f);
+	}
+		'''
+	else:
+		#FUTURE: elif and attach F shader for more colorization?
+		fshader_src += '''
+	void main()
+	{
+		FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+	}
+		'''
+	shader_info.fragment_source(fshader_src)
 
 	# Gradient Bounds with range 0.0 - 2.0
 	gradient_x_min = screen_texel_x * offset_x
