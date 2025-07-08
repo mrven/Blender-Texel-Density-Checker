@@ -276,7 +276,7 @@ draw_info = {
 
 
 def Is_Colorization_Showable(enum_value):
-    return enum_value == "TD_COLORIZE_HUE" or enum_value == "TD_COLORIZE_GRAYSCALE"
+    return enum_value == "TD_COLORIZE_HUE" or enum_value == "TD_COLORIZE_GRAYSCALE_LINEAR" or enum_value == "TD_COLORIZE_GRAYSCALE_SQRT"
 
 
 def Show_Gradient(self, context):
@@ -395,7 +395,8 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=Change_Bake_VC_Mode)
 
 	bake_vc_colorization_list = (('TD_COLORIZE_HUE', 'RGB Hue', ''),
-								 ('TD_COLORIZE_GRAYSCALE', 'Grayscale', ''),
+								 ('TD_COLORIZE_GRAYSCALE_LINEAR', 'Grayscale (Linear)', ''),
+								 ('TD_COLORIZE_GRAYSCALE_SQRT', 'Grayscale (Square Root)', ''),
 								 ('TD_COLORIZE_FIXED24_RGB8', 'Normalized 24-Bit Fixed-Point (RGB8)', ''))
 	bake_vc_colorization: EnumProperty(name="", items=bake_vc_colorization_list, update=Change_Bake_VC_Colorization)
 

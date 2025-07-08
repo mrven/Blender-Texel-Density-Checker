@@ -7,6 +7,7 @@ import ctypes
 import ctypes.util
 import numpy as np
 import sys
+import math
 
 
 def Normalize_Value(value, range_min, range_max):
@@ -28,9 +29,15 @@ def Value_To_Color(value, range_min, range_max):
 	return color4
 
 
-# Value to grayscale Color
-def Value_To_Grayscale(value, range_min, range_max):
+# Value to linear grayscale Color
+def Value_To_Grayscale_Linear(value, range_min, range_max):
 	remapped_value = Normalize_Value(value, range_min, range_max)
+	return (remapped_value, remapped_value, remapped_value, 1.0)
+
+
+# Value to linear grayscale Color
+def Value_To_Grayscale_Sqrt(value, range_min, range_max):
+	remapped_value = math.sqrt(Normalize_Value(value, range_min, range_max))
 	return (remapped_value, remapped_value, remapped_value, 1.0)
 
 

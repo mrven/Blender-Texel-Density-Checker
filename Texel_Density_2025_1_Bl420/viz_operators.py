@@ -153,11 +153,19 @@ def Draw_Callback_Px(self, context):
 						(r * blendColor4 + y * (1 - blendColor4)) * step(pos.x, pos_x_max) * step(pos_x_75, pos.x);
 	}
 		'''
-	elif td.bake_vc_colorization == "TD_COLORIZE_GRAYSCALE":
+	elif td.bake_vc_colorization == "TD_COLORIZE_GRAYSCALE_LINEAR":
 		fshader_src += '''
 	void main()
 	{
 		float pos_x_normalized = (pos.x - pos_x_min) / (pos_x_max - pos_x_min);
+		FragColor = vec4(pos_x_normalized, pos_x_normalized, pos_x_normalized, 1.0f);
+	}
+		'''
+	elif td.bake_vc_colorization == "TD_COLORIZE_GRAYSCALE_SQRT":
+		fshader_src += '''
+	void main()
+	{
+		float pos_x_normalized = sqrt((pos.x - pos_x_min) / (pos_x_max - pos_x_min));
 		FragColor = vec4(pos_x_normalized, pos_x_normalized, pos_x_normalized, 1.0f);
 	}
 		'''
@@ -523,8 +531,10 @@ class Bake_TD_UV_to_VC(bpy.types.Operator):
 		# Determine the colorization method to use:
 		if td.bake_vc_colorization == "TD_COLORIZE_HUE":
 			colorize = utils.Value_To_Color
-		elif td.bake_vc_colorization == "TD_COLORIZE_GRAYSCALE":
-			colorize = utils.Value_To_Grayscale
+		elif td.bake_vc_colorization == "TD_COLORIZE_GRAYSCALE_LINEAR":
+			colorize = utils.Value_To_Grayscale_Linear
+		elif td.bake_vc_colorization == "TD_COLORIZE_GRAYSCALE_SQRT":
+			colorize = utils.Value_To_Grayscale_Sqrt
 		elif td.bake_vc_colorization == "TD_COLORIZE_FIXED24_RGB8":
 			colorize = utils.Value_To_Fixed24
 		else:
