@@ -255,6 +255,11 @@ def Change_Bake_VC_Mode(self, context):
 		bpy.ops.object.bake_td_uv_to_vc()
 
 
+def Change_Bake_VC_Colorization(self, context):
+    # Basically do the same as if Bake VC Mode has been changed
+	Change_Bake_VC_Mode(self, context)
+
+
 def Change_Select_Mode(self, context):
 	if utils.Get_Preferences().automatic_recalc:
 		bpy.ops.object.select_by_td_space()
@@ -270,12 +275,17 @@ draw_info = {
 }
 
 
+def Is_Colorization_Showable(enum_value):
+    return enum_value == "TD_COLORIZE_HUE" or enum_value == "TD_COLORIZE_GRAYSCALE"
+
+
 def Show_Gradient(self, context):
 	td = context.scene.td
-	if td.bake_vc_show_gradient and draw_info["handler"] is None:
+	should_show = td.bake_vc_show_gradient and Is_Colorization_Showable(td.bake_vc_colorization)
+	if should_show and draw_info["handler"] is None:
 		draw_info["handler"] = bpy.types.SpaceView3D.draw_handler_add(viz_operators.Draw_Callback_Px, (None, None),
 																	  'WINDOW', 'POST_PIXEL')
-	elif (not td.bake_vc_show_gradient) and draw_info["handler"] is not None:
+	elif (not should_show) and draw_info["handler"] is not None:
 		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
 		draw_info["handler"] = None
 
@@ -383,6 +393,11 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 						 ('UV_SPACE_TO_VC', 'UV Space (%)', ''),
 						 ('DISTORTION', 'UV Distortion', ''))
 	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=Change_Bake_VC_Mode)
+
+	bake_vc_colorization_list = (('TD_COLORIZE_HUE', 'RGB Hue', ''),
+								 ('TD_COLORIZE_GRAYSCALE', 'Grayscale', ''),
+								 ('TD_COLORIZE_FIXED24_RGB8', 'Normalized 24-Bit Fixed-Point (RGB8)', ''))
+	bake_vc_colorization: EnumProperty(name="", items=bake_vc_colorization_list, update=Change_Bake_VC_Colorization)
 
 	bake_vc_min_space: StringProperty(
 		name="",

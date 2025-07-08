@@ -9,20 +9,39 @@ import numpy as np
 import sys
 
 
+def Normalize_Value(value, range_min, range_max):
+	# Remap value to range 0.0 - 1.0
+	if abs(range_max - range_min) < 0.001:
+		return 0.5
+	else:
+		return Saturate((value - range_min) / (range_max - range_min))
+
+
 # Value by range to Color gradient by hue
 def Value_To_Color(value, range_min, range_max):
-	# Remap value to range 0.0 - 1.0
-	if range_min == range_max or abs(range_max - range_min) < 0.001:
-		remapped_value = 0.5
-	else:
-		remapped_value = (value - range_min) / (range_max - range_min)
-		remapped_value = Saturate(remapped_value)
+	remapped_value = Normalize_Value(value, range_min, range_max)
 
 	# Calculate hue and get color
 	hue = (1 - remapped_value) * 0.67
 	color = colorsys.hsv_to_rgb(hue, 1, 1)
 	color4 = (color[0], color[1], color[2], 1)
 	return color4
+
+
+# Value to grayscale Color
+def Value_To_Grayscale(value, range_min, range_max):
+	remapped_value = Normalize_Value(value, range_min, range_max)
+	return (remapped_value, remapped_value, remapped_value, 1.0)
+
+
+# Value to 24-bit fixed-point number, in RGB8 representation
+#   Decode: value = ((round(rgb8[0] * 255.0) << 16) + (round(rgb8[1] * 255.0) << 8) + round(rgb8[2] * 255.0)) / float(0xffffff)
+#   Lossiness: all(abs(Fixed24_To_Value(Value_To_Fixed24(1e-8 * i, 0.0, 1.0)) - 1e-8 * i) < 5e-8 for i in range(100000000)) == True
+def Value_To_Fixed24(value, range_min, range_max):
+	remapped_value = Normalize_Value(value, range_min, range_max)
+	remapped_int = round(remapped_value * float(0xffffff))
+	rgb8 = ((remapped_int & 0xff0000) >> 16, (remapped_int & 0xff00) >> 8, remapped_int & 0xff)
+	return (rgb8[0] / 255.0, rgb8[1] / 255.0, rgb8[2] / 255.0, 1)
 
 
 # Sync selection between UV Editor and 3D View
