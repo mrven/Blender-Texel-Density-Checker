@@ -66,6 +66,61 @@ def Sync_UV_Selection():
 	bmesh.update_edit_mesh(mesh)
 
 
+def calculate_geometry_areas():
+	# Save current mode and active object
+	start_active_obj = bpy.context.active_object
+	# Get Library
+	tdcore = get_td_core_dll()
+
+	tdcore.CalculateGeometryAreas.argtypes = [
+		ctypes.POINTER(ctypes.c_float),  # VertexCoordinates
+		ctypes.POINTER(ctypes.c_float),  # MatrixWorld
+		ctypes.c_int, # VertCount
+		ctypes.c_int,  # PolyCount
+		ctypes.POINTER(ctypes.c_int),  # Vertex Count by Polygon
+		ctypes.POINTER(ctypes.c_float)  # Results
+	]
+
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	mesh_data = start_active_obj.data
+	matrix_world = start_active_obj.matrix_world.transposed()
+	poly_count = len(mesh_data.polygons)
+	vertex_count = len(mesh_data.loops)
+
+	# Get all vertex coordinates in from loops in LOCAL space as a flat array
+	loop_vertex_indices = np.empty(len(mesh_data.loops), dtype=np.int32)
+	mesh_data.loops.foreach_get("vertex_index", loop_vertex_indices)
+	all_vertex_coords = np.empty(len(mesh_data.vertices) * 3, dtype=np.float32)
+	mesh_data.vertices.foreach_get("co", all_vertex_coords)
+	all_vertex_coords = all_vertex_coords.reshape(-1, 3)
+	ordered_coords = all_vertex_coords[loop_vertex_indices]
+	vert_co_ordered = ordered_coords.flatten().astype(np.float32)
+
+	# Get world matrix and flatten it
+	matrix_world = np.array(matrix_world, dtype=np.float32).flatten()
+
+	# Get Vertex Count for each poly
+	vertex_count_per_poly = np.empty(poly_count, dtype=np.int32)
+	mesh_data.polygons.foreach_get("loop_total", vertex_count_per_poly)
+
+	# Results Buffer (Geometry Area per Polygon)
+	result = np.zeros(poly_count, dtype=np.float32)
+
+	# Call function from Library
+	tdcore.CalculateGeometryAreas(
+		vert_co_ordered.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		matrix_world.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		vertex_count,
+		poly_count,
+		vertex_count_per_poly.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
+		result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+	)
+
+	free_td_core_dll(tdcore)
+
+	print("Calc is Done")
+
 # Calculate UV Area and Texel Density for each polygon with C++
 def Calculate_TD_Area_To_List_CPP():
 	td = bpy.context.scene.td
@@ -372,3 +427,27 @@ def get_td_core_dll():
 			return ctypes.CDLL(tdcore_path)  # Linux/macOS
 	except OSError as e:
 		raise OSError(f"Failed to load library: {tdcore_path}") from e
+
+def free_td_core_dll(dll_handle):
+	if not dll_handle or not hasattr(dll_handle, '_handle'):
+		return
+
+	try:
+		handle = ctypes.c_void_p(dll_handle._handle)
+
+		if sys.platform.startswith("win"):
+			# Windows
+			kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+			kernel32.FreeLibrary.argtypes = [ctypes.c_void_p]
+			if not kernel32.FreeLibrary(handle):
+				raise ctypes.WinError(ctypes.get_last_error())
+		else:
+			# Linux/Mac
+			libc = ctypes.CDLL(None)
+			libc.dlclose.argtypes = [ctypes.c_void_p]
+			if libc.dlclose(handle) != 0:
+				raise RuntimeError("Failed to dlclose library")
+	except Exception as e:
+		print(f"Warning: Library unload error: {str(e)}")
+	finally:
+		del dll_handle

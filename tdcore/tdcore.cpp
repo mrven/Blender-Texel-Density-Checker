@@ -7,6 +7,11 @@
     #include <windows.h> // Windows
 #endif
 
+EXPORT_API void CalculateGeometryAreas(float *Vertices, float *WorldMatrix, int VertexCount, int PolyCount, int *PerPolyVertexCount, float *Result) 
+{
+    CalculateGeometryAreas_Internal(Vertices, WorldMatrix, VertexCount, PolyCount, PerPolyVertexCount, Result);
+}
+
 void CalculateTDAreaArray(
     float* UVs,
     int UVCount,
@@ -25,7 +30,7 @@ void CalculateTDAreaArray(
 
 EXPORT_API void CalculateTotalTDArea(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result) 
 { 
-    CalculateTotalTDArea_Internal(TDsAreas, SelectedPoly, PolyCount, Result); 
+    CalculateTotalTDArea_Internal(TDsAreas, SelectedPoly, PolyCount, Result);
 }
 
 EXPORT_API void SetTD(
@@ -79,6 +84,63 @@ EXPORT_API void SetTD(
     }
 }
 
+
+EXPORT_API void CalculateGeometryAreas_Internal(float* Vertices, float* WorldMatrix, int VertexCount, int PolyCount, int* PerPolyVertexCount, float* Result)
+{
+    if (!Vertices || !WorldMatrix || !PerPolyVertexCount || !Result || VertexCount <= 0 || PolyCount <= 0)
+        return;
+
+    // Apply world matrix to all vertices
+    std::vector<float> worldVerts(VertexCount * 3);
+    for (int i = 0; i < VertexCount; ++i) {
+      int base = i * 3;
+      float x = Vertices[base];
+      float y = Vertices[base + 1];
+      float z = Vertices[base + 2];
+
+      worldVerts[base] = WorldMatrix[0] * x + WorldMatrix[4] * y + WorldMatrix[8] * z + WorldMatrix[12];
+      worldVerts[base + 1] = WorldMatrix[1] * x + WorldMatrix[5] * y + WorldMatrix[9] * z + WorldMatrix[13];
+      worldVerts[base + 2] = WorldMatrix[2] * x + WorldMatrix[6] * y + WorldMatrix[10] * z + WorldMatrix[14];
+    }
+    
+    int vertexIndex = 0;
+
+    for (int i = 0; i < PolyCount; ++i) {
+      float area = 0.f;
+      int polyVertCount = PerPolyVertexCount[i];
+
+      if (polyVertCount < 3 || vertexIndex + polyVertCount > VertexCount) {
+        Result[i] = 0.0f;
+        vertexIndex += polyVertCount;
+        continue;
+      }
+
+      float *v0 = &worldVerts[vertexIndex * 3];
+
+      for (int j = 1; j < polyVertCount - 1; ++j) {
+        float *v1 = &worldVerts[(vertexIndex + j) * 3];
+        float *v2 = &worldVerts[(vertexIndex + j + 1) * 3];
+
+        float ux = v1[0] - v0[0];
+        float uy = v1[1] - v0[1];
+        float uz = v1[2] - v0[2];
+
+        float vx = v2[0] - v0[0];
+        float vy = v2[1] - v0[1];
+        float vz = v2[2] - v0[2];
+
+        float cx = uy * vz - uz * vy;
+        float cy = uz * vx - ux * vz;
+        float cz = ux * vy - uy * vx;
+
+        float triangleArea = 0.5f * sqrtf(cx * cx + cy * cy + cz * cz);
+        area += triangleArea;
+      }
+
+      Result[i] = area;
+      vertexIndex += polyVertCount;
+    }
+}
 
 
 EXPORT_API void CalculateTDAreaArray_Internal(

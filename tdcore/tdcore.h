@@ -10,6 +10,15 @@
 extern "C"
 {
 #endif
+    EXPORT_API void CalculateGeometryAreas(
+        float *Vertices, 
+        float *WorldMatrix,
+        int VertexCount, 
+        int PolyCount,
+        int *PerPolyVertexCount, 
+        float *Result
+    );
+
     EXPORT_API void CalculateTDAreaArray(
         float* UVs,
         int UVCount,
@@ -39,6 +48,15 @@ extern "C"
         float TargetTD,
         float* OriginCoordinates,
         float* Result
+    );
+
+    EXPORT_API void CalculateGeometryAreas_Internal(
+        float *Vertices, 
+        float *WorldMatrix,
+        int VertexCount, 
+        int PolyCount,
+        int *PerPolyVertexCount,
+        float *Result
     );
 
     EXPORT_API void CalculateTDAreaArray_Internal(

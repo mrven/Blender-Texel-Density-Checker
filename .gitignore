@@ -2,4 +2,4 @@
 .vs/
 .clang-format
 x64/
-*.vcxproj*
+*.vcxproj.*
