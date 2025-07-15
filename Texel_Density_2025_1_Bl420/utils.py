@@ -25,47 +25,6 @@ def Value_To_Color(value, range_min, range_max):
 	return color4
 
 
-# Sync selection between UV Editor and 3D View
-def Sync_UV_Selection():
-	mesh = bpy.context.active_object.data
-	bm = bmesh.from_edit_mesh(mesh)
-	bm.faces.ensure_lookup_table()
-	uv_layer = bm.loops.layers.uv.active
-	uv_selected_faces = []
-	face_count = len(bm.faces)
-
-	# Add face to list if face select in UV Editor and in 3D View
-	for face_id in range(face_count):
-		face_is_selected = True
-		for loop in bm.faces[face_id].loops:
-			if not loop[uv_layer].select:
-				face_is_selected = False
-
-		if face_is_selected and bm.faces[face_id].select:
-			uv_selected_faces.append(face_id)
-
-	# Deselect all faces in UV Editor and select faces from list
-	for face_id in range(face_count):
-		for loop in bm.faces[face_id].loops:
-			loop[uv_layer].select = False
-
-	for face_id in uv_selected_faces:
-		for loop in bm.faces[face_id].loops:
-			loop[uv_layer].select = True
-
-	# if set mode "Selected Faces" select faces from list
-	for face in bm.faces:
-		if bpy.context.scene.td.selected_faces:
-			face.select_set(False)
-		else:
-			face.select_set(True)
-
-	for face_id in uv_selected_faces:
-		bm.faces[face_id].select_set(True)
-
-	bmesh.update_edit_mesh(mesh)
-
-
 def calculate_geometry_areas(obj):
 	start_mode = bpy.context.object.mode
 
@@ -209,8 +168,30 @@ def Calculate_TD_Area_To_List_CPP(obj):
 	return result
 
 
+def get_average_uv_center(obj, selected_polygons):
+	mesh = obj.data
+	uv_layer = mesh.uv_layers.active.data
+
+	total_uv = np.array([0.0, 0.0], dtype=np.float64)
+	count = 0
+
+	for i, poly in enumerate(mesh.polygons):
+		if selected_polygons[i] == 0:
+			continue
+
+		for loop_index in poly.loop_indices:
+			uv = uv_layer[loop_index].uv
+			total_uv += uv
+			count += 1
+
+	if count == 0:
+		return 0.5, 0.5
+
+	return total_uv / count
+
+
 # Set TD
-def set_texel_density_cpp(obj, selected_polygons, scale_origin_co, target_td, texture_size_x, texture_size_y):
+def set_texel_density_cpp(obj, selected_polygons, scale_origin_co, target_td, texture_size_x, texture_size_y, scale_mode):
 	td = bpy.context.scene.td
 
 	# Save current mode
@@ -230,8 +211,9 @@ def set_texel_density_cpp(obj, selected_polygons, scale_origin_co, target_td, te
 		ctypes.c_float,					# Scale Length
 		ctypes.c_int,					# Units
 		ctypes.POINTER(ctypes.c_ubyte),	# Selected Poly
-		ctypes.c_float,					# Target TD
+		ctypes.c_float,					# Target TD (-0.5 = Half, -2.0 = Double)
 		ctypes.POINTER(ctypes.c_float),	# Scale Origin Coordinates
+		ctypes.c_int,  # Scale Mode (0 - Average, 1 - Each)
 		ctypes.POINTER(ctypes.c_float),	# Result
 	]
 	tdcore.SetTD.restype = None
@@ -271,6 +253,7 @@ def set_texel_density_cpp(obj, selected_polygons, scale_origin_co, target_td, te
 		selected_polygons.ctypes.data_as(ctypes.POINTER(ctypes.c_ubyte)),
 		target_td,
 		origin_coordinates.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		scale_mode,
 		result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 	)
 

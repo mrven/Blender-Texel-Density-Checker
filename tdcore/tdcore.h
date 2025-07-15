@@ -47,6 +47,7 @@ extern "C"
         unsigned char* SelectedPoly,
         float TargetTD,
         float* OriginCoordinates,
+        int ScaleMode,
         float* Result
     );
 

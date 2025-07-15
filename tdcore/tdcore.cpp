@@ -45,7 +45,8 @@ EXPORT_API void SetTD(
     int Units,
     unsigned char* SelectedPoly,
     float TargetTD,
-    float* OriginCoordinates,
+    float* OriginCoordinates, 
+    int ScaleMode,
     float* Result
 )
 {
@@ -61,7 +62,14 @@ EXPORT_API void SetTD(
 
     if (TotalUVArea > 0.0f)
     {
+
         float ScaleFactor = TargetTD / CurrentTD;
+        
+        // Target TD -0.5 is half TD; -2.0 is double TD 
+        if (TargetTD < -1.0f)
+            ScaleFactor = 2.0f;
+        else if (TargetTD < 0.0f)
+            ScaleFactor = 0.5f;
 
         int VertexIndex = 0;
         for (int i = 0; i < PolyCount; i++)

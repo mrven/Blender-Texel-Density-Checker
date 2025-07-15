@@ -165,7 +165,6 @@ class Texel_Density_Set(bpy.types.Operator):
 			texture_size_y = 1024
 
 		# Get Value for TD Set
-		# TODO: Add cases for half and double
 		density_new_value = 0
 
 		# Double and Half use for buttons "Half TD" and "Double TD"
@@ -175,6 +174,10 @@ class Texel_Density_Set(bpy.types.Operator):
 			except:
 				self.report({'INFO'}, "Density value is wrong")
 				return {'CANCELLED'}
+		elif td.density_set == "Double":
+			density_new_value = -2.0
+		elif td.density_set == "Half":
+			density_new_value = -0.5
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -222,10 +225,11 @@ class Texel_Density_Set(bpy.types.Operator):
 					selected_polygons = np.empty(len(mesh_data.polygons), dtype=np.uint8)
 					mesh_data.polygons.foreach_get("select", selected_polygons)
 
+				#TODO: Add safety check if all poly is deselected
+
 				#Scale Origin Coordinates
 				if td.rescale_anchor == 'SELECTION':
-					# TODO: Use Cursor coordinates OR NEED CALCULATE CENTER OF UV ISLANDS
-					origin_coordinates = (0.5, 0.5)
+					origin_coordinates = utils.get_average_uv_center(o, selected_polygons)
 				elif td.rescale_anchor == 'UV_LEFT_TOP':
 					origin_coordinates = (0, 1)
 				elif td.rescale_anchor == 'UV_LEFT_BOTTOM':
@@ -239,8 +243,10 @@ class Texel_Density_Set(bpy.types.Operator):
 				else:
 					origin_coordinates = (0.5, 0.5)
 
-				# TODO: Add Each and Average Option
-				utils.set_texel_density_cpp(o, selected_polygons, origin_coordinates, density_new_value, texture_size_x, texture_size_y)
+				# Each and Average Option
+				scale_mode = 1 if td.set_method == 'EACH' else 0
+
+				utils.set_texel_density_cpp(o, selected_polygons, origin_coordinates, density_new_value, texture_size_x, texture_size_y, scale_mode)
 
 		# Select Objects Again
 		bpy.ops.object.mode_set(mode='OBJECT')
