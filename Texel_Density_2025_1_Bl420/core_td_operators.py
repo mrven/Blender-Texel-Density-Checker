@@ -225,7 +225,8 @@ class Texel_Density_Set(bpy.types.Operator):
 					selected_polygons = np.empty(len(mesh_data.polygons), dtype=np.uint8)
 					mesh_data.polygons.foreach_get("select", selected_polygons)
 
-				#TODO: Add safety check if all poly is deselected
+				if not np.any(selected_polygons):
+					continue
 
 				#Scale Origin Coordinates
 				if td.rescale_anchor == 'SELECTION':

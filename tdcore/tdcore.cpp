@@ -60,20 +60,29 @@ EXPORT_API void SetTD(
     float CurrentTD = TotalTDResult[0];
     float TotalUVArea = TotalTDResult[1];
 
+    float ScaleFactor = 1.0f;
+
     if (TotalUVArea > 0.0f)
     {
-
-        float ScaleFactor = TargetTD / CurrentTD;
-        
-        // Target TD -0.5 is half TD; -2.0 is double TD 
-        if (TargetTD < -1.0f)
-            ScaleFactor = 2.0f;
-        else if (TargetTD < 0.0f)
-            ScaleFactor = 0.5f;
-
         int VertexIndex = 0;
         for (int i = 0; i < PolyCount; i++)
         {
+            // 0 - Average, 1 - Each
+            if (ScaleMode == 0) 
+            {
+                ScaleFactor = TargetTD / CurrentTD;
+            } 
+            else 
+            {
+                ScaleFactor = TargetTD / TempTDsAreas[i * 2];
+            }
+
+            // Target TD -0.5 is half TD; -2.0 is double TD
+            if (TargetTD < -1.0f)
+            ScaleFactor = 2.0f;
+            else if (TargetTD < 0.0f)
+            ScaleFactor = 0.5f;
+
             for (int j = 0; j < VertexCount[i]; j++) 
             {
                 int Index = VertexIndex + j * 2;
