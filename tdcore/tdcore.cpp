@@ -56,13 +56,8 @@ EXPORT_API void SetTD(
 
     float TotalTDResult[2] = { 0.0f, 0.0f };
     CalculateTotalTDArea_Internal(TempTDsAreas.data(), SelectedPoly, PolyCount, TotalTDResult);
-    /*float CurrentTD = std::round(TotalTDResult[0] * 1000.0f) / 1000.0f;*/
     float CurrentTD = TotalTDResult[0];
     float TotalUVArea = TotalTDResult[1];
-
-    //printf("Poly %d: selected=%d, vertexIndex=%d\n", i, SelectedPoly[i],
-    //       VertexIndex);
-    printf("Current TD=%f, Current Area=%f\n", CurrentTD, TotalUVArea);
 
     if (TotalUVArea > 0.0f)
     {
