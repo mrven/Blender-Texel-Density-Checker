@@ -153,7 +153,7 @@ class Select_By_TD_Space(bpy.types.Operator):
 
 				# Get islands and TD and UV areas of each polygon
 				islands_list = utils.Get_UV_Islands()
-				face_td_area_list = utils.Calculate_TD_Area_To_List_CPP()
+				face_td_area_list = utils.Calculate_TD_Area_To_List_CPP(x)
 
 				if td.select_mode == "FACES_BY_TD":
 					for face_id in range(0, face_count):

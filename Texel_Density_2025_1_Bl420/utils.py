@@ -66,9 +66,9 @@ def Sync_UV_Selection():
 	bmesh.update_edit_mesh(mesh)
 
 
-def calculate_geometry_areas():
-	# Save current mode and active object
-	start_active_obj = bpy.context.active_object
+def calculate_geometry_areas(obj):
+	start_mode = bpy.context.object.mode
+
 	# Get Library
 	tdcore = get_td_core_dll()
 
@@ -81,10 +81,12 @@ def calculate_geometry_areas():
 		ctypes.POINTER(ctypes.c_float)  # Results
 	]
 
+	tdcore.CalculateGeometryAreas.restype = None
+
 	bpy.ops.object.mode_set(mode='OBJECT')
 
-	mesh_data = start_active_obj.data
-	matrix_world = start_active_obj.matrix_world.transposed()
+	mesh_data = obj.data
+	matrix_world = obj.matrix_world.transposed()
 	poly_count = len(mesh_data.polygons)
 	vertex_count = len(mesh_data.loops)
 
@@ -117,16 +119,18 @@ def calculate_geometry_areas():
 		result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 	)
 
+	bpy.ops.object.mode_set(mode=start_mode)
+
 	free_td_core_dll(tdcore)
 
-	print("Calc is Done")
+	return result
+
 
 # Calculate UV Area and Texel Density for each polygon with C++
-def Calculate_TD_Area_To_List_CPP():
+def Calculate_TD_Area_To_List_CPP(obj):
 	td = bpy.context.scene.td
 
-	# Save current mode and active object
-	start_active_obj = bpy.context.active_object
+	# Save current mode
 	start_mode = bpy.context.object.mode
 
 	# Get Library
@@ -144,6 +148,8 @@ def Calculate_TD_Area_To_List_CPP():
 		ctypes.c_int,  						# Units
 		ctypes.POINTER(ctypes.c_float)  	# Results
 	]
+
+	tdcore.CalculateTDAreaArray.restype = None
 
 	# Get texture size from panel
 	if td.texture_size != 'CUSTOM':
@@ -164,12 +170,7 @@ def Calculate_TD_Area_To_List_CPP():
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
-	# Duplicate and Apply Transforms
-	bpy.ops.object.duplicate()
-	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-
-	mesh_data = bpy.context.active_object.data
+	mesh_data = obj.data
 
 	# Get UV-coordinates
 	uv_layer = mesh_data.uv_layers.active.data
@@ -178,8 +179,7 @@ def Calculate_TD_Area_To_List_CPP():
 	uvs = uvs.reshape(-1, 2).flatten()
 
 	# Get Geometry Area
-	areas = np.empty(len(mesh_data.polygons), dtype=np.float32)
-	mesh_data.polygons.foreach_get("area", areas)
+	areas = calculate_geometry_areas(obj)
 
 	# Get Vertex Count
 	vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
@@ -202,21 +202,87 @@ def Calculate_TD_Area_To_List_CPP():
 		result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 	)
 
-	# Save name of data for cleanup
-	mesh_data_name = mesh_data.name
+	bpy.ops.object.mode_set(mode=start_mode)
 
-	# Delete duplicated object and mesh data
-	bpy.ops.object.delete()
-	try:
-		bpy.data.meshes.remove(bpy.data.meshes[mesh_data_name])
-	except:
-		pass
+	free_td_core_dll(tdcore)
 
-	bpy.context.view_layer.objects.active = start_active_obj
+	return result
+
+
+# Set TD
+def set_texel_density_cpp(obj, selected_polygons, scale_origin_co, target_td, texture_size_x, texture_size_y):
+	td = bpy.context.scene.td
+
+	# Save current mode
+	start_mode = bpy.context.object.mode
+
+	# Get Library
+	tdcore = get_td_core_dll()
+
+	tdcore.SetTD.argtypes = [
+		ctypes.POINTER(ctypes.c_float),	# UVs
+		ctypes.c_int,					# UVs Count
+		ctypes.POINTER(ctypes.c_float),	# Areas
+		ctypes.POINTER(ctypes.c_int),	# Vertex Count (per poly)
+		ctypes.c_int,					# Poly Count
+		ctypes.c_int,					# Texture X Size
+		ctypes.c_int,					# Texture Y Size
+		ctypes.c_float,					# Scale Length
+		ctypes.c_int,					# Units
+		ctypes.POINTER(ctypes.c_ubyte),	# Selected Poly
+		ctypes.c_float,					# Target TD
+		ctypes.POINTER(ctypes.c_float),	# Scale Origin Coordinates
+		ctypes.POINTER(ctypes.c_float),	# Result
+	]
+	tdcore.SetTD.restype = None
+
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	mesh_data = obj.data
+	poly_count = len(mesh_data.polygons)
+
+	# Get UV-coordinates
+	uv_layer = mesh_data.uv_layers.active.data
+	uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
+	uv_layer.foreach_get("uv", uvs)
+	uvs = uvs.reshape(-1, 2).flatten()
+
+	# Get Geometry Area
+	areas = calculate_geometry_areas(obj)
+
+	# Get Vertex Count (per poly)
+	vertex_count = np.empty(poly_count, dtype=np.int32)
+	mesh_data.polygons.foreach_get("loop_total", vertex_count)
+
+	# --- Scale Origin ---
+	origin_coordinates = np.array([scale_origin_co[0], scale_origin_co[1]], dtype=np.float32)
+	result = np.zeros_like(uvs, dtype=np.float32)
+
+	tdcore.SetTD(
+		uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		uvs.size,
+		areas.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		vertex_count.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
+		poly_count,
+		texture_size_x,
+		texture_size_y,
+		bpy.context.scene.unit_settings.scale_length,
+		int(td.units),
+		selected_polygons.ctypes.data_as(ctypes.POINTER(ctypes.c_ubyte)),
+		target_td,
+		origin_coordinates.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+		result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+	)
+
+	# --- Change UV ---
+	for i, loop in enumerate(mesh_data.loops):
+		uv_layer[loop.index].uv.x = result[i * 2]
+		uv_layer[loop.index].uv.y = result[i * 2 + 1]
 
 	bpy.ops.object.mode_set(mode=start_mode)
 
-	return result
+	free_td_core_dll(tdcore)
+
 
 # Get list of islands (slow)
 def Get_UV_Islands():
@@ -427,6 +493,7 @@ def get_td_core_dll():
 			return ctypes.CDLL(tdcore_path)  # Linux/macOS
 	except OSError as e:
 		raise OSError(f"Failed to load library: {tdcore_path}") from e
+
 
 def free_td_core_dll(dll_handle):
 	if not dll_handle or not hasattr(dll_handle, '_handle'):
