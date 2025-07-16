@@ -10,13 +10,13 @@ import sys
 
 
 # Value by range to Color gradient by hue
-def Value_To_Color(value, range_min, range_max):
+def value_to_color(value, range_min, range_max):
 	# Remap value to range 0.0 - 1.0
 	if range_min == range_max or abs(range_max - range_min) < 0.001:
 		remapped_value = 0.5
 	else:
 		remapped_value = (value - range_min) / (range_max - range_min)
-		remapped_value = Saturate(remapped_value)
+		remapped_value = saturate(remapped_value)
 
 	# Calculate hue and get color
 	hue = (1 - remapped_value) * 0.67
@@ -25,7 +25,7 @@ def Value_To_Color(value, range_min, range_max):
 	return color4
 
 
-def calculate_geometry_areas(obj):
+def calculate_geometry_areas_cpp(obj):
 	start_mode = bpy.context.object.mode
 
 	# Get Library
@@ -86,7 +86,7 @@ def calculate_geometry_areas(obj):
 
 
 # Calculate UV Area and Texel Density for each polygon with C++
-def Calculate_TD_Area_To_List_CPP(obj):
+def calculate_td_area_to_list_cpp(obj):
 	td = bpy.context.scene.td
 
 	# Save current mode
@@ -116,11 +116,13 @@ def Calculate_TD_Area_To_List_CPP(obj):
 	else:
 		try:
 			texture_size_x = int(td.custom_width)
-		except:
+		except Exception as e:
+			print(f"[WARNING] Failed convert Texture Size X to int {e}")
 			texture_size_x = 1024
 		try:
 			texture_size_y = int(td.custom_height)
-		except:
+		except Exception as e:
+			print(f"[WARNING] Failed convert Texture Size X to int {e}")
 			texture_size_y = 1024
 
 	if texture_size_x < 1 or texture_size_y < 1:
@@ -138,7 +140,7 @@ def Calculate_TD_Area_To_List_CPP(obj):
 	uvs = uvs.reshape(-1, 2).flatten()
 
 	# Get Geometry Area
-	areas = calculate_geometry_areas(obj)
+	areas = calculate_geometry_areas_cpp(obj)
 
 	# Get Vertex Count
 	vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
@@ -230,7 +232,7 @@ def set_texel_density_cpp(obj, selected_polygons, scale_origin_co, target_td, te
 	uvs = uvs.reshape(-1, 2).flatten()
 
 	# Get Geometry Area
-	areas = calculate_geometry_areas(obj)
+	areas = calculate_geometry_areas_cpp(obj)
 
 	# Get Vertex Count (per poly)
 	vertex_count = np.empty(poly_count, dtype=np.int32)
@@ -268,7 +270,7 @@ def set_texel_density_cpp(obj, selected_polygons, scale_origin_co, target_td, te
 
 
 # Get list of islands (slow)
-def Get_UV_Islands():
+def get_uv_islands():
 	start_selected_3d_faces = []
 	start_selected_uv_faces = []
 	start_hidden_faces = []
@@ -301,7 +303,6 @@ def Get_UV_Islands():
 	bpy.ops.mesh.reveal()
 	bpy.ops.mesh.select_all(action='SELECT')
 
-	face_dict = {}
 	face_dict = [f for f in range(0, face_count)]
 	uv_islands = []
 
@@ -392,7 +393,7 @@ def get_selected_islands(bm, uv_layers):
 		if face.tag is False:
 			continue
 
-		# Tag first element in island (for dont add again)
+		# Tag first element in island (for don't add again)
 		face.tag = False
 
 		# Container collector of island elements
@@ -416,7 +417,7 @@ def get_selected_islands(bm, uv_layers):
 							continue
 						# If the coordinates of the vertices of adjacent
 						# faces on the uv match, then this is part of the
-						# island and we append face to the list
+						# island, and we append face to the list
 						co = l[uv_layers].uv
 						if ll[uv_layers].uv == co:
 							temp.append(ll.face)
@@ -430,12 +431,12 @@ def get_selected_islands(bm, uv_layers):
 	return islands
 
 
-def Saturate(val):
+def saturate(val):
 	return max(min(val, 1), 0)
 
 
 # Execution Time
-def Print_Execution_Time(function_name, start_time):
+def print_execution_time(function_name, start_time):
 	td = bpy.context.scene.td
 
 	if td.debug:
@@ -446,7 +447,7 @@ def Print_Execution_Time(function_name, start_time):
 		print(function_name + " finished in " + str(seconds) + "s (" + str(milliseconds) + "ms)")
 
 
-def Get_Preferences():
+def get_preferences():
 	preferences = bpy.context.preferences
 	addon_prefs = preferences.addons[__package__].preferences
 

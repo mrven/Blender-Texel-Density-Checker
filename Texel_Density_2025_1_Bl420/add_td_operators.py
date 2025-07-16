@@ -6,7 +6,7 @@ from . import utils
 
 
 # Copy average TD from object to object
-class Texel_Density_Copy(bpy.types.Operator):
+class TexelDensityCopy(bpy.types.Operator):
 	"""Copy Density"""
 	bl_idname = "object.texel_density_copy"
 	bl_label = "Copy Texel Density"
@@ -41,12 +41,12 @@ class Texel_Density_Copy(bpy.types.Operator):
 			x.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
 
-		utils.Print_Execution_Time("Copy TD", start_time)
+		utils.print_execution_time("Copy TD", start_time)
 		return {'FINISHED'}
 
 
 # Copy last calculated value of TD to "Set TD Value" field
-class Calculated_To_Set(bpy.types.Operator):
+class CalculatedToSet(bpy.types.Operator):
 	"""Copy Calc to Set"""
 	bl_idname = "object.calculate_to_set"
 	bl_label = "Copy Calculated Value to Set Value Field"
@@ -57,12 +57,12 @@ class Calculated_To_Set(bpy.types.Operator):
 		td = context.scene.td
 		td.density_set = td.density
 
-		utils.Print_Execution_Time("Calculated TD to Set", start_time)
+		utils.print_execution_time("Calculated TD to Set", start_time)
 		return {'FINISHED'}
 
 
 # Copy last calculated value to "Select Value" field
-class Calculated_To_Select(bpy.types.Operator):
+class CalculatedToSelect(bpy.types.Operator):
 	"""Copy Calc to Set"""
 	bl_idname = "object.calculate_to_select"
 	bl_label = "Copy Calculated Value to Select Value Field"
@@ -78,12 +78,12 @@ class Calculated_To_Select(bpy.types.Operator):
 		else:
 			td['select_value'] = td.density
 
-		utils.Print_Execution_Time("Calculated TD to Select", start_time)
+		utils.print_execution_time("Calculated TD to Select", start_time)
 		return {'FINISHED'}
 
 
 # Buttons "Half/Double TD" and presets with values (0.64 - 20.48 px/cm)
-class Preset_Set(bpy.types.Operator):
+class PresetSet(bpy.types.Operator):
 	"""Preset Set Density"""
 	bl_idname = "object.preset_set"
 	bl_label = "Set Texel Density"
@@ -108,12 +108,12 @@ class Preset_Set(bpy.types.Operator):
 			td.density_set = self.td_value
 			bpy.ops.object.texel_density_set()
 
-		utils.Print_Execution_Time("Preset TD Set", start_time)
+		utils.print_execution_time("Preset TD Set", start_time)
 		return {'FINISHED'}
 
 
 # Select polygons or islands with same TD or UV space
-class Select_By_TD_Space(bpy.types.Operator):
+class SelectByTDSpace(bpy.types.Operator):
 	"""Select Faces with same TD"""
 	bl_idname = "object.select_by_td_space"
 	bl_label = "Select Faces with same TD"
@@ -152,8 +152,8 @@ class Select_By_TD_Space(bpy.types.Operator):
 				searched_faces = []
 
 				# Get islands and TD and UV areas of each polygon
-				islands_list = utils.Get_UV_Islands()
-				face_td_area_list = utils.Calculate_TD_Area_To_List_CPP(x)
+				islands_list = utils.get_uv_islands()
+				face_td_area_list = utils.calculate_td_area_to_list_cpp(x)
 
 				if td.select_mode == "FACES_BY_TD":
 					for face_id in range(0, face_count):
@@ -272,16 +272,16 @@ class Select_By_TD_Space(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
-		utils.Print_Execution_Time("Select by TD Space", start_time)
+		utils.print_execution_time("Select by TD Space", start_time)
 		return {'FINISHED'}
 
 
 classes = (
-	Texel_Density_Copy,
-	Calculated_To_Set,
-	Calculated_To_Select,
-	Preset_Set,
-	Select_By_TD_Space,
+	TexelDensityCopy,
+	CalculatedToSet,
+	CalculatedToSelect,
+	PresetSet,
+	SelectByTDSpace,
 )
 
 

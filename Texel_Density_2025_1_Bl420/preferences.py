@@ -11,39 +11,41 @@ from bpy.props import (
 )
 
 
-def update_view3d_panel_category(self, context):
+def update_view3d_panel_category(_, __):
 	is_panel = hasattr(bpy.types, 'VIEW3D_PT_texel_density_checker')
 	category = bpy.context.preferences.addons[__package__].preferences.view3d_panel_category
 
 	if is_panel:
 		try:
 			bpy.utils.unregister_class(VIEW3D_PT_texel_density_checker)
-		except:
+		except Exception as e:
+			print(f"[WARNING] Failed to unregister panel {e}")
 			pass
 	VIEW3D_PT_texel_density_checker.bl_category = category
 	bpy.utils.register_class(VIEW3D_PT_texel_density_checker)
 
 
-def update_uv_panel_category(self, context):
+def update_uv_panel_category(_, __):
 	is_panel = hasattr(bpy.types, 'UV_PT_texel_density_checker')
 	category = bpy.context.preferences.addons[__package__].preferences.uv_panel_category
 
 	if is_panel:
 		try:
 			bpy.utils.unregister_class(UV_PT_texel_density_checker)
-		except:
+		except Exception as e:
+			print(f"[WARNING] Failed to unregister panel {e}")
 			pass
 
 	UV_PT_texel_density_checker.bl_category = category
 	bpy.utils.register_class(UV_PT_texel_density_checker)
 
 
-def Filter_Gradient_Offset_X(self, context):
+def filter_gradient_offset_x(_, __):
 	offset_x_filtered = bpy.context.preferences.addons[__package__].preferences['offset_x'].replace(',', '.')
 
 	try:
 		offset_x = int(offset_x_filtered)
-	except:
+	except Exception:
 		offset_x = 20
 
 	if offset_x < 0:
@@ -53,12 +55,12 @@ def Filter_Gradient_Offset_X(self, context):
 	return None
 
 
-def Filter_Gradient_Offset_Y(self, context):
+def filter_gradient_offset_y(_, __):
 	offset_y_filtered = bpy.context.preferences.addons[__package__].preferences['offset_y'].replace(',', '.')
 
 	try:
 		offset_y = int(offset_y_filtered)
-	except:
+	except Exception:
 		offset_y = 20
 
 	if offset_y < 0:
@@ -74,12 +76,12 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 	offset_x: StringProperty(
 		name="",
 		description="Offset X from Anchor",
-		default="60", update=Filter_Gradient_Offset_X)
+		default="60", update=filter_gradient_offset_x)
 
 	offset_y: StringProperty(
 		name="",
 		description="Offset Y from Anchor",
-		default="30", update=Filter_Gradient_Offset_Y)
+		default="30", update=filter_gradient_offset_y)
 
 	anchor_pos_list = (('LEFT_TOP', 'Left Top', ''), ('LEFT_BOTTOM', 'Left Bottom', ''),
 					   ('RIGHT_TOP', 'Right Top', ''), ('RIGHT_BOTTOM', 'Right Bottom', ''))
@@ -114,7 +116,7 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 		description="Show/Hide UV Editor TD UI Panel",
 		default=True)
 
-	def draw(self, context):
+	def draw(self, _):
 		layout = self.layout
 		box = layout.box()
 		row = box.row()
@@ -143,8 +145,8 @@ class TD_Addon_Preferences(bpy.types.AddonPreferences):
 
 
 class TDObjectSetting(bpy.types.PropertyGroup):
-	TriIndex: bpy.props.IntProperty(name="Tri Index", default=0)
-	MatIndex: bpy.props.IntProperty(name="Material Index", default=0)
+	tri_index: bpy.props.IntProperty(name="Tri Index", default=0)
+	mat_index: bpy.props.IntProperty(name="Material Index", default=0)
 
 
 classes = (

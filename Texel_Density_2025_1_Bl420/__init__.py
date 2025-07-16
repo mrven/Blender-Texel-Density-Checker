@@ -11,14 +11,14 @@ bl_info = {
 	"category": "Object",
 }
 
+import sys
+import importlib
+
 modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui']
 
 modules_full_names = {}
 for current_module_name in modules_names:
 	modules_full_names[current_module_name] = ('{}.{}'.format(__package__, current_module_name))
-
-import sys
-import importlib
 
 for current_module_full_name in modules_full_names.values():
 	if current_module_full_name in sys.modules:
@@ -29,14 +29,14 @@ for current_module_full_name in modules_full_names.values():
 
 
 def register():
-	for current_module_name in modules_full_names.values():
-		if current_module_name in sys.modules:
-			if hasattr(sys.modules[current_module_name], 'register'):
-				sys.modules[current_module_name].register()
+	for module_name in modules_full_names.values():
+		if module_name in sys.modules:
+			if hasattr(sys.modules[module_name], 'register'):
+				sys.modules[module_name].register()
 
 
 def unregister():
-	for current_module_name in modules_full_names.values():
-		if current_module_name in sys.modules:
-			if hasattr(sys.modules[current_module_name], 'unregister'):
-				sys.modules[current_module_name].unregister()
+	for module_name in modules_full_names.values():
+		if module_name in sys.modules:
+			if hasattr(sys.modules[module_name], 'unregister'):
+				sys.modules[module_name].unregister()

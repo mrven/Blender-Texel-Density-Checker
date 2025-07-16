@@ -8,7 +8,7 @@ import ctypes
 
 
 # Calculate TD for selected polygons
-class Texel_Density_Check(bpy.types.Operator):
+class TexelDensityCheck(bpy.types.Operator):
 	"""Check Density"""
 	bl_idname = "object.texel_density_check"
 	bl_label = "Check Texel Density"
@@ -49,7 +49,7 @@ class Texel_Density_Check(bpy.types.Operator):
 				summary_poly_counts += obj_poly_count
 
 				# Summary TD Area
-				summary_td_area_list = np.concatenate((summary_td_area_list, utils.Calculate_TD_Area_To_List_CPP(o)))
+				summary_td_area_list = np.concatenate((summary_td_area_list, utils.calculate_td_area_to_list_cpp(o)))
 
 				# Select All Polygons if Calculate TD per Object and collect to list
 				# if calculate TD per object
@@ -122,12 +122,12 @@ class Texel_Density_Check(bpy.types.Operator):
 		for j in need_select_again_obj:
 			j.select_set(True)
 
-		utils.Print_Execution_Time("Calculate TD", start_time)
+		utils.print_execution_time("Calculate TD", start_time)
 		return {'FINISHED'}
 
 
 # Set TD
-class Texel_Density_Set(bpy.types.Operator):
+class TexelDensitySet(bpy.types.Operator):
 	"""Set Density"""
 	bl_idname = "object.texel_density_set"
 	bl_label = "Set Texel Density"
@@ -153,11 +153,13 @@ class Texel_Density_Set(bpy.types.Operator):
 		else:
 			try:
 				texture_size_x = int(td.custom_width)
-			except:
+			except Exception as e:
+				print(f"[WARNING] Failed convert Texture Size X to int {e}")
 				texture_size_x = 1024
 			try:
 				texture_size_y = int(td.custom_height)
-			except:
+			except Exception as e:
+				print(f"[WARNING] Failed convert Texture Size Y to int {e}")
 				texture_size_y = 1024
 
 		if texture_size_x < 1 or texture_size_y < 1:
@@ -171,7 +173,7 @@ class Texel_Density_Set(bpy.types.Operator):
 		if td.density_set != "Double" and td.density_set != "Half":
 			try:
 				density_new_value = float(td.density_set)
-			except:
+			except Exception:
 				self.report({'INFO'}, "Density value is wrong")
 				return {'CANCELLED'}
 		elif td.density_set == "Double":
@@ -265,13 +267,13 @@ class Texel_Density_Set(bpy.types.Operator):
 		# Calculate TD for getting actual (final) value after resizing
 		bpy.ops.object.texel_density_check()
 
-		utils.Print_Execution_Time("Set TD", start_time)
+		utils.print_execution_time("Set TD", start_time)
 		return {'FINISHED'}
 
 
 classes = (
-	Texel_Density_Check,
-	Texel_Density_Set,
+	TexelDensityCheck,
+	TexelDensitySet,
 )
 
 
