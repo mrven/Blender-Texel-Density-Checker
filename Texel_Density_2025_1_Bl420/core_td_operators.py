@@ -148,23 +148,7 @@ class TexelDensitySet(bpy.types.Operator):
 			start_selected_obj = bpy.context.selected_objects
 
 		# Get texture size from panel
-		if td.texture_size != 'CUSTOM':
-			texture_size_x = texture_size_y = int(td.texture_size)
-		else:
-			try:
-				texture_size_x = int(td.custom_width)
-			except Exception as e:
-				print(f"[WARNING] Failed convert Texture Size X to int {e}")
-				texture_size_x = 1024
-			try:
-				texture_size_y = int(td.custom_height)
-			except Exception as e:
-				print(f"[WARNING] Failed convert Texture Size Y to int {e}")
-				texture_size_y = 1024
-
-		if texture_size_x < 1 or texture_size_y < 1:
-			texture_size_x = 1024
-			texture_size_y = 1024
+		texture_size_x, texture_size_y = utils.get_texture_resolution()
 
 		# Get Value for TD Set
 		density_new_value = 0

@@ -9,6 +9,39 @@ import numpy as np
 import sys
 
 
+def get_texture_resolution():
+	td = bpy.context.scene.td
+
+	if td.texture_size != 'CUSTOM':
+		try:
+			res = int(td.texture_size)
+			return res, res
+		except Exception as e:
+			print(f"[WARNING] Failed convert Texture Size to int {e}")
+			return 1024, 1024
+
+	try:
+		texture_resolution_x = int(td.custom_width)
+	except Exception as e:
+		print(f"[WARNING] Failed convert Texture Size X to int {e}")
+		td['custom_width'] = '1024'
+		texture_resolution_x = 1024
+
+	try:
+		texture_resolution_y = int(td.custom_height)
+	except Exception as e:
+		print(f"[WARNING] Failed convert Texture Size Y to int {e}")
+		td['custom_height'] = '1024'
+		texture_resolution_y = 1024
+
+	if texture_resolution_x < 1 or texture_resolution_y < 1:
+		td['custom_width'] = '1024'
+		td['custom_height'] = '1024'
+		return 1024, 1024
+
+	return texture_resolution_x, texture_resolution_y
+
+
 # Value by range to Color gradient by hue
 def value_to_color(value, range_min, range_max):
 	# Remap value to range 0.0 - 1.0

@@ -220,23 +220,7 @@ class CheckerAssign(bpy.types.Operator):
 			start_selected_obj = bpy.context.selected_objects
 
 		# Get texture size from panel
-		if td.texture_size != 'CUSTOM':
-			checker_resolution_x = checker_resolution_y = int(td.texture_size)
-		else:
-			try:
-				checker_resolution_x = int(td.custom_width)
-			except Exception as e:
-				print(f"[WARNING] Failed convert Texture Size X to int {e}")
-				checker_resolution_x = 1024
-			try:
-				checker_resolution_y = int(td.custom_height)
-			except Exception as e:
-				print(f"[WARNING] Failed convert Texture Size Y to int {e}")
-				checker_resolution_y = 1024
-
-		if checker_resolution_x < 1 or checker_resolution_y < 1:
-			checker_resolution_x = 1024
-			checker_resolution_y = 1024
+		checker_resolution_x, checker_resolution_y = utils.get_texture_resolution()
 
 		# Check exist texture image
 		td_checker_texture = None

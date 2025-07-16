@@ -23,28 +23,7 @@ def change_texture_size(_, context):
 			td_checker_texture = tex
 
 	# Get texture size from panel
-	if td.texture_size != 'CUSTOM':
-		checker_resolution_x = checker_resolution_y = int(td.texture_size)
-	else:
-		try:
-			checker_resolution_x = int(td.custom_width)
-		except Exception as e:
-			print(f"[WARNING] Failed convert Texture Size X to int {e}")
-			checker_resolution_x = 1024
-			td['custom_width'] = '1024'
-
-		try:
-			checker_resolution_y = int(td.custom_height)
-		except Exception as e:
-			print(f"[WARNING] Failed convert Texture Size Y to int {e}")
-			checker_resolution_y = 1024
-			td['custom_height'] = '1024'
-
-	if checker_resolution_x < 1 or checker_resolution_y < 1:
-		checker_resolution_x = 1024
-		checker_resolution_y = 1024
-		td['custom_width'] = '1024'
-		td['custom_height'] = '1024'
+	checker_resolution_x, checker_resolution_y = utils.get_texture_resolution()
 
 	if td_checker_texture:
 		td_checker_texture.generated_width = checker_resolution_x
