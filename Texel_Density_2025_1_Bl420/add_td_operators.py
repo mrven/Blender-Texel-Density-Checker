@@ -113,7 +113,7 @@ class PresetSet(bpy.types.Operator):
 
 
 # Select polygons or islands with same TD or UV space
-class SelectByTDSpace(bpy.types.Operator):
+class SelectByTDOrUVSpace(bpy.types.Operator):
 	"""Select Faces with same TD"""
 	bl_idname = "object.select_by_td_space"
 	bl_label = "Select Faces with same TD"
@@ -281,7 +281,7 @@ classes = (
 	CalculatedToSet,
 	CalculatedToSelect,
 	PresetSet,
-	SelectByTDSpace,
+	SelectByTDOrUVSpace,
 )
 
 

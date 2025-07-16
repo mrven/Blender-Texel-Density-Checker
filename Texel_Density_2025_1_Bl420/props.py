@@ -258,7 +258,7 @@ def show_gradient(_, context):
 		draw_info["handler"] = None
 
 
-class TD_Addon_Props(bpy.types.PropertyGroup):
+class TDAddonProps(bpy.types.PropertyGroup):
 	uv_space: StringProperty(
 		name="",
 		description="Wasting of uv space",
@@ -407,7 +407,7 @@ class TD_Addon_Props(bpy.types.PropertyGroup):
 
 
 classes = (
-	TD_Addon_Props,
+	TDAddonProps,
 )
 
 
@@ -425,7 +425,7 @@ def register():
 	for cls in classes:
 		bpy.utils.register_class(cls)
 
-	bpy.types.Scene.td = PointerProperty(type=TD_Addon_Props)
+	bpy.types.Scene.td = PointerProperty(type=TDAddonProps)
 
 
 def unregister():

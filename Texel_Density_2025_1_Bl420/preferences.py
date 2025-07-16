@@ -2,7 +2,7 @@ import bpy
 
 from . import ui
 
-from .ui import VIEW3D_PT_texel_density_checker, UV_PT_texel_density_checker
+from .ui import TDAddonView3DPanel, TDAddonUVPanel
 
 from bpy.props import (
 	StringProperty,
@@ -17,12 +17,12 @@ def update_view3d_panel_category(_, __):
 
 	if is_panel:
 		try:
-			bpy.utils.unregister_class(VIEW3D_PT_texel_density_checker)
+			bpy.utils.unregister_class(TDAddonView3DPanel)
 		except Exception as e:
 			print(f"[WARNING] Failed to unregister panel {e}")
 			pass
-	VIEW3D_PT_texel_density_checker.bl_category = category
-	bpy.utils.register_class(VIEW3D_PT_texel_density_checker)
+	TDAddonView3DPanel.bl_category = category
+	bpy.utils.register_class(TDAddonView3DPanel)
 
 
 def update_uv_panel_category(_, __):
@@ -31,13 +31,13 @@ def update_uv_panel_category(_, __):
 
 	if is_panel:
 		try:
-			bpy.utils.unregister_class(UV_PT_texel_density_checker)
+			bpy.utils.unregister_class(TDAddonUVPanel)
 		except Exception as e:
 			print(f"[WARNING] Failed to unregister panel {e}")
 			pass
 
-	UV_PT_texel_density_checker.bl_category = category
-	bpy.utils.register_class(UV_PT_texel_density_checker)
+	TDAddonUVPanel.bl_category = category
+	bpy.utils.register_class(TDAddonUVPanel)
 
 
 def filter_gradient_offset_x(_, __):
@@ -70,7 +70,7 @@ def filter_gradient_offset_y(_, __):
 	return None
 
 
-class TD_Addon_Preferences(bpy.types.AddonPreferences):
+class TDAddonPreferences(bpy.types.AddonPreferences):
 	bl_idname = __package__
 
 	offset_x: StringProperty(
@@ -150,9 +150,9 @@ class TDObjectSetting(bpy.types.PropertyGroup):
 
 
 classes = (
-	TD_Addon_Preferences,
-	VIEW3D_PT_texel_density_checker,
-	UV_PT_texel_density_checker,
+	TDAddonPreferences,
+	TDAddonView3DPanel,
+	TDAddonUVPanel,
 	TDObjectSetting
 )
 

@@ -1,9 +1,11 @@
 import bpy
-from . import utils
 
+from . import utils
+from . import core_td_operators, add_td_operators, viz_operators
 
 # Panel in 3D View
-class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
+class TDAddonView3DPanel(bpy.types.Panel):
+	bl_idname = "VIEW3D_PT_texel_density_checker"
 	bl_label = "Texel Density Checker"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
@@ -11,7 +13,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 
 	@classmethod
 	def poll(cls, context):
-		preferences = bpy.context.preferences.addons[__package__].preferences
+		preferences = utils.get_preferences()
 		return (context.object is not None) and preferences.view3d_panel_category_enable
 
 	def draw(self, context):
@@ -54,14 +56,14 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row.prop(td, 'checker_uv_scale')
 
 			row = box.row()
-			row.operator("object.checker_assign", text="Assign Checker Material")
+			row.operator(viz_operators.CheckerAssign.bl_idname, text="Assign Checker Material")
 
 			# If Checker Method "Store and Replace"
 			if td.checker_method == 'STORE':
 				row = box.row()
-				row.operator("object.checker_restore", text="Restore Materials")
+				row.operator(viz_operators.CheckerRestore.bl_idname, text="Restore Materials")
 				row = box.row()
-				row.operator("object.clear_checker_materials", text="Clear Stored Materials")
+				row.operator(viz_operators.ClearSavedMaterials.bl_idname, text="Clear Stored Materials")
 
 			if context.object.mode == 'EDIT':
 				row = layout.row()
@@ -76,21 +78,21 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 
 			row = box.row(align=True)
 			row.label(text="Density:")
-			row.label(text=td.density + " " + cur_units)
+			row.label(text=f"{td.density} {cur_units}")
 
 			row = box.row()
-			row.operator("object.texel_density_check", text="Calculate TD")
+			row.operator(core_td_operators.TexelDensityCheck.bl_idname, text="Calculate TD")
 			row = box.row()
-			row.operator("object.calculate_to_set", text="Calc -> Set Value")
+			row.operator(add_td_operators.CalculatedToSet.bl_idname, text="Calc -> Set Value")
 			if context.object.mode == 'EDIT':
 				row = box.row()
-				row.operator("object.calculate_to_select", text="Calc -> Select Value")
+				row.operator(add_td_operators.CalculatedToSelect.bl_idname, text="Calc -> Select Value")
 
 			box = layout.box()
 			row = box.row(align=True)
 			row.label(text="Set TD:")
 			row.prop(td, "density_set")
-			row.label(text=" " + cur_units)
+			row.label(text=f" {cur_units}")
 
 			row = box.row(align=True)
 			row.label(text="Set Method:")
@@ -101,52 +103,52 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 			row.prop(td, 'rescale_anchor', expand=False)
 
 			row = box.row()
-			row.operator("object.texel_density_set", text="Set My TD")
+			row.operator(core_td_operators.TexelDensitySet.bl_idname, text="Set My TD")
 
 			# Preset Buttons
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="20.48").td_value = "20.48"
-				row.operator("object.preset_set", text="10.24").td_value = "10.24"
-				row.operator("object.preset_set", text="5.12").td_value = "5.12"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="20.48").td_value = "20.48"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="10.24").td_value = "10.24"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="5.12").td_value = "5.12"
 			if td.units == '1':
-				row.operator("object.preset_set", text="2048").td_value = "2048"
-				row.operator("object.preset_set", text="1024").td_value = "1024"
-				row.operator("object.preset_set", text="512").td_value = "512"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="2048").td_value = "2048"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="1024").td_value = "1024"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="512").td_value = "512"
 			if td.units == '2':
-				row.operator("object.preset_set", text="52.019").td_value = "52.019"
-				row.operator("object.preset_set", text="26.01").td_value = "26.01"
-				row.operator("object.preset_set", text="13.005").td_value = "13.005"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="52.019").td_value = "52.019"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="26.01").td_value = "26.01"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="13.005").td_value = "13.005"
 			if td.units == '3':
-				row.operator("object.preset_set", text="624.23").td_value = "624.23"
-				row.operator("object.preset_set", text="312.115").td_value = "312.115"
-				row.operator("object.preset_set", text="156.058").td_value = "156.058"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="624.23").td_value = "624.23"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="312.115").td_value = "312.115"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="156.058").td_value = "156.058"
 
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="2.56").td_value = "2.56"
-				row.operator("object.preset_set", text="1.28").td_value = "1.28"
-				row.operator("object.preset_set", text="0.64").td_value = "0.64"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="2.56").td_value = "2.56"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="1.28").td_value = "1.28"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="0.64").td_value = "0.64"
 			if td.units == '1':
-				row.operator("object.preset_set", text="256").td_value = "256"
-				row.operator("object.preset_set", text="128").td_value = "128"
-				row.operator("object.preset_set", text="64").td_value = "64"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="256").td_value = "256"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="128").td_value = "128"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="64").td_value = "64"
 			if td.units == '2':
-				row.operator("object.preset_set", text="6.502").td_value = "6.502"
-				row.operator("object.preset_set", text="3.251").td_value = "3.251"
-				row.operator("object.preset_set", text="1.626").td_value = "1.626"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="6.502").td_value = "6.502"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="3.251").td_value = "3.251"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="1.626").td_value = "1.626"
 			if td.units == '3':
-				row.operator("object.preset_set", text="78.029").td_value = "78.029"
-				row.operator("object.preset_set", text="39.014").td_value = "39.014"
-				row.operator("object.preset_set", text="19.507").td_value = "19.507"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="78.029").td_value = "78.029"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="39.014").td_value = "39.014"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="19.507").td_value = "19.507"
 
 			row = box.row(align=True)
-			row.operator("object.preset_set", text="Half TD").td_value = "Half"
-			row.operator("object.preset_set", text="Double TD").td_value = "Double"
+			row.operator(add_td_operators.PresetSet.bl_idname, text="Half TD").td_value = "Half"
+			row.operator(add_td_operators.PresetSet.bl_idname, text="Double TD").td_value = "Double"
 
 			if context.object.mode == 'OBJECT':
 				row = layout.row()
-				row.operator("object.texel_density_copy", text="TD from Active to Others")
+				row.operator(add_td_operators.TexelDensityCopy.bl_idname, text="TD from Active to Others")
 
 			if context.object.mode == 'EDIT':
 				box = layout.box()
@@ -178,11 +180,11 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 
 				row = box.row()
 				if td.select_mode == "FACES_BY_TD":
-					row.operator("object.select_by_td_space", text="Select Faces By TD")
+					row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Faces By TD")
 				elif td.select_mode == "ISLANDS_BY_TD":
-					row.operator("object.select_by_td_space", text="Select Islands By TD")
+					row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By TD")
 				elif td.select_mode == "ISLANDS_BY_SPACE":
-					row.operator("object.select_by_td_space", text="Select Islands By UV Space")
+					row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By UV Space")
 
 			box = layout.box()
 			row = box.row(align=True)
@@ -204,7 +206,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = box.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
 				row = box.row()
-				row.operator("object.bake_td_uv_to_vc", text="Texel Density to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="Texel Density to VC")
 
 			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
 				row = box.row(align=True)
@@ -212,7 +214,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row.prop(td, "uv_islands_to_vc_mode", expand=False)
 
 				row = box.row()
-				row.operator("object.bake_td_uv_to_vc", text="UV Islands to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Islands to VC")
 
 			elif td.bake_vc_mode == "UV_SPACE_TO_VC":
 				row = box.row(align=True)
@@ -226,7 +228,7 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = box.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
 				row = box.row()
-				row.operator("object.bake_td_uv_to_vc", text="UV Space to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Space to VC")
 
 			elif td.bake_vc_mode == 'DISTORTION':
 				row = box.row(align=True)
@@ -237,14 +239,15 @@ class VIEW3D_PT_texel_density_checker(bpy.types.Panel):
 				row = box.row()
 				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
 				row = box.row()
-				row.operator("object.bake_td_uv_to_vc", text="UV Distortion to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Distortion to VC")
 
 			row = box.row()
-			row.operator("object.clear_td_vc", text="Clear TD Vertex Colors")
+			row.operator(viz_operators.ClearTDFromVC.bl_idname, text="Clear TD Vertex Colors")
 
 
 # Panel in UV Editor
-class UV_PT_texel_density_checker(bpy.types.Panel):
+class TDAddonUVPanel(bpy.types.Panel):
+	bl_idname = "UV_PT_texel_density_checker"
 	bl_label = "Texel Density Checker"
 	bl_space_type = "IMAGE_EDITOR"
 	bl_region_type = "UI"
@@ -252,7 +255,7 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 
 	@classmethod
 	def poll(cls, context):
-		preferences = bpy.context.preferences.addons[__package__].preferences
+		preferences = utils.get_preferences()
 		return (context.object is not None) and context.mode == 'EDIT_MESH' and preferences.uv_panel_enable
 
 	def draw(self, context):
@@ -295,14 +298,14 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 
 			row = box.row(align=True)
 			row.label(text="Density:")
-			row.label(text=td.density + " " + cur_units)
+			row.label(text=f"{td.density}  {cur_units}")
 
 			row = box.row()
-			row.operator("object.texel_density_check", text="Calculate TD")
+			row.operator(core_td_operators.TexelDensityCheck.bl_idname, text="Calculate TD")
 			row = box.row()
-			row.operator("object.calculate_to_set", text="Calc -> Set Value")
+			row.operator(add_td_operators.CalculatedToSet.bl_idname, text="Calc -> Set Value")
 			row = box.row()
-			row.operator("object.calculate_to_select", text="Calc -> Select Value")
+			row.operator(add_td_operators.CalculatedToSelect.bl_idname, text="Calc -> Select Value")
 
 			box = layout.box()
 			row = box.row(align=True)
@@ -325,49 +328,49 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 			# Preset Buttons
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="20.48").td_value = "20.48"
-				row.operator("object.preset_set", text="10.24").td_value = "10.24"
-				row.operator("object.preset_set", text="5.12").td_value = "5.12"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="20.48").td_value = "20.48"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="10.24").td_value = "10.24"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="5.12").td_value = "5.12"
 
 			if td.units == '1':
-				row.operator("object.preset_set", text="2048").td_value = "2048"
-				row.operator("object.preset_set", text="1024").td_value = "1024"
-				row.operator("object.preset_set", text="512").td_value = "512"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="2048").td_value = "2048"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="1024").td_value = "1024"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="512").td_value = "512"
 
 			if td.units == '2':
-				row.operator("object.preset_set", text="52.019").td_value = "52.019"
-				row.operator("object.preset_set", text="26.01").td_value = "26.01"
-				row.operator("object.preset_set", text="13.005").td_value = "13.005"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="52.019").td_value = "52.019"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="26.01").td_value = "26.01"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="13.005").td_value = "13.005"
 
 			if td.units == '3':
-				row.operator("object.preset_set", text="624.23").td_value = "624.23"
-				row.operator("object.preset_set", text="312.115").td_value = "312.115"
-				row.operator("object.preset_set", text="156.058").td_value = "156.058"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="624.23").td_value = "624.23"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="312.115").td_value = "312.115"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="156.058").td_value = "156.058"
 
 			row = box.row(align=True)
 			if td.units == '0':
-				row.operator("object.preset_set", text="2.56").td_value = "2.56"
-				row.operator("object.preset_set", text="1.28").td_value = "1.28"
-				row.operator("object.preset_set", text="0.64").td_value = "0.64"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="2.56").td_value = "2.56"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="1.28").td_value = "1.28"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="0.64").td_value = "0.64"
 
 			if td.units == '1':
-				row.operator("object.preset_set", text="256").td_value = "256"
-				row.operator("object.preset_set", text="128").td_value = "128"
-				row.operator("object.preset_set", text="64").td_value = "64"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="256").td_value = "256"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="128").td_value = "128"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="64").td_value = "64"
 
 			if td.units == '2':
-				row.operator("object.preset_set", text="6.502").td_value = "6.502"
-				row.operator("object.preset_set", text="3.251").td_value = "3.251"
-				row.operator("object.preset_set", text="1.626").td_value = "1.626"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="6.502").td_value = "6.502"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="3.251").td_value = "3.251"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="1.626").td_value = "1.626"
 
 			if td.units == '3':
-				row.operator("object.preset_set", text="78.029").td_value = "78.029"
-				row.operator("object.preset_set", text="39.014").td_value = "39.014"
-				row.operator("object.preset_set", text="19.507").td_value = "19.507"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="78.029").td_value = "78.029"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="39.014").td_value = "39.014"
+				row.operator(add_td_operators.PresetSet.bl_idname, text="19.507").td_value = "19.507"
 
 			row = box.row(align=True)
-			row.operator("object.preset_set", text="Half TD").td_value = "Half"
-			row.operator("object.preset_set", text="Double TD").td_value = "Double"
+			row.operator(add_td_operators.PresetSet.bl_idname, text="Half TD").td_value = "Half"
+			row.operator(add_td_operators.PresetSet.bl_idname, text="Double TD").td_value = "Double"
 
 			box = layout.box()
 			row = box.row(align=True)
@@ -397,8 +400,8 @@ class UV_PT_texel_density_checker(bpy.types.Panel):
 
 			row = box.row()
 			if td.select_mode == "FACES_BY_TD":
-				row.operator("object.select_by_td_space", text="Select Faces By TD")
+				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Faces By TD")
 			elif td.select_mode == "ISLANDS_BY_TD":
-				row.operator("object.select_by_td_space", text="Select Islands By TD")
+				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By TD")
 			elif td.select_mode == "ISLANDS_BY_SPACE":
-				row.operator("object.select_by_td_space", text="Select Islands By UV Space")
+				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By UV Space")
