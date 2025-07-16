@@ -9,9 +9,8 @@ import ctypes
 
 # Calculate TD for selected polygons
 class TexelDensityCheck(bpy.types.Operator):
-	"""Check Density"""
-	bl_idname = "object.texel_density_check"
-	bl_label = "Check Texel Density"
+	bl_idname = "texel_density.check"
+	bl_label = "Calculate TD"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
@@ -128,9 +127,8 @@ class TexelDensityCheck(bpy.types.Operator):
 
 # Set TD
 class TexelDensitySet(bpy.types.Operator):
-	"""Set Density"""
-	bl_idname = "object.texel_density_set"
-	bl_label = "Set Texel Density"
+	bl_idname = "texel_density.set"
+	bl_label = "Set TD"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
@@ -215,8 +213,8 @@ class TexelDensitySet(bpy.types.Operator):
 					continue
 
 				#Scale Origin Coordinates
-				if td.rescale_anchor == 'SELECTION':
-					origin_coordinates = utils.get_average_uv_center(o, selected_polygons)
+				if td.rescale_anchor == 'UV_CENTER':
+					origin_coordinates = (0.5, 0.5)
 				elif td.rescale_anchor == 'UV_LEFT_TOP':
 					origin_coordinates = (0, 1)
 				elif td.rescale_anchor == 'UV_LEFT_BOTTOM':
@@ -228,7 +226,7 @@ class TexelDensitySet(bpy.types.Operator):
 				elif td.rescale_anchor == '2D_CURSOR' and flag_exist_area:
 					origin_coordinates =bpy.context.screen.areas[ie_areas[0]].spaces.active.cursor_location.copy()
 				else:
-					origin_coordinates = (0.5, 0.5)
+					origin_coordinates = utils.get_average_uv_center(o, selected_polygons)
 
 				# Each and Average Option
 				scale_mode = 1 if td.set_method == 'EACH' else 0
@@ -249,7 +247,7 @@ class TexelDensitySet(bpy.types.Operator):
 			j.select_set(True)
 
 		# Calculate TD for getting actual (final) value after resizing
-		bpy.ops.object.texel_density_check()
+		bpy.ops.texel_density.check()
 
 		utils.print_execution_time("Set TD", start_time)
 		return {'FINISHED'}

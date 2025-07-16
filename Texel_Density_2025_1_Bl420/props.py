@@ -30,11 +30,11 @@ def change_texture_size(_, context):
 		td_checker_texture.generated_height = checker_resolution_y
 		td_checker_texture.generated_type = td.checker_type
 
-	bpy.ops.object.texel_density_check()
+	bpy.ops.texel_density.check()
 
 
 def change_units(_, __):
-	bpy.ops.object.texel_density_check()
+	bpy.ops.texel_density.check()
 
 
 def change_texture_type(_, context):
@@ -65,7 +65,7 @@ def filter_bake_vc_min_td(_, context):
 	td['bake_vc_min_td'] = str(bake_vc_min_td)
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.bake_td_uv_to_vc()
+		bpy.ops.texel_density.vc_bake()
 
 
 def filter_bake_vc_max_td(_, context):
@@ -83,7 +83,7 @@ def filter_bake_vc_max_td(_, context):
 	td['bake_vc_max_td'] = str(bake_vc_max_td)
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.bake_td_uv_to_vc()
+		bpy.ops.texel_density.vc_bake()
 
 
 def filter_bake_vc_min_space(_, context):
@@ -101,7 +101,7 @@ def filter_bake_vc_min_space(_, context):
 	td['bake_vc_min_space'] = str(bake_vc_min_space)
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.bake_td_uv_to_vc()
+		bpy.ops.texel_density.vc_bake()
 
 
 def filter_bake_vc_distortion_range(_, context):
@@ -119,7 +119,7 @@ def filter_bake_vc_distortion_range(_, context):
 	td['bake_vc_distortion_range'] = str(bake_vc_distortion_range)
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.bake_td_uv_to_vc()
+		bpy.ops.texel_density.vc_bake()
 
 
 def filter_bake_vc_max_space(_, context):
@@ -137,7 +137,7 @@ def filter_bake_vc_max_space(_, context):
 	td['bake_vc_max_space'] = str(bake_vc_max_space)
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.bake_td_uv_to_vc()
+		bpy.ops.texel_density.vc_bake()
 
 
 def filter_density_set(_, context):
@@ -199,7 +199,7 @@ def filter_select_value(_, context):
 	td['select_value'] = str(select_value)
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.select_by_td_space()
+		bpy.ops.texel_density.select_by_td_uv()
 
 
 def filter_select_threshold(_, context):
@@ -217,7 +217,7 @@ def filter_select_threshold(_, context):
 	td['select_threshold'] = str(select_threshold)
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.select_by_td_space()
+		bpy.ops.texel_density.select_by_td_uv()
 
 
 def change_bake_vc_mode(self, context):
@@ -230,17 +230,17 @@ def change_bake_vc_mode(self, context):
 		draw_info["handler"] = None
 
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.bake_td_uv_to_vc()
+		bpy.ops.texel_density.vc_bake()
 
 
 def change_select_mode(_, __):
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.select_by_td_space()
+		bpy.ops.texel_density.select_by_td_uv()
 
 
 def change_uv_islands_mode(_, __):
 	if utils.get_preferences().automatic_recalc:
-		bpy.ops.object.bake_td_uv_to_vc()
+		bpy.ops.texel_density.vc_bake()
 
 
 draw_info = {

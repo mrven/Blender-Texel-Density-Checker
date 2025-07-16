@@ -7,9 +7,8 @@ from . import utils
 
 # Copy average TD from object to object
 class TexelDensityCopy(bpy.types.Operator):
-	"""Copy Density"""
-	bl_idname = "object.texel_density_copy"
-	bl_label = "Copy Texel Density"
+	bl_idname = "texel_density.copy"
+	bl_label = "TD from Active to Others"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
@@ -24,7 +23,7 @@ class TexelDensityCopy(bpy.types.Operator):
 		bpy.ops.object.select_all(action='DESELECT')
 		start_active_obj.select_set(True)
 		bpy.context.view_layer.objects.active = start_active_obj
-		bpy.ops.object.texel_density_check()
+		bpy.ops.texel_density.check()
 		td.density_set = td.density
 
 		# Set calculated TD for all other selected objects
@@ -34,7 +33,7 @@ class TexelDensityCopy(bpy.types.Operator):
 					x.data.polygons) > 0) and not x == start_active_obj:
 				x.select_set(True)
 				bpy.context.view_layer.objects.active = x
-				bpy.ops.object.texel_density_set()
+				bpy.ops.texel_density.set()
 
 		# Select Objects Again
 		for x in start_selected_obj:
@@ -47,9 +46,8 @@ class TexelDensityCopy(bpy.types.Operator):
 
 # Copy last calculated value of TD to "Set TD Value" field
 class CalculatedToSet(bpy.types.Operator):
-	"""Copy Calc to Set"""
-	bl_idname = "object.calculate_to_set"
-	bl_label = "Copy Calculated Value to Set Value Field"
+	bl_idname = "texel_density.calculated_to_set"
+	bl_label = "Calc -> Set Value"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
@@ -63,9 +61,8 @@ class CalculatedToSet(bpy.types.Operator):
 
 # Copy last calculated value to "Select Value" field
 class CalculatedToSelect(bpy.types.Operator):
-	"""Copy Calc to Set"""
-	bl_idname = "object.calculate_to_select"
-	bl_label = "Copy Calculated Value to Select Value Field"
+	bl_idname = "texel_density.calculated_to_select"
+	bl_label = "Calc -> Select Value"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
@@ -84,8 +81,7 @@ class CalculatedToSelect(bpy.types.Operator):
 
 # Buttons "Half/Double TD" and presets with values (0.64 - 20.48 px/cm)
 class PresetSet(bpy.types.Operator):
-	"""Preset Set Density"""
-	bl_idname = "object.preset_set"
+	bl_idname = "texel_density.preset_set"
 	bl_label = "Set Texel Density"
 	bl_options = {'REGISTER', 'UNDO'}
 	td_value: StringProperty()
@@ -95,18 +91,18 @@ class PresetSet(bpy.types.Operator):
 		td = context.scene.td
 
 		# self.td_value is parameter
-		# It's using in UI like row.operator("object.preset_set", text="20.48").td_value="20.48"
+		# It's using in UI like row.operator("operator_name", text="20.48").td_value="20.48"
 		if self.td_value == "Half" or self.td_value == "Double":
 			# In case using buttons "Half/Double TD"
 			# Store value from panel, set preset value and call Set TD
 			saved_td_value = td.density_set
 			td.density_set = self.td_value
-			bpy.ops.object.texel_density_set()
+			bpy.ops.texel_density.set()
 			# Restore saved value
 			td.density_set = saved_td_value
 		else:
 			td.density_set = self.td_value
-			bpy.ops.object.texel_density_set()
+			bpy.ops.texel_density.set()
 
 		utils.print_execution_time("Preset TD Set", start_time)
 		return {'FINISHED'}
@@ -114,8 +110,7 @@ class PresetSet(bpy.types.Operator):
 
 # Select polygons or islands with same TD or UV space
 class SelectByTDOrUVSpace(bpy.types.Operator):
-	"""Select Faces with same TD"""
-	bl_idname = "object.select_by_td_space"
+	bl_idname = "texel_density.select_by_td_uv"
 	bl_label = "Select Faces with same TD"
 	bl_options = {'REGISTER', 'UNDO'}
 
