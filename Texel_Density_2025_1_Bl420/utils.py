@@ -58,6 +58,28 @@ def value_to_color(value, range_min, range_max):
 	return color4
 
 
+def get_average_uv_center(obj, selected_polygons):
+	mesh = obj.data
+	uv_layer = mesh.uv_layers.active.data
+
+	total_uv = np.array([0.0, 0.0], dtype=np.float64)
+	count = 0
+
+	for i, poly in enumerate(mesh.polygons):
+		if selected_polygons[i] == 0:
+			continue
+
+		for loop_index in poly.loop_indices:
+			uv = uv_layer[loop_index].uv
+			total_uv += uv
+			count += 1
+
+	if count == 0:
+		return 0.5, 0.5
+
+	return total_uv / count
+
+
 def calculate_geometry_areas_cpp(obj):
 	start_mode = bpy.context.object.mode
 
@@ -201,28 +223,6 @@ def calculate_td_area_to_list_cpp(obj):
 	free_td_core_dll(tdcore)
 
 	return result
-
-
-def get_average_uv_center(obj, selected_polygons):
-	mesh = obj.data
-	uv_layer = mesh.uv_layers.active.data
-
-	total_uv = np.array([0.0, 0.0], dtype=np.float64)
-	count = 0
-
-	for i, poly in enumerate(mesh.polygons):
-		if selected_polygons[i] == 0:
-			continue
-
-		for loop_index in poly.loop_indices:
-			uv = uv_layer[loop_index].uv
-			total_uv += uv
-			count += 1
-
-	if count == 0:
-		return 0.5, 0.5
-
-	return total_uv / count
 
 
 # Set TD

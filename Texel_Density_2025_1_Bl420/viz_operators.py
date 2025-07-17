@@ -151,10 +151,13 @@ def draw_callback_px(_, __):
 	''')
 
 	# Gradient Bounds with range 0.0 - 2.0
+	gradient_line_width = 250
+	gradient_line_height = 15
+
 	gradient_x_min = screen_texel_x * offset_x
-	gradient_x_max = screen_texel_x * (offset_x + 250)  # 250 is width of gradient line TODO:Move to constant var
+	gradient_x_max = screen_texel_x * (offset_x + gradient_line_width)
 	gradient_y_min = screen_texel_y * offset_y
-	gradient_y_max = screen_texel_y * (offset_y + 15)  # 15 is height of gradient line	TODO:Move to constant var
+	gradient_y_max = screen_texel_y * (offset_y + gradient_line_height)
 
 	# Calculate vertices coordinates relative from the anchor
 	# And X Min/Max in Screen Space (-1.0 - 1.0). It's Transferring to shader

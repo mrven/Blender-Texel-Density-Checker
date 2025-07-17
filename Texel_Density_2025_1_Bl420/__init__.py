@@ -14,7 +14,7 @@ bl_info = {
 import sys
 import importlib
 
-modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui']
+modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui', 'test']
 
 modules_full_names = {}
 for current_module_name in modules_names:

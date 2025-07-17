@@ -234,6 +234,7 @@ def panel_draw(layout, context):
 			row = box.row()
 			row.operator(viz_operators.ClearTDFromVC.bl_idname)
 
+
 # Panel in 3D View
 class TDAddonView3DPanel(bpy.types.Panel):
 	bl_idname = "VIEW3D_PT_texel_density_checker"
