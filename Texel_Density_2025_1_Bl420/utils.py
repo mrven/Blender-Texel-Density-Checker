@@ -7,7 +7,7 @@ import ctypes
 import ctypes.util
 import numpy as np
 import sys
-
+import math
 
 def get_texture_resolution():
 	td = bpy.context.scene.td
@@ -78,6 +78,75 @@ def get_average_uv_center(obj, selected_polygons):
 		return 0.5, 0.5
 
 	return total_uv / count
+
+
+def calculate_geometry_areas_py(obj):
+	start_mode = bpy.context.object.mode
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	mesh_data = obj.data
+	matrix_world = obj.matrix_world.transposed()
+	poly_count = len(mesh_data.polygons)
+	vertex_count = len(mesh_data.loops)
+
+	# Get all vertex coordinates in from loops in LOCAL space as a flat array
+	loop_vertex_indices = np.empty(len(mesh_data.loops), dtype=np.int32)
+	mesh_data.loops.foreach_get("vertex_index", loop_vertex_indices)
+	all_vertex_coords = np.empty(len(mesh_data.vertices) * 3, dtype=np.float32)
+	mesh_data.vertices.foreach_get("co", all_vertex_coords)
+	all_vertex_coords = all_vertex_coords.reshape(-1, 3)
+	ordered_coords = all_vertex_coords[loop_vertex_indices]
+	vert_co_ordered = ordered_coords.flatten().astype(np.float32)
+
+	# Get world matrix and flatten it
+	matrix_world = np.array(matrix_world, dtype=np.float32).flatten()
+
+	# Get Vertex Count for each poly
+	vertex_count_per_poly = np.empty(poly_count, dtype=np.int32)
+	mesh_data.polygons.foreach_get("loop_total", vertex_count_per_poly)
+
+	matrix_world = matrix_world.reshape((4, 4))
+	vertices_world_co = np.zeros((vertex_count, 3), dtype=np.float32)
+	vert_co_reshaped = vert_co_ordered.reshape((vertex_count, 3))
+
+	# Loc to World Co for verts
+	for i in range(vertex_count):
+		local = np.append(vert_co_reshaped[i], 1.0)  # (x, y, z, 1)
+		world = matrix_world @ local
+		vertices_world_co[i] = world[:3]
+
+	# --- Area Calculate ---
+	result = np.zeros(poly_count, dtype=np.float32)
+	vertex_index = 0
+
+	for i in range(poly_count):
+		poly_vert_count = vertex_count_per_poly[i]
+
+		if poly_vert_count < 3 or vertex_index + poly_vert_count > vertex_count:
+			result[i] = 0.0
+			vertex_index += poly_vert_count
+			continue
+
+		v0 = vertices_world_co[vertex_index]
+
+		area = 0.0
+		for j in range(1, poly_vert_count - 1):
+			v1 = vertices_world_co[vertex_index + j]
+			v2 = vertices_world_co[vertex_index + j + 1]
+
+			u = v1 - v0
+			v = v2 - v0
+
+			cross = np.cross(u, v)
+			triangle_area = 0.5 * np.linalg.norm(cross)
+			area += triangle_area
+
+		result[i] = area
+		vertex_index += poly_vert_count
+
+	bpy.ops.object.mode_set(mode=start_mode)
+
+	return result
 
 
 def calculate_geometry_areas_cpp(obj):
