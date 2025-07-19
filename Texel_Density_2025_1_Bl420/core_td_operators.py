@@ -48,7 +48,7 @@ class TexelDensityCheck(bpy.types.Operator):
 				summary_poly_counts += obj_poly_count
 
 				# Summary TD Area
-				summary_td_area_list = np.concatenate((summary_td_area_list, utils.calculate_td_area_to_list_cpp(o)))
+				summary_td_area_list = np.concatenate((summary_td_area_list, utils.calculate_td_area_to_list(o)))
 
 				# Select All Polygons if Calculate TD per Object and collect to list
 				# if calculate TD per object
