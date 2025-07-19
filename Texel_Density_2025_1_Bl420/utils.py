@@ -234,24 +234,7 @@ def calculate_td_area_to_list_cpp(obj):
 
 	tdcore.CalculateTDAreaArray.restype = None
 
-	# Get texture size from panel
-	if td.texture_size != 'CUSTOM':
-		texture_size_x = texture_size_y = int(td.texture_size)
-	else:
-		try:
-			texture_size_x = int(td.custom_width)
-		except Exception as e:
-			print(f"[WARNING] Failed convert Texture Size X to int {e}")
-			texture_size_x = 1024
-		try:
-			texture_size_y = int(td.custom_height)
-		except Exception as e:
-			print(f"[WARNING] Failed convert Texture Size X to int {e}")
-			texture_size_y = 1024
-
-	if texture_size_x < 1 or texture_size_y < 1:
-		texture_size_x = 1024
-		texture_size_y = 1024
+	texture_size_x, texture_size_y = get_texture_resolution()
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -290,6 +273,88 @@ def calculate_td_area_to_list_cpp(obj):
 	bpy.ops.object.mode_set(mode=start_mode)
 
 	free_td_core_dll(tdcore)
+
+	return result
+
+
+def calculate_td_area_to_list_py(obj):
+	td = bpy.context.scene.td
+
+	# Save current mode
+	start_mode = bpy.context.object.mode
+
+	texture_size_x, texture_size_y = get_texture_resolution()
+
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	mesh_data = obj.data
+
+	# Get UV-coordinates
+	uv_layer = mesh_data.uv_layers.active.data
+	uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
+	uv_layer.foreach_get("uv", uvs)
+	uvs = uvs.reshape(-1, 2).flatten()
+
+	# Get Geometry Area
+	areas = calculate_geometry_areas_py(obj)
+
+	# Get Vertex Count
+	vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
+	mesh_data.polygons.foreach_get("loop_total", vertex_counts)
+
+	#Scale Length
+	scale_length = bpy.context.scene.unit_settings.scale_length
+
+	#Units
+	units = int(td.units)
+
+	# Results Buffer (Poly Count * 2 float: TD and uv_area)
+	result = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
+
+	aspect_ratio = texture_size_x / texture_size_y
+
+	if aspect_ratio < 1:
+			aspect_ratio = 1 / aspect_ratio
+
+	largest_side = max(texture_size_x, texture_size_y)
+
+	vertex_index = 0
+
+	for i in range(areas.size):
+		poly_uv_area = 0
+
+		if vertex_counts[i] > 2:
+			uvx1 = uvs[vertex_index]
+			uvy1 = uvs[vertex_index + 1]
+			uvx2 = uvs[vertex_index + 2]
+			uvy2 = uvs[vertex_index + 3]
+			uvx3 = uvs[vertex_index + 4]
+			uvy3 = uvs[vertex_index + 5]
+
+			area = abs((uvx2 - uvx1) * (uvy3 - uvy1) - (uvx3 - uvx1) * (uvy2 - uvy1))
+			poly_uv_area += area
+
+		poly_geometry_area = areas[i]
+
+		if poly_uv_area > 0 and poly_geometry_area > 0:
+			poly_texel_density = ((largest_side / math.sqrt(aspect_ratio)) * math.sqrt(poly_uv_area)) / (
+						math.sqrt(poly_geometry_area) * 100) / scale_length
+		else:
+			poly_texel_density = 0.0001
+
+		if units == 1:
+			poly_texel_density *= 100.0
+		elif units == 2:
+			poly_texel_density *= 2.54
+		elif units == 3:
+			poly_texel_density *= 30.48
+
+		result[i * 2] = poly_texel_density
+		result[i * 2 + 1] = poly_uv_area
+
+		vertex_index += vertex_counts[i] * 2
+
+	bpy.ops.object.mode_set(mode=start_mode)
 
 	return result
 

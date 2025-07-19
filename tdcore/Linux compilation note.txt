@@ -1,0 +1,3 @@
+g++ -c -fPIC tdcore.cpp -o tdcore.o
+g++ -shared -o libtdcore.so tdcore.o
+
