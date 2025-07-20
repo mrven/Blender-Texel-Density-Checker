@@ -143,17 +143,14 @@ def calculate_geometry_areas(obj):
 		free_td_core_dll(tdcore)
 	else:
 		matrix_world = matrix_world.reshape((4, 4))
-		vertices_world_co = np.zeros((vertex_count, 3), dtype=np.float32)
 		vert_co_reshaped = vert_co_ordered.reshape((vertex_count, 3))
 
-		# Loc to World Co for verts
-		for i in range(vertex_count):
-			local = np.append(vert_co_reshaped[i], 1.0)  # (x, y, z, 1)
-			world = matrix_world @ local
-			vertices_world_co[i] = world[:3]
+		# --- VERTEX TRANSFORM (FAST) ---
+		ones = np.ones((vertex_count, 1), dtype=np.float32)
+		vert_hom = np.hstack((vert_co_reshaped, ones))  # shape (N, 4)
+		vertices_world_co = (vert_hom @ matrix_world.T)[:, :3]  # shape (N, 3)
 
-		# --- Area Calculate ---
-		result = np.zeros(poly_count, dtype=np.float32)
+		# --- AREA CALCULATION ---
 		vertex_index = 0
 
 		for i in range(poly_count):
@@ -173,9 +170,8 @@ def calculate_geometry_areas(obj):
 
 				u = v1 - v0
 				v = v2 - v0
-
 				cross = np.cross(u, v)
-				triangle_area = 0.5 * np.linalg.norm(cross)
+				triangle_area = 0.5 * np.sqrt((cross ** 2).sum())
 				area += triangle_area
 
 			result[i] = area
@@ -261,36 +257,41 @@ def calculate_td_area_to_list(obj):
 		free_td_core_dll(tdcore)
 	else:
 		aspect_ratio = texture_size_x / texture_size_y
-
 		if aspect_ratio < 1:
 			aspect_ratio = 1 / aspect_ratio
 
 		largest_side = max(texture_size_x, texture_size_y)
+		scale = (largest_side / math.sqrt(aspect_ratio)) / (100 * scale_length)
 
 		vertex_index = 0
-
 		for i in range(areas.size):
-			poly_uv_area = 0
+			poly_uv_area = 0.0
+			count = vertex_counts[i]
 
-			if vertex_counts[i] > 2:
-				uvx1 = uvs[vertex_index]
-				uvy1 = uvs[vertex_index + 1]
-				uvx2 = uvs[vertex_index + 2]
-				uvy2 = uvs[vertex_index + 3]
-				uvx3 = uvs[vertex_index + 4]
-				uvy3 = uvs[vertex_index + 5]
+			if count >= 3:
+				# Собираем вершины полигона
+				verts = np.array(uvs[vertex_index:vertex_index + count * 2], dtype=np.float32).reshape((-1, 2))
+				v0 = verts[0]
 
-				area = abs((uvx2 - uvx1) * (uvy3 - uvy1) - (uvx3 - uvx1) * (uvy2 - uvy1))
-				poly_uv_area += area
+				# Разбиваем на треугольники: (v0, v1, v2), (v0, v2, v3), ...
+				for j in range(1, count - 1):
+					v1 = verts[j]
+					v2 = verts[j + 1]
+
+					u = v1 - v0
+					v = v2 - v0
+					cross = u[0] * v[1] - u[1] * v[0]
+					triangle_area = 0.5 * abs(cross)
+					poly_uv_area += triangle_area
 
 			poly_geometry_area = areas[i]
 
 			if poly_uv_area > 0 and poly_geometry_area > 0:
-				poly_texel_density = ((largest_side / math.sqrt(aspect_ratio)) * math.sqrt(poly_uv_area)) / (
-						math.sqrt(poly_geometry_area) * 100) / scale_length
+				poly_texel_density = scale * math.sqrt(poly_uv_area) / math.sqrt(poly_geometry_area)
 			else:
 				poly_texel_density = 0.0001
 
+			# Конвертация единиц
 			if units == 1:
 				poly_texel_density *= 100.0
 			elif units == 2:
@@ -301,7 +302,7 @@ def calculate_td_area_to_list(obj):
 			result[i * 2] = poly_texel_density
 			result[i * 2 + 1] = poly_uv_area
 
-			vertex_index += vertex_counts[i] * 2
+			vertex_index += count * 2
 
 	bpy.ops.object.mode_set(mode=start_mode)
 
@@ -340,16 +341,13 @@ def calculate_total_td_area(poly_count, selected_polygons_list, td_area_list):
 
 		free_td_core_dll(tdcore)
 	else:
-		total_td = 0
-		total_uv_area = 0
+		selected_mask = selected_polygons_list > 0
 
-		for i in range(poly_count):
-			if selected_polygons_list[i] > 0:
-				uv_area = td_area_list[i * 2 + 1]
-				texel_density = td_area_list[i * 2]
+		uv_areas = td_area_list[1::2][selected_mask]
+		texel_densities = td_area_list[0::2][selected_mask]
 
-				total_uv_area += uv_area
-				total_td += texel_density * uv_area
+		total_uv_area = np.sum(uv_areas)
+		total_td = np.sum(texel_densities * uv_areas)
 
 		if total_uv_area > 0:
 			total_td /= total_uv_area

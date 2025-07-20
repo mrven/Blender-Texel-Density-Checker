@@ -1,13 +1,14 @@
 import bpy
 import unittest
-
+from .. import utils
 
 class TestTexelDensityCheckOperator(unittest.TestCase):
 	# TODO: Добавлять в сцену на старте объекта, чтобы была возможность тестить как один, так и несколько объектов
 	# Возможно даже стоит добавить что-то из НЕ мешей и перебирать в тестах разные варианты активного объекта
 
 	def setUp(self):
-		# Всегда выйти из edit-mode, даже если тест неудачный
+		print(f"Current backend: {utils.get_preferences().calculation_backend}")
+
 		if bpy.context.object and bpy.context.object.mode != 'OBJECT':
 			try:
 				bpy.ops.object.mode_set(mode='OBJECT')

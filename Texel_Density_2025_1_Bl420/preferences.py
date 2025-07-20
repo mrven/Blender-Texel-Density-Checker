@@ -92,7 +92,7 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		description="Calling Select/Bake VC operator after changing Mode/Value",
 		default=False)
 
-	backend_list = (('CPP', 'C++', ''), ('PY', 'Python', ''))
+	backend_list = (('CPP', 'C++ (Fast)', ''), ('PY', 'Python (Slow)', ''))
 	calculation_backend: EnumProperty(name="", items=backend_list, default='CPP')
 
 	view3d_panel_category: StringProperty(
