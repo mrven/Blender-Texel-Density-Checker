@@ -80,25 +80,28 @@ def get_average_uv_center(obj, selected_polygons):
 	return total_uv / count
 
 
-def calculate_geometry_areas(obj, back ='CPP'):
+def calculate_geometry_areas(obj):
+	backend = get_preferences().calculation_backend
+
 	start_mode = bpy.context.object.mode
 
 	tdcore = None
 
-	if back == 'CPP':
+	if backend == 'CPP':
 		# Get Library
 		tdcore = get_td_core_dll()
 
-		tdcore.CalculateGeometryAreas.argtypes = [
-			ctypes.POINTER(ctypes.c_float),  # VertexCoordinates
-			ctypes.POINTER(ctypes.c_float),  # MatrixWorld
-			ctypes.c_int, # VertCount
-			ctypes.c_int,  # PolyCount
-			ctypes.POINTER(ctypes.c_int),  # Vertex Count by Polygon
-			ctypes.POINTER(ctypes.c_float)  # Results
-		]
+		if tdcore:
+			tdcore.CalculateGeometryAreas.argtypes = [
+				ctypes.POINTER(ctypes.c_float),  # VertexCoordinates
+				ctypes.POINTER(ctypes.c_float),  # MatrixWorld
+				ctypes.c_int, # VertCount
+				ctypes.c_int,  # PolyCount
+				ctypes.POINTER(ctypes.c_int),  # Vertex Count by Polygon
+				ctypes.POINTER(ctypes.c_float)  # Results
+			]
 
-		tdcore.CalculateGeometryAreas.restype = None
+			tdcore.CalculateGeometryAreas.restype = None
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -126,7 +129,7 @@ def calculate_geometry_areas(obj, back ='CPP'):
 	# Results Buffer (Geometry Area per Polygon)
 	result = np.zeros(poly_count, dtype=np.float32)
 
-	if back == 'CPP' and tdcore:
+	if backend == 'CPP' and tdcore:
 		# Call function from Library
 		tdcore.CalculateGeometryAreas(
 			vert_co_ordered.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
@@ -184,7 +187,8 @@ def calculate_geometry_areas(obj, back ='CPP'):
 
 
 # Calculate UV Area and Texel Density for each polygon with C++
-def calculate_td_area_to_list(obj, back ='CPP'):
+def calculate_td_area_to_list(obj):
+	backend = get_preferences().calculation_backend
 	td = bpy.context.scene.td
 
 	# Save current mode
@@ -192,24 +196,25 @@ def calculate_td_area_to_list(obj, back ='CPP'):
 
 	tdcore = None
 
-	if back == 'CPP':
+	if backend == 'CPP':
 		# Get Library
 		tdcore = get_td_core_dll()
 
-		tdcore.CalculateTDAreaArray.argtypes = [
-			ctypes.POINTER(ctypes.c_float),  	# UVs
-			ctypes.c_int,  						# UVs Count
-			ctypes.POINTER(ctypes.c_float),  	# Areas
-			ctypes.POINTER(ctypes.c_int),  		# Vertex Count by Polygon
-			ctypes.c_int,  						# Poly Count
-			ctypes.c_int,  						# Texture X Size
-			ctypes.c_int,  						# Texture Y Size
-			ctypes.c_float,  					# Scale Length
-			ctypes.c_int,  						# Units
-			ctypes.POINTER(ctypes.c_float)  	# Results
-		]
+		if tdcore:
+			tdcore.CalculateTDAreaArray.argtypes = [
+				ctypes.POINTER(ctypes.c_float),  	# UVs
+				ctypes.c_int,  						# UVs Count
+				ctypes.POINTER(ctypes.c_float),  	# Areas
+				ctypes.POINTER(ctypes.c_int),  		# Vertex Count by Polygon
+				ctypes.c_int,  						# Poly Count
+				ctypes.c_int,  						# Texture X Size
+				ctypes.c_int,  						# Texture Y Size
+				ctypes.c_float,  					# Scale Length
+				ctypes.c_int,  						# Units
+				ctypes.POINTER(ctypes.c_float)  	# Results
+			]
 
-		tdcore.CalculateTDAreaArray.restype = None
+			tdcore.CalculateTDAreaArray.restype = None
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -223,11 +228,7 @@ def calculate_td_area_to_list(obj, back ='CPP'):
 	uv_layer.foreach_get("uv", uvs)
 	uvs = uvs.reshape(-1, 2).flatten()
 
-	if back == 'CPP' and tdcore:
-		# Get Geometry Area
-		areas = calculate_geometry_areas(obj, 'CPP')
-	else:
-		areas = calculate_geometry_areas(obj, 'PY')
+	areas = calculate_geometry_areas(obj)
 
 	# Get Vertex Count
 	vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
@@ -242,7 +243,7 @@ def calculate_td_area_to_list(obj, back ='CPP'):
 	# Results Buffer (Poly Count * 2 float: TD and uv_area)
 	result = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
 
-	if back == 'CPP' and tdcore:
+	if backend == 'CPP' and tdcore:
 		# Call function from Library
 		tdcore.CalculateTDAreaArray(
 			uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
@@ -303,6 +304,58 @@ def calculate_td_area_to_list(obj, back ='CPP'):
 			vertex_index += vertex_counts[i] * 2
 
 	bpy.ops.object.mode_set(mode=start_mode)
+
+	return result
+
+
+def calculate_total_td_area(poly_count, selected_polygons_list, td_area_list):
+	backend = get_preferences().calculation_backend
+
+	tdcore = None
+
+	if backend == 'CPP':
+		tdcore = get_td_core_dll()
+
+		if tdcore:
+			tdcore.CalculateTotalTDArea.argtypes = [
+				ctypes.POINTER(ctypes.c_float),  # TD and Area Array
+				ctypes.POINTER(ctypes.c_uint8),  # Selected Polygons Array
+				ctypes.c_int,  # Poly Count
+				ctypes.POINTER(ctypes.c_float)  # Results
+			]
+
+			tdcore.CalculateTDAreaArray.restype = None
+
+	# Results Buffer (2 float: Total TD and Total Area)
+	result = np.zeros(2, dtype=np.float32)
+
+	if backend == 'CPP' and tdcore:
+		# Call function from Library
+		tdcore.CalculateTotalTDArea(
+			td_area_list.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+			selected_polygons_list.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8)),
+			poly_count,
+			result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+		)
+
+		free_td_core_dll(tdcore)
+	else:
+		total_td = 0
+		total_uv_area = 0
+
+		for i in range(poly_count):
+			if selected_polygons_list[i] > 0:
+				uv_area = td_area_list[i * 2 + 1]
+				texel_density = td_area_list[i * 2]
+
+				total_uv_area += uv_area
+				total_td += texel_density * uv_area
+
+		if total_uv_area > 0:
+			total_td /= total_uv_area
+
+		result[0] = total_td
+		result[1] = total_uv_area
 
 	return result
 
@@ -577,13 +630,14 @@ def get_td_core_dll():
 	elif sys.platform.startswith("darwin"):  # macOS
 		lib_name = "libtdcore.dylib"
 	else:
-		raise OSError("Unsupported OS")
+		return None
 
 	addon_path = os.path.dirname(os.path.abspath(__file__))
 	tdcore_path = os.path.join(addon_path, lib_name)
 
 	if not os.path.isfile(tdcore_path):
-		raise FileNotFoundError(f"Library not found: {tdcore_path}")
+		print(f"Library not found: {tdcore_path}")
+		return None
 
 	try:
 		if sys.platform.startswith("win"):
@@ -591,7 +645,8 @@ def get_td_core_dll():
 		else:
 			return ctypes.CDLL(tdcore_path)  # Linux/macOS
 	except OSError as e:
-		raise OSError(f"Failed to load library: {tdcore_path}") from e
+		print(f"Failed to load library {tdcore_path}: {e}")
+		return None
 
 
 def free_td_core_dll(dll_handle):

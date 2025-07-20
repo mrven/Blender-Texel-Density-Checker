@@ -92,6 +92,9 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		description="Calling Select/Bake VC operator after changing Mode/Value",
 		default=False)
 
+	backend_list = (('CPP', 'C++', ''), ('PY', 'Python', ''))
+	calculation_backend: EnumProperty(name="", items=backend_list, default='CPP')
+
 	view3d_panel_category: StringProperty(
 		name="",
 		description="Choose a name for the category of panel (3D View)",
@@ -118,6 +121,11 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 	def draw(self, _):
 		layout = self.layout
+		box = layout.box()
+		row = box.row()
+		row = box.row(align=True)
+		row.label(text='Calculation Backend:')
+		row.prop(self, 'calculation_backend', expand=False)
 		box = layout.box()
 		row = box.row()
 		row.label(text='Texel Density Gradient Position:')

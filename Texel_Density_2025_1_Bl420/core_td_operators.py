@@ -76,25 +76,7 @@ class TexelDensityCheck(bpy.types.Operator):
 
 				summary_selected_polygons_list = np.concatenate((summary_selected_polygons_list, selected_polygons))
 
-		tdcore = utils.get_td_core_dll()
-
-		tdcore.CalculateTotalTDArea.argtypes = [
-			ctypes.POINTER(ctypes.c_float),  # TD and Area Array
-			ctypes.POINTER(ctypes.c_uint8),  # Selected Polygons Array
-			ctypes.c_int,  # Poly Count
-			ctypes.POINTER(ctypes.c_float)  # Results
-		]
-
-		# Results Buffer (2 float: Total TD and Total Area)
-		result = np.zeros(2, dtype=np.float32)
-
-		# Call function from Library
-		tdcore.CalculateTotalTDArea(
-			summary_td_area_list.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
-			summary_selected_polygons_list.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8)),
-			summary_poly_counts,
-			result.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-		)
+		result = utils.calculate_total_td_area(summary_poly_counts, summary_selected_polygons_list, summary_td_area_list)
 
 		area = result[1]
 		texel_density = result[0]
