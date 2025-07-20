@@ -19,6 +19,14 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 	#  Лучше всего тесты держать атомарными и делать по одной проверке в функции, чтобы не повышать сложность тестов
 
+	@classmethod
+	def setUpClass(cls):
+		print("\n----Starting Texel Density Check Test Suite...----")
+
+	@classmethod
+	def tearDownClass(cls):
+		print("----Finished Texel Density Check Test Suite...----")
+
 	# All Tests start in object mode
 	def setUp(self):
 		print(f"Current backend: {utils.get_preferences().calculation_backend}")
@@ -61,7 +69,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 	# TD Check Single Selected Object in Object Mode
 	def test_check_object_mode(self):
-		print("----Run Test TD Check (in Object Mode)---")
+		print("----Run Test TD Check (in Object Mode)----")
 
 		area = bpy.context.area
 		if not area:
@@ -105,7 +113,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 	# TD Check Single Selected Object in Edit Mode
 	def test_check_edit_mode(self):
-		print("----Run Test TD Check (in Edit Mode)---")
+		print("----Run Test TD Check (in Edit Mode)----")
 
 		area = bpy.context.area
 		if not area:
@@ -172,7 +180,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 	# Base Check for Py Backend
 	def test_check_py_back(self):
-		print("----Run Test Base Check for Py Backend---")
+		print("----Run Test Base Check for TD Check for Py Backend----")
 
 		utils.get_preferences().calculation_backend = 'PY'
 		print(f"Backend switched to Py. Current is: {utils.get_preferences().calculation_backend}")
@@ -222,7 +230,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 	# TD Check Single Selected Object in Edit Mode with disabled Selected Faces option
 	def test_check_edit_mode_no_selected_faces(self):
-		print("----Run Test TD Check (in Edit Mode / No Selected Faces)---")
+		print("----Run Test TD Check (in Edit Mode / No Selected Faces)----")
 
 		area = bpy.context.area
 		if not area:
