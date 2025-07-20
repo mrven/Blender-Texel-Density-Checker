@@ -61,7 +61,7 @@ def panel_draw(layout, context):
 		box = layout.box()
 		row = box.row(align=True)
 		row.label(text="UV Space:")
-		row.label(text=td.uv_space)
+		row.label(text=f"{td.uv_space} %")
 
 		cur_units = td.units_list[int(td.units)][1]
 

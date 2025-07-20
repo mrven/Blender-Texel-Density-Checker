@@ -71,7 +71,7 @@ class CalculatedToSelect(bpy.types.Operator):
 
 		# Copying UV area or TD depends on current select mode
 		if td.select_mode == "ISLANDS_BY_SPACE":
-			td['select_value'] = td.uv_space[:-2]
+			td['select_value'] = td.uv_space
 		else:
 			td['select_value'] = td.density
 

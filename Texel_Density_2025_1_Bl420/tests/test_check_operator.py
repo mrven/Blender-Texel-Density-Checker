@@ -43,6 +43,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
+	# All Tests finish clean up and return to object mode
 	def tearDown(self):
 		# Always return to Object Mode
 		if bpy.context.object and bpy.context.object.mode != 'OBJECT':
@@ -79,7 +80,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 		bpy.context.view_layer.objects.active.select_set(True)
 
 		expected_density = '0.515'
-		expected_uv_space = '37.5000 %'
+		expected_uv_space = '37.5000'
 
 		for i in range(3):  # Three times check
 			with self.subTest(cycle=i):
@@ -89,7 +90,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 					result = bpy.ops.texel_density.check()
 
-					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space}")
+					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
 					self.assertIn('FINISHED', result)
 					self.assertEqual(td.density, expected_density)
@@ -129,12 +130,12 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 		td.uv_space = ''
 
 		expected_results = {
-			0: ('0.453', '6.2500 %'),
-			1: ('0.640', '6.2500 %'),
-			2: ('0.453', '6.2500 %'),
-			3: ('0.640', '6.2500 %'),
-			4: ('0.453', '6.2500 %'),
-			5: ('0.453', '6.2500 %'),
+			0: ('0.453', '6.2500'),
+			1: ('0.640', '6.2500'),
+			2: ('0.453', '6.2500'),
+			3: ('0.640', '6.2500'),
+			4: ('0.453', '6.2500'),
+			5: ('0.453', '6.2500'),
 		}
 
 		total_faces = len(obj.data.polygons)
@@ -154,7 +155,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 					actual_density = td.density
 					actual_uv_space = td.uv_space
 
-					print(f"[Face {i}] Density = {actual_density}, UV Space = {actual_uv_space}")
+					print(f"[Face {i}] Density = {actual_density}, UV Space = {actual_uv_space} %")
 
 					bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -193,7 +194,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 		bpy.context.view_layer.objects.active.select_set(True)
 
 		expected_density = '0.515'
-		expected_uv_space = '37.5000 %'
+		expected_uv_space = '37.5000'
 
 		for i in range(3):  # Three times check
 			with self.subTest(cycle=i):
@@ -203,7 +204,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 					result = bpy.ops.texel_density.check()
 
-					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space}")
+					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
 					self.assertIn('FINISHED', result)
 					self.assertEqual(td.density, expected_density)
@@ -246,7 +247,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 		td.selected_faces = False
 
 		expected_density = '0.515'
-		expected_uv_space = '37.5000 %'
+		expected_uv_space = '37.5000'
 
 		for i in range(3):  # Three times check
 			with self.subTest(cycle=i):
@@ -259,7 +260,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 
 					result = bpy.ops.texel_density.check()
 
-					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space}")
+					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
 					bpy.ops.object.mode_set(mode='OBJECT')
 
