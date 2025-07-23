@@ -8,6 +8,82 @@ import ctypes.util
 import numpy as np
 import sys
 import math
+from collections import defaultdict
+
+
+def Calculate_TD_Area_To_List():
+	td = bpy.context.scene.td
+	result = []
+
+	start_obj = bpy.context.active_object
+	start_mode = start_obj.mode
+
+	tex_size_x, tex_size_y = get_texture_resolution()
+	aspect_ratio = tex_size_x / tex_size_y
+	if aspect_ratio < 1:
+		aspect_ratio = 1 / aspect_ratio
+	largest_side = max(tex_size_x, tex_size_y)
+	scale = (largest_side / math.sqrt(aspect_ratio)) / (100 * bpy.context.scene.unit_settings.scale_length)
+
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	bpy.ops.object.duplicate()
+	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+
+	obj = bpy.context.active_object
+	mesh_data = obj.data
+	mesh_data.calc_loop_triangles()
+
+	face_areas = [p.area for p in mesh_data.polygons]
+	uv_layer = mesh_data.uv_layers.active.data
+
+	uv_area_by_face = defaultdict(float)
+
+	for tri in mesh_data.loop_triangles:
+		face_index = tri.polygon_index
+		loops = tri.loops
+
+		uv0 = uv_layer[loops[0]].uv
+		uv1 = uv_layer[loops[1]].uv
+		uv2 = uv_layer[loops[2]].uv
+
+		u = uv1 - uv0
+		v = uv2 - uv0
+		cross = u.x * v.y - u.y * v.x
+		uv_area = 0.5 * abs(cross)
+
+		uv_area_by_face[face_index] += uv_area
+
+	for face_index, uv_area in uv_area_by_face.items():
+		geo_area = face_areas[face_index]
+
+		if geo_area > 0 and uv_area > 0:
+			texel_density = scale * math.sqrt(uv_area) / math.sqrt(geo_area)
+		else:
+			texel_density = 0.0001
+
+		if td.units == '1':
+			texel_density *= 100.0
+		elif td.units == '2':
+			texel_density *= 2.54
+		elif td.units == '3':
+			texel_density *= 30.48
+
+		result.append([texel_density, uv_area])
+
+	mesh_name = mesh_data.name
+	bpy.ops.object.delete()
+	try:
+		bpy.data.meshes.remove(bpy.data.meshes[mesh_name])
+	except Exception:
+		pass
+
+	bpy.context.view_layer.objects.active = start_obj
+	bpy.ops.object.mode_set(mode=start_mode)
+
+	return result
+
 
 def get_texture_resolution():
 	td = bpy.context.scene.td

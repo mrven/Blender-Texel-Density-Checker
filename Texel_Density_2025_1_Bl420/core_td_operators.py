@@ -9,6 +9,7 @@ import ctypes
 
 # Calculate TD for selected polygons
 class TexelDensityCheck(bpy.types.Operator):
+	"""Check Density"""
 	bl_idname = "texel_density.check"
 	bl_label = "Calculate TD"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -28,10 +29,11 @@ class TexelDensityCheck(bpy.types.Operator):
 			start_selected_obj = bpy.context.selected_objects
 
 		bpy.ops.object.mode_set(mode='OBJECT')
+		area = 0
+		texel_density = 0
 
-		summary_td_area_list = np.array([], dtype=np.float32)
-		summary_selected_polygons_list = np.array([], dtype=np.uint8)
-		summary_poly_counts = 0
+		local_area_list = []
+		local_td_list = []
 
 		# Get Total UV area for all objects
 		for o in start_selected_obj:
@@ -40,51 +42,69 @@ class TexelDensityCheck(bpy.types.Operator):
 				bpy.context.view_layer.objects.active = o
 				bpy.context.view_layer.objects.active.select_set(True)
 
-				mesh_data = bpy.context.active_object.data
+				mesh_data = o.data
 
-				# Summary Poly Count
+				selected_faces = []
 				bpy.ops.object.mode_set(mode='OBJECT')
-				obj_poly_count = len(mesh_data.polygons)
-				summary_poly_counts += obj_poly_count
-
-				# Summary TD Area
-				summary_td_area_list = np.concatenate((summary_td_area_list, utils.calculate_td_area_to_list(o)))
+				face_count = len(mesh_data.polygons)
 
 				# Select All Polygons if Calculate TD per Object and collect to list
 				# if calculate TD per object
 				if start_mode == 'OBJECT' or not td.selected_faces:
-					selected_polygons = np.ones(obj_poly_count, dtype=np.uint8)
+					selected_faces = list(range(face_count))
+
+				# Collect selected polygons in UV Editor
+				# if call TD from UV Editor and without sync selection
 				elif bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
-					# Array for selected loops
-					uv_selection = np.empty(len(mesh_data.uv_layers.active.data), dtype=np.uint8)
-					# Read selected UV
-					mesh_data.uv_layers.active.data.foreach_get("select", uv_selection)
-					# Array for selected polygons
-					selected_polygons = np.ones(len(mesh_data.polygons), dtype=np.uint8)
-					# Check selected loops in polygons
-					for poly in mesh_data.polygons:
-						for loop_index in poly.loop_indices:
-							if not uv_selection[loop_index]:
-								selected_polygons[poly.index] = 0
-								break  # If not all loops selected - poly isn't selected
+					prev_mode = o.mode
+					if prev_mode != 'EDIT':
+						bpy.ops.object.mode_set(mode='EDIT')
+
+					bm = bmesh.from_edit_mesh(mesh_data)
+					bm.faces.ensure_lookup_table()
+					uv_layer = bm.loops.layers.uv.active
+
+					selected_faces = [
+						f.index for f in bm.faces
+						if f.select and all(loop[uv_layer].select for loop in f.loops)
+					]
+
+					if prev_mode != 'EDIT':
+						bpy.ops.object.mode_set(mode=prev_mode)
+
 				# Collect selected polygons
 				# if call TD from edit mode OR from UV Editor with sync selection
 				else:
-					bpy.ops.object.mode_set(mode='OBJECT')
-					selected_polygons = np.empty(len(mesh_data.polygons), dtype=np.uint8)
-					mesh_data.polygons.foreach_get("select", selected_polygons)
+					selected_faces = [p.index for p in mesh_data.polygons if p.select]
 
-				summary_selected_polygons_list = np.concatenate((summary_selected_polygons_list, selected_polygons))
+				face_td_area_list = utils.Calculate_TD_Area_To_List()
 
-		result = utils.calculate_total_td_area(summary_poly_counts, summary_selected_polygons_list, summary_td_area_list)
+				local_area = 0
+				local_texel_density = 0
 
-		area = result[1]
-		texel_density = result[0]
+				# Calculate UV area and TD per object
+				for face_id in selected_faces:
+					local_area += face_td_area_list[face_id][1]
+
+				for face_id in selected_faces:
+					local_texel_density += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / local_area
+
+				# Store local Area and local TD to lists
+				local_area_list.append(local_area)
+				local_td_list.append(local_texel_density)
+
+				# Calculate Total UV Area
+				area += local_area
 
 		# Calculate Final TD
 		if area > 0:
+			# and finally calculate total TD
+			for (local_area, local_texel_density) in zip(local_area_list, local_td_list):
+				texel_density += local_texel_density * local_area / area
+
 			td.uv_space = '%.4f' % round(area * 100, 4)
 			td.density = '%.3f' % round(texel_density, 3)
+
 		else:
 			self.report({'INFO'}, "No Faces Selected or UV Area is Very Small")
 			td.uv_space = '0'
