@@ -11,6 +11,47 @@ import math
 from collections import defaultdict
 
 
+# Sync selection between UV Editor and 3D View
+def Sync_UV_Selection():
+	mesh = bpy.context.active_object.data
+	bm = bmesh.from_edit_mesh(mesh)
+	bm.faces.ensure_lookup_table()
+	uv_layer = bm.loops.layers.uv.active
+	uv_selected_faces = []
+	face_count = len(bm.faces)
+
+	# Add face to list if face select in UV Editor and in 3D View
+	for face_id in range(face_count):
+		face_is_selected = True
+		for loop in bm.faces[face_id].loops:
+			if not loop[uv_layer].select:
+				face_is_selected = False
+
+		if face_is_selected and bm.faces[face_id].select:
+			uv_selected_faces.append(face_id)
+
+	# Deselect all faces in UV Editor and select faces from list
+	for face_id in range(face_count):
+		for loop in bm.faces[face_id].loops:
+			loop[uv_layer].select = False
+
+	for face_id in uv_selected_faces:
+		for loop in bm.faces[face_id].loops:
+			loop[uv_layer].select = True
+
+	# if set mode "Selected Faces" select faces from list
+	for face in bm.faces:
+		if bpy.context.scene.td.selected_faces:
+			face.select_set(False)
+		else:
+			face.select_set(True)
+
+	for face_id in uv_selected_faces:
+		bm.faces[face_id].select_set(True)
+
+	bmesh.update_edit_mesh(mesh)
+
+
 def Calculate_TD_Area_To_List():
 	td = bpy.context.scene.td
 	result = []
