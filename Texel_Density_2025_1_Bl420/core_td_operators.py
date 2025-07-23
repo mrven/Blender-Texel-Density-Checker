@@ -136,19 +136,19 @@ class TexelDensitySet(bpy.types.Operator):
 		start_mode = bpy.context.object.mode
 		need_select_again_obj = bpy.context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		start_selected_obj = (
+			bpy.context.objects_in_mode if start_mode == 'EDIT'
+			else bpy.context.selected_objects
+		)
 
 		# Get Value for TD Set
-		density_new_value = 0
+		density_new_value = 0.0
 
 		# Double and Half use for buttons "Half TD" and "Double TD"
 		if td.density_set != "Double" and td.density_set != "Half":
 			try:
 				density_new_value = float(td.density_set)
-			except:
+			except Exception:
 				self.report({'INFO'}, "Density value is wrong")
 				return {'CANCELLED'}
 
@@ -157,125 +157,130 @@ class TexelDensitySet(bpy.types.Operator):
 		# Resize UV Islands for getting of target TD
 		for o in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
-				bpy.context.view_layer.objects.active = o
-				bpy.context.view_layer.objects.active.select_set(True)
 
-				# Save start selected in 3d view faces
-				start_selected_faces = []
-				for face_id in range(0, len(o.data.polygons)):
-					if bpy.context.active_object.data.polygons[face_id].select:
-						start_selected_faces.append(face_id)
+			if o.type != 'MESH' or len(o.data.uv_layers) == 0 or len(o.data.polygons) == 0:
+				continue
 
-				bpy.ops.object.mode_set(mode='EDIT')
+			bpy.context.view_layer.objects.active = o
+			o.select_set(True)
 
-				# If Set TD from UV Editor sync selection between UV Editor and 3D View
-				if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
-					utils.Sync_UV_Selection()
+			mesh_data = o.data
 
-				# Select All Polygons if Calculate TD per Object and collect to list
-				# if calculate TD per object
-				if start_mode == 'OBJECT' or not td.selected_faces:
-					bpy.ops.mesh.reveal()
-					bpy.ops.mesh.select_all(action='SELECT')
+			# Save start selected in 3d view faces
+			start_selected_faces = []
+			for face_id in range(0, len(mesh_data.polygons)):
+				if mesh_data.polygons[face_id].select:
+					start_selected_faces.append(face_id)
 
-				# Check opened UV editor window(s)
-				ie_areas = []
-				flag_exist_area = False
-				for area in range(len(bpy.context.screen.areas)):
-					if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR' and bpy.context.screen.areas[
-						area].ui_type == 'UV':
-						ie_areas.append(area)
-						flag_exist_area = True
+			bpy.ops.object.mode_set(mode='EDIT')
 
-				# Get cursor location from existing UV Editor
-				ie_cursor_loc = (0, 0)
+			# If Set TD from UV Editor sync selection between UV Editor and 3D View
+			if bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
+				utils.Sync_UV_Selection()
 
-				if flag_exist_area:
-					ie_cursor_loc = bpy.context.screen.areas[ie_areas[0]].spaces.active.cursor_location.copy()
+			# Select All Polygons if Calculate TD per Object and collect to list
+			# if calculate TD per object
+			if start_mode == 'OBJECT' or not td.selected_faces:
+				bpy.ops.mesh.reveal()
+				bpy.ops.mesh.select_all(action='SELECT')
 
-				# Switch these areas to Image Editor(s)
-				# because below switch active window to UV Editor
-				# This guarantees only one window with UV Editor
+			# Check opened UV editor window(s)
+			ie_areas = []
+			flag_exist_area = False
+			for area in range(len(bpy.context.screen.areas)):
+				if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR' and bpy.context.screen.areas[
+					area].ui_type == 'UV':
+					ie_areas.append(area)
+					flag_exist_area = True
+
+			# Get cursor location from existing UV Editor
+			ie_cursor_loc = (0, 0)
+
+			if flag_exist_area:
+				ie_cursor_loc = bpy.context.screen.areas[ie_areas[0]].spaces.active.cursor_location.copy()
+
+			# Switch these areas to Image Editor(s)
+			# because below switch active window to UV Editor
+			# This guarantees only one window with UV Editor
+			for ie_area in ie_areas:
+				bpy.context.screen.areas[ie_area].ui_type = 'IMAGE_EDITOR'
+
+			# Turn active window to Image Editor
+			bpy.context.area.type = 'IMAGE_EDITOR'
+
+			# if active window (now Image Editor) contains Render Result - clear that
+			if bpy.context.area.spaces[0].image is not None:
+				if bpy.context.area.spaces[0].image.name == 'Render Result':
+					bpy.context.area.spaces[0].image = None
+
+			# Switch Image Editor to UV Editor for manipulating with UV
+			if bpy.context.space_data.mode != 'UV':
+				bpy.context.space_data.mode = 'UV'
+
+			# Save current 2D Cursor location and scale mode
+			start_cursor_loc = bpy.context.area.spaces.active.cursor_location.copy()
+			start_pivot_mode = bpy.context.space_data.pivot_point
+
+			# Move 2D Cursor if used mot selection scale
+			if td.rescale_anchor != 'SELECTION':
+				bpy.context.space_data.pivot_point = 'CURSOR'
+
+			if td.rescale_anchor == 'UV_CENTER':
+				bpy.ops.uv.cursor_set(location=(0.5, 0.5))
+			if td.rescale_anchor == 'UV_LEFT_TOP':
+				bpy.ops.uv.cursor_set(location=(0, 1))
+			if td.rescale_anchor == 'UV_LEFT_BOTTOM':
+				bpy.ops.uv.cursor_set(location=(0, 0))
+			if td.rescale_anchor == 'UV_RIGHT_TOP':
+				bpy.ops.uv.cursor_set(location=(1, 1))
+			if td.rescale_anchor == 'UV_RIGHT_BOTTOM':
+				bpy.ops.uv.cursor_set(location=(1, 0))
+			if td.rescale_anchor == '2D_CURSOR' and flag_exist_area:
+				bpy.ops.uv.cursor_set(location=ie_cursor_loc)
+
+			# If sync selection disabled, then select all polygons
+			# It's not all polygons of object. Only selected in 3d View
+			if not bpy.context.scene.tool_settings.use_uv_select_sync:
+				bpy.ops.uv.select_all(action='SELECT')
+
+			# If set each method, rescale all islands to unified TD
+			# This use for single rescale factor for all
+			if td.set_method == 'EACH':
+				bpy.ops.uv.average_islands_scale()
+
+			# Calculate and get current value of TD
+			bpy.ops.texel_density.check()
+			density_current_value = float(td.density)
+			if density_current_value < 0.0001:
+				density_current_value = 0.0001
+
+			# Value (scale factor) for rescale islands
+			if td.density_set == "Double":
+				scale_fac = 2
+			elif td.density_set == "Half":
+				scale_fac = 0.5
+			else:
+				scale_fac = density_new_value / density_current_value
+
+			# Rescale selected islands in UV Editor
+			bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
+
+			# Restore selection mode and cursor location
+			bpy.ops.uv.cursor_set(location=(start_cursor_loc.x, start_cursor_loc.y))
+			bpy.context.space_data.pivot_point = start_pivot_mode
+
+			# Switch active area to 3D View and restore UV Editor windows
+			bpy.context.area.type = 'VIEW_3D'
+
+			if flag_exist_area:
 				for ie_area in ie_areas:
-					bpy.context.screen.areas[ie_area].ui_type = 'IMAGE_EDITOR'
+					bpy.context.screen.areas[ie_area].ui_type = 'UV'
 
-				# Turn active window to Image Editor
-				bpy.context.area.type = 'IMAGE_EDITOR'
+			bpy.ops.mesh.select_all(action='DESELECT')
 
-				# if active window (now Image Editor) contains Render Result - clear that
-				if bpy.context.area.spaces[0].image is not None:
-					if bpy.context.area.spaces[0].image.name == 'Render Result':
-						bpy.context.area.spaces[0].image = None
-
-				# Switch Image Editor to UV Editor for manipulating with UV
-				if bpy.context.space_data.mode != 'UV':
-					bpy.context.space_data.mode = 'UV'
-
-				# Save current 2D Cursor location and scale mode
-				start_cursor_loc = bpy.context.area.spaces.active.cursor_location.copy()
-				start_pivot_mode = bpy.context.space_data.pivot_point
-
-				# Move 2D Cursor if used mot selection scale
-				if td.rescale_anchor != 'SELECTION':
-					bpy.context.space_data.pivot_point = 'CURSOR'
-
-				if td.rescale_anchor == 'UV_CENTER':
-					bpy.ops.uv.cursor_set(location=(0.5, 0.5))
-				if td.rescale_anchor == 'UV_LEFT_TOP':
-					bpy.ops.uv.cursor_set(location=(0, 1))
-				if td.rescale_anchor == 'UV_LEFT_BOTTOM':
-					bpy.ops.uv.cursor_set(location=(0, 0))
-				if td.rescale_anchor == 'UV_RIGHT_TOP':
-					bpy.ops.uv.cursor_set(location=(1, 1))
-				if td.rescale_anchor == 'UV_RIGHT_BOTTOM':
-					bpy.ops.uv.cursor_set(location=(1, 0))
-				if td.rescale_anchor == '2D_CURSOR' and flag_exist_area:
-					bpy.ops.uv.cursor_set(location=ie_cursor_loc)
-
-				# If sync selection disabled, then select all polygons
-				# It's not all polygons of object. Only selected in 3d View
-				if not bpy.context.scene.tool_settings.use_uv_select_sync:
-					bpy.ops.uv.select_all(action='SELECT')
-
-				# If set each method, rescale all islands to unified TD
-				# This use for single rescale factor for all
-				if td.set_method == 'EACH':
-					bpy.ops.uv.average_islands_scale()
-
-				# Calculate and get current value of TD
-				bpy.ops.texel_density.check()
-				density_current_value = float(td.density)
-				if density_current_value < 0.0001:
-					density_current_value = 0.0001
-
-				# Value (scale factor) for rescale islands
-				if td.density_set == "Double":
-					scale_fac = 2
-				elif td.density_set == "Half":
-					scale_fac = 0.5
-				else:
-					scale_fac = density_new_value / density_current_value
-
-				# Rescale selected islands in UV Editor
-				bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
-
-				# Restore selection mode and cursor location
-				bpy.ops.uv.cursor_set(location=(start_cursor_loc.x, start_cursor_loc.y))
-				bpy.context.space_data.pivot_point = start_pivot_mode
-
-				# Switch active area to 3D View and restore UV Editor windows
-				bpy.context.area.type = 'VIEW_3D'
-
-				if flag_exist_area:
-					for ie_area in ie_areas:
-						bpy.context.screen.areas[ie_area].ui_type = 'UV'
-
-				bpy.ops.mesh.select_all(action='DESELECT')
-
-				bpy.ops.object.mode_set(mode='OBJECT')
-				for face_id in start_selected_faces:
-					bpy.context.active_object.data.polygons[face_id].select = True
+			bpy.ops.object.mode_set(mode='OBJECT')
+			for face_id in start_selected_faces:
+				bpy.context.active_object.data.polygons[face_id].select = True
 
 		# Select Objects Again
 		bpy.ops.object.mode_set(mode='OBJECT')
