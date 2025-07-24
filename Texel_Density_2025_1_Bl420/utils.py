@@ -63,7 +63,7 @@ def calculate_td_area_to_list():
 		tdcore = get_td_core_dll()
 
 		if tdcore:
-			tdcore.NewCalculateTDAreaArray.argtypes = [
+			tdcore.CalculateTDAreaArray.argtypes = [
 				ctypes.POINTER(ctypes.c_float),  # UVs
 				ctypes.c_int,  # UVs Count
 				ctypes.POINTER(ctypes.c_float),  # Areas
@@ -107,7 +107,7 @@ def calculate_td_area_to_list():
 		result_cpp = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
 
 		# Call function from Library
-		tdcore.NewCalculateTDAreaArray(
+		tdcore.CalculateTDAreaArray(
 			uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
 			uvs.size,
 			areas.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
