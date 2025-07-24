@@ -263,7 +263,7 @@ class TDAddonUVPanel(bpy.types.Panel):
 	@classmethod
 	def poll(cls, context):
 		preferences = utils.get_preferences()
-		return ((context.object is not None) and context.mode == 'EDIT_MESH' and preferences.uv_panel_enable
+		return ((context.object is not None) and (context.active_object is not None) and context.mode == 'EDIT_MESH' and preferences.uv_panel_enable
 				and context.space_data.mode == 'UV')
 
 	def draw(self, context):
