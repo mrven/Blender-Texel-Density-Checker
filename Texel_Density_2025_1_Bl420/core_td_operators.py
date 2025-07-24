@@ -17,74 +17,80 @@ class TexelDensityCheck(bpy.types.Operator):
 		start_time = datetime.now()
 		td = context.scene.td
 
-		# Save current mode and active object
+		# Save current mode and selection
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
 
 		bpy.ops.object.mode_set(mode='OBJECT')
+		area = 0.0
 
-		summary_td_area_list = np.array([], dtype=np.float32)
-		summary_selected_polygons_list = np.array([], dtype=np.uint8)
-		summary_poly_counts = 0
+		local_area_list = []
+		local_td_list = []
 
-		# Get Total UV area for all objects
 		for o in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
-				bpy.context.view_layer.objects.active = o
-				bpy.context.view_layer.objects.active.select_set(True)
 
-				mesh_data = bpy.context.active_object.data
+			if o.type != 'MESH' or len(o.data.uv_layers) == 0 or len(o.data.polygons) == 0:
+				continue
 
-				# Summary Poly Count
-				bpy.ops.object.mode_set(mode='OBJECT')
-				obj_poly_count = len(mesh_data.polygons)
-				summary_poly_counts += obj_poly_count
+			bpy.context.view_layer.objects.active = o
+			o.select_set(True)
 
-				# Summary TD Area
-				summary_td_area_list = np.concatenate((summary_td_area_list, utils.calculate_td_area_to_list(o)))
+			mesh_data = o.data
+			face_count = len(mesh_data.polygons)
 
-				# Select All Polygons if Calculate TD per Object and collect to list
-				# if calculate TD per object
-				if start_mode == 'OBJECT' or not td.selected_faces:
-					selected_polygons = np.ones(obj_poly_count, dtype=np.uint8)
-				elif bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
-					# Array for selected loops
-					uv_selection = np.empty(len(mesh_data.uv_layers.active.data), dtype=np.uint8)
-					# Read selected UV
-					mesh_data.uv_layers.active.data.foreach_get("select", uv_selection)
-					# Array for selected polygons
-					selected_polygons = np.ones(len(mesh_data.polygons), dtype=np.uint8)
-					# Check selected loops in polygons
-					for poly in mesh_data.polygons:
-						for loop_index in poly.loop_indices:
-							if not uv_selection[loop_index]:
-								selected_polygons[poly.index] = 0
-								break  # If not all loops selected - poly isn't selected
-				# Collect selected polygons
-				# if call TD from edit mode OR from UV Editor with sync selection
-				else:
-					bpy.ops.object.mode_set(mode='OBJECT')
-					selected_polygons = np.empty(len(mesh_data.polygons), dtype=np.uint8)
-					mesh_data.polygons.foreach_get("select", selected_polygons)
+			if start_mode == 'OBJECT' or not td.selected_faces:
+				selected_faces = np.arange(face_count, dtype=np.int32)
 
-				summary_selected_polygons_list = np.concatenate((summary_selected_polygons_list, selected_polygons))
+			elif bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
+				prev_mode = o.mode
+				if prev_mode != 'EDIT':
+					bpy.ops.object.mode_set(mode='EDIT')
 
-		result = utils.calculate_total_td_area(summary_poly_counts, summary_selected_polygons_list, summary_td_area_list)
+				bm = bmesh.from_edit_mesh(mesh_data)
+				bm.faces.ensure_lookup_table()
+				uv_layer = bm.loops.layers.uv.active
 
-		area = result[1]
-		texel_density = result[0]
+				selected_faces = np.array([f.index for f in bm.faces
+					if f.select and all(loop[uv_layer].select for loop in f.loops)], dtype=np.int32)
 
-		# Calculate Final TD
+				if prev_mode != 'EDIT':
+					bpy.ops.object.mode_set(mode=prev_mode)
+
+			else:
+				selected_faces = np.array([p.index for p in mesh_data.polygons if p.select], dtype=np.int32)
+
+			if selected_faces.size == 0:
+				continue
+
+			face_td_area_array = np.array(utils.calculate_td_area_to_list(), dtype=np.float32)
+
+			selected_areas = face_td_area_array[selected_faces, 1]
+			selected_densities = face_td_area_array[selected_faces, 0]
+
+			local_area = selected_areas.sum()
+
+			if local_area == 0:
+				local_texel_density = 0.0001
+			else:
+				weights = selected_areas / local_area
+				local_texel_density = np.dot(selected_densities, weights)
+
+			local_area_list.append(local_area)
+			local_td_list.append(local_texel_density)
+			area += local_area
+
 		if area > 0:
+			local_area_np = np.array(local_area_list, dtype=np.float32)
+			local_td_np = np.array(local_td_list, dtype=np.float32)
+			texel_density = np.dot(local_td_np, local_area_np / area)
+
 			td.uv_space = '%.4f' % round(area * 100, 4)
 			td.density = '%.3f' % round(texel_density, 3)
+
 		else:
 			self.report({'INFO'}, "No Faces Selected or UV Area is Very Small")
 			td.uv_space = '0'
@@ -100,8 +106,8 @@ class TexelDensityCheck(bpy.types.Operator):
 
 		bpy.context.view_layer.objects.active = start_active_obj
 
-		for j in need_select_again_obj:
-			j.select_set(True)
+		for obj in need_select_again_obj:
+			obj.select_set(True)
 
 		utils.print_execution_time("Calculate TD", start_time)
 		return {'FINISHED'}
@@ -122,115 +128,128 @@ class TexelDensitySet(bpy.types.Operator):
 		start_mode = bpy.context.object.mode
 		need_select_again_obj = bpy.context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
 
-		# Get texture size from panel
-		texture_size_x, texture_size_y = utils.get_texture_resolution()
+		density_new_value = 0.0
 
-		# Get Value for TD Set
-		density_new_value = 0
-
-		# Double and Half use for buttons "Half TD" and "Double TD"
-		if td.density_set != "Double" and td.density_set != "Half":
+		# Parse input TD value
+		if td.density_set not in {"Double", "Half"}:
 			try:
 				density_new_value = float(td.density_set)
 			except Exception:
 				self.report({'INFO'}, "Density value is wrong")
 				return {'CANCELLED'}
-		elif td.density_set == "Double":
-			density_new_value = -2.0
-		elif td.density_set == "Half":
-			density_new_value = -0.5
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
-		# Check opened UV editor window(s)
-		ie_areas = []
-		flag_exist_area = False
-		for area in range(len(bpy.context.screen.areas)):
-			if bpy.context.screen.areas[area].type == 'IMAGE_EDITOR' and bpy.context.screen.areas[
-				area].ui_type == 'UV':
-				ie_areas.append(area)
-				flag_exist_area = True
+		for obj in start_selected_obj:
+			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
+				continue
 
-		for o in start_selected_obj:
+			# Select current object
 			bpy.ops.object.select_all(action='DESELECT')
-			if o.type == 'MESH' and len(o.data.uv_layers) > 0 and len(o.data.polygons) > 0:
-				bpy.context.view_layer.objects.active = o
-				bpy.context.view_layer.objects.active.select_set(True)
+			context.view_layer.objects.active = obj
+			obj.select_set(True)
 
-				mesh_data = bpy.context.active_object.data
+			mesh_data = obj.data
+			start_selected_faces = np.array([
+					p.index for p in mesh_data.polygons if p.select
+				], dtype=np.int32)
 
-				bpy.ops.object.mode_set(mode='OBJECT')
-				obj_poly_count = len(mesh_data.polygons)
+			bpy.ops.object.mode_set(mode='EDIT')
 
-				# Select All Polygons if Calculate TD per Object and collect to list
-				# if calculate TD per object
-				if start_mode == 'OBJECT' or not td.selected_faces:
-					selected_polygons = np.ones(obj_poly_count, dtype=np.uint8)
-				elif bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
-					# Array for selected loops
-					uv_selection = np.empty(len(mesh_data.uv_layers.active.data), dtype=np.uint8)
-					# Read selected UV
-					mesh_data.uv_layers.active.data.foreach_get("select", uv_selection)
-					# Array for selected polygons
-					selected_polygons = np.ones(len(mesh_data.polygons), dtype=np.uint8)
-					# Check selected loops in polygons
-					for poly in mesh_data.polygons:
-						for loop_index in poly.loop_indices:
-							if not uv_selection[loop_index]:
-								selected_polygons[poly.index] = 0
-								break  # If not all loops selected - poly isn't selected
-				# Collect selected polygons
-				# if call TD from edit mode OR from UV Editor with sync selection
-				else:
-					bpy.ops.object.mode_set(mode='OBJECT')
-					selected_polygons = np.empty(len(mesh_data.polygons), dtype=np.uint8)
-					mesh_data.polygons.foreach_get("select", selected_polygons)
+			if context.area.spaces.active.type == "IMAGE_EDITOR" and not context.scene.tool_settings.use_uv_select_sync:
+				utils.sync_uv_selection()
 
-				if not np.any(selected_polygons):
-					continue
+			if start_mode == 'OBJECT' or not td.selected_faces:
+				bpy.ops.mesh.reveal()
+				bpy.ops.mesh.select_all(action='SELECT')
 
-				#Scale Origin Coordinates
-				if td.rescale_anchor == 'UV_CENTER':
-					origin_coordinates = (0.5, 0.5)
-				elif td.rescale_anchor == 'UV_LEFT_TOP':
-					origin_coordinates = (0, 1)
-				elif td.rescale_anchor == 'UV_LEFT_BOTTOM':
-					origin_coordinates =(0, 0)
-				elif td.rescale_anchor == 'UV_RIGHT_TOP':
-					origin_coordinates =(1, 1)
-				elif td.rescale_anchor == 'UV_RIGHT_BOTTOM':
-					origin_coordinates =(1, 0)
-				elif td.rescale_anchor == '2D_CURSOR' and flag_exist_area:
-					origin_coordinates =bpy.context.screen.areas[ie_areas[0]].spaces.active.cursor_location.copy()
-				else:
-					origin_coordinates = utils.get_average_uv_center(o, selected_polygons)
+			# UV Editor setup
+			uv_areas = [a for a in context.screen.areas if a.type == 'IMAGE_EDITOR' and a.ui_type == 'UV']
+			flag_uv_area_exists = bool(uv_areas)
 
-				# Each and Average Option
-				scale_mode = 1 if td.set_method == 'EACH' else 0
+			ie_cursor_loc = uv_areas[0].spaces.active.cursor_location.copy() if flag_uv_area_exists else (0, 0)
 
-				utils.set_texel_density_cpp(o, selected_polygons, origin_coordinates, density_new_value, texture_size_x, texture_size_y, scale_mode)
+			# Set active area to UV editor
+			context.area.type = 'IMAGE_EDITOR'
+			if context.area.spaces.active.image and context.area.spaces.active.image.name == 'Render Result':
+				context.area.spaces.active.image = None
 
-		# Select Objects Again
+			if context.space_data.mode != 'UV':
+				context.space_data.mode = 'UV'
+
+			start_cursor_loc = context.space_data.cursor_location.copy()
+			start_pivot_mode = context.space_data.pivot_point
+
+			# Set pivot anchor if needed
+			if td.rescale_anchor != 'SELECTION':
+				context.space_data.pivot_point = 'CURSOR'
+
+			cursor_locations = {
+				'UV_CENTER': (0.5, 0.5),
+				'UV_LEFT_TOP': (0, 1),
+				'UV_LEFT_BOTTOM': (0, 0),
+				'UV_RIGHT_TOP': (1, 1),
+				'UV_RIGHT_BOTTOM': (1, 0),
+				'2D_CURSOR': ie_cursor_loc
+			}
+			if td.rescale_anchor in cursor_locations:
+				bpy.ops.uv.cursor_set(location=cursor_locations[td.rescale_anchor])
+
+			if not context.scene.tool_settings.use_uv_select_sync:
+				bpy.ops.uv.select_all(action='SELECT')
+
+			if td.set_method == 'EACH':
+				bpy.ops.uv.average_islands_scale()
+
+			bpy.ops.texel_density.check()
+			try:
+				density_current_value = float(td.density)
+				if density_current_value < 0.0001:
+					density_current_value = 0.0001
+			except Exception:
+				density_current_value = 1.0
+
+			if td.density_set == "Double":
+				scale_fac = 2.0
+			elif td.density_set == "Half":
+				scale_fac = 0.5
+			else:
+				scale_fac = density_new_value / density_current_value
+
+			bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
+
+			# Restore cursor and pivot
+			bpy.ops.uv.cursor_set(location=start_cursor_loc)
+			context.space_data.pivot_point = start_pivot_mode
+
+			context.area.type = 'VIEW_3D'
+
+			# Restore UV Editor UI type for any changed areas
+			for area in uv_areas:
+				area.ui_type = 'UV'
+
+			# Restore face selection
+			bpy.ops.mesh.select_all(action='DESELECT')
+			bpy.ops.object.mode_set(mode='OBJECT')
+			for face_id in start_selected_faces:
+				mesh_data.polygons[face_id].select = True
+
+		# Restore object selection and mode
 		bpy.ops.object.mode_set(mode='OBJECT')
 		bpy.ops.object.select_all(action='DESELECT')
+		for obj in need_select_again_obj:
+			obj.select_set(True)
+		context.view_layer.objects.active = start_active_obj
 
 		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+			for obj in start_selected_obj:
+				context.view_layer.objects.active = obj
 				bpy.ops.object.mode_set(mode='EDIT')
 
-		bpy.context.view_layer.objects.active = start_active_obj
-		for j in need_select_again_obj:
-			j.select_set(True)
-
-		# Calculate TD for getting actual (final) value after resizing
+		# Final TD check
 		bpy.ops.texel_density.check()
-
 		utils.print_execution_time("Set TD", start_time)
 		return {'FINISHED'}
 

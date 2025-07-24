@@ -512,7 +512,7 @@ class BakeTDToVC(bpy.types.Operator):
 					bpy.context.view_layer.objects.active = x
 					bpy.context.view_layer.objects.active.select_set(True)
 
-					td_area_list.append(utils.calculate_td_area_to_list(x))
+					td_area_list.append(utils.calculate_td_area_to_list())
 
 			# Found Min and Max TD
 			if len(td_area_list) > 0:
@@ -567,7 +567,7 @@ class BakeTDToVC(bpy.types.Operator):
 					islands_list = utils.get_uv_islands()
 
 				# Get TD and UV Area for each polygon (TD, Area)
-				face_td_area_list = utils.calculate_td_area_to_list(x)
+				face_td_area_list = utils.calculate_td_area_to_list()
 
 				bpy.ops.object.mode_set(mode='EDIT')
 				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
