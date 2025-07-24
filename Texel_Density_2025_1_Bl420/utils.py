@@ -11,7 +11,7 @@ import math
 from collections import defaultdict
 
 
-def Sync_UV_Selection():
+def sync_uv_selection():
 	mesh = bpy.context.active_object.data
 	bm = bmesh.from_edit_mesh(mesh)
 	bm.faces.ensure_lookup_table()
@@ -42,7 +42,7 @@ def Sync_UV_Selection():
 	bmesh.update_edit_mesh(mesh)
 
 
-def Calculate_TD_Area_To_List():
+def calculate_td_area_to_list():
 	td = bpy.context.scene.td
 	result = []
 
@@ -290,7 +290,7 @@ def calculate_geometry_areas(obj):
 
 
 # Calculate UV Area and Texel Density for each polygon with C++
-def calculate_td_area_to_list(obj):
+def calculate_td_area_to_list_raw(obj):
 	backend = get_preferences().calculation_backend
 	td = bpy.context.scene.td
 

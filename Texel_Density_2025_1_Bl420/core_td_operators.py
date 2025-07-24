@@ -9,14 +9,12 @@ import ctypes
 
 # Calculate TD for selected polygons
 class TexelDensityCheck(bpy.types.Operator):
-	"""Check Density"""
 	bl_idname = "texel_density.check"
 	bl_label = "Calculate TD"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
 		start_time = datetime.now()
-
 		td = context.scene.td
 
 		# Save current mode and selection
@@ -24,10 +22,7 @@ class TexelDensityCheck(bpy.types.Operator):
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
 
-		start_selected_obj = (
-			bpy.context.objects_in_mode if start_mode == 'EDIT'
-			else bpy.context.selected_objects
-		)
+		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 		area = 0.0
@@ -59,23 +54,19 @@ class TexelDensityCheck(bpy.types.Operator):
 				bm.faces.ensure_lookup_table()
 				uv_layer = bm.loops.layers.uv.active
 
-				selected_faces = np.array([
-					f.index for f in bm.faces
-					if f.select and all(loop[uv_layer].select for loop in f.loops)
-				], dtype=np.int32)
+				selected_faces = np.array([f.index for f in bm.faces
+					if f.select and all(loop[uv_layer].select for loop in f.loops)], dtype=np.int32)
 
 				if prev_mode != 'EDIT':
 					bpy.ops.object.mode_set(mode=prev_mode)
 
 			else:
-				selected_faces = np.array([
-					p.index for p in mesh_data.polygons if p.select
-				], dtype=np.int32)
+				selected_faces = np.array([p.index for p in mesh_data.polygons if p.select], dtype=np.int32)
 
 			if selected_faces.size == 0:
 				continue
 
-			face_td_area_array = np.array(utils.Calculate_TD_Area_To_List(), dtype=np.float32)
+			face_td_area_array = np.array(utils.calculate_td_area_to_list(), dtype=np.float32)
 
 			selected_areas = face_td_area_array[selected_faces, 1]
 			selected_densities = face_td_area_array[selected_faces, 0]
@@ -136,10 +127,7 @@ class TexelDensitySet(bpy.types.Operator):
 		start_mode = bpy.context.object.mode
 		need_select_again_obj = bpy.context.selected_objects
 
-		start_selected_obj = (
-			bpy.context.objects_in_mode if start_mode == 'EDIT'
-			else bpy.context.selected_objects
-		)
+		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
 
 		density_new_value = 0.0
 
@@ -170,7 +158,7 @@ class TexelDensitySet(bpy.types.Operator):
 			bpy.ops.object.mode_set(mode='EDIT')
 
 			if context.area.spaces.active.type == "IMAGE_EDITOR" and not context.scene.tool_settings.use_uv_select_sync:
-				utils.Sync_UV_Selection()
+				utils.sync_uv_selection()
 
 			if start_mode == 'OBJECT' or not td.selected_faces:
 				bpy.ops.mesh.reveal()
