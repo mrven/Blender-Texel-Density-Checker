@@ -246,7 +246,7 @@ class TDAddonView3DPanel(bpy.types.Panel):
 	@classmethod
 	def poll(cls, context):
 		preferences = utils.get_preferences()
-		return (context.object is not None) and preferences.view3d_panel_category_enable
+		return (context.object is not None) and (context.active_object is not None) and preferences.view3d_panel_category_enable
 
 	def draw(self, context):
 		panel_draw(self.layout, context)

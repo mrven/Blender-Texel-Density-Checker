@@ -3,7 +3,6 @@ import bmesh
 import math
 import colorsys
 import blf
-import bgl
 import gpu
 import random
 import bpy_extras.mesh_utils

@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Texel Density Checker",
 	"description": "Toolset for working with Texel Density",
-	"author": "Ivan 'mrven' Vostrikov, Toomas Laik, Oxicid, johnwildauer",
+	"author": "Ivan 'mrven' Vostrikov, Toomas Laik, Oxicid, johnwildauer, lfod1997",
 	"wiki_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
 	"tracker_url": "https://github.com/mrven/Blender-Texel-Density-Checker/issues",
 	"doc_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
