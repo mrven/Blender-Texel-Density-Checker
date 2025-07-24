@@ -43,18 +43,38 @@ def sync_uv_selection():
 
 
 def calculate_td_area_to_list():
+	backend = get_preferences().calculation_backend
 	td = bpy.context.scene.td
-	result = []
 
 	start_obj = bpy.context.active_object
 	start_mode = start_obj.mode
 
-	tex_size_x, tex_size_y = get_texture_resolution()
-	aspect_ratio = tex_size_x / tex_size_y
+	texture_size_x, texture_size_y = get_texture_resolution()
+	aspect_ratio = texture_size_x / texture_size_y
 	if aspect_ratio < 1:
 		aspect_ratio = 1 / aspect_ratio
-	largest_side = max(tex_size_x, tex_size_y)
+	largest_side = max(texture_size_x, texture_size_y)
 	scale = (largest_side / math.sqrt(aspect_ratio)) / (100 * bpy.context.scene.unit_settings.scale_length)
+
+	tdcore = None
+
+	if backend == 'CPP':
+		# Get Library
+		tdcore = get_td_core_dll()
+
+		if tdcore:
+			tdcore.NewCalculateTDAreaArray.argtypes = [
+				ctypes.POINTER(ctypes.c_float),  # UVs
+				ctypes.c_int,  # UVs Count
+				ctypes.POINTER(ctypes.c_float),  # Areas
+				ctypes.POINTER(ctypes.c_int),  # Vertex Count by Polygon
+				ctypes.c_int,  # Poly Count
+				ctypes.c_float,  # Scale
+				ctypes.c_int,  # Units
+				ctypes.POINTER(ctypes.c_float)  # Results
+			]
+
+			tdcore.CalculateTDAreaArray.restype = None
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -69,39 +89,72 @@ def calculate_td_area_to_list():
 	face_areas = [p.area for p in mesh_data.polygons]
 	uv_layer = mesh_data.uv_layers.active.data
 
-	uv_area_by_face = defaultdict(float)
+	result = []
 
-	for tri in mesh_data.loop_triangles:
-		face_index = tri.polygon_index
-		loops = tri.loops
+	if backend == 'CPP' and tdcore:
+		# Get UV-coordinates
+		uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
+		uv_layer.foreach_get("uv", uvs)
+		uvs = uvs.reshape(-1, 2).flatten()
 
-		uv0 = uv_layer[loops[0]].uv
-		uv1 = uv_layer[loops[1]].uv
-		uv2 = uv_layer[loops[2]].uv
+		areas = np.array(face_areas, dtype=np.float32)
 
-		u = uv1 - uv0
-		v = uv2 - uv0
-		cross = u.x * v.y - u.y * v.x
-		uv_area = 0.5 * abs(cross)
+		# Get Vertex Count
+		vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
+		mesh_data.polygons.foreach_get("loop_total", vertex_counts)
 
-		uv_area_by_face[face_index] += uv_area
+		# Results Buffer (Poly Count * 2 float: TD and uv_area)
+		result_cpp = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
 
-	for face_index, uv_area in uv_area_by_face.items():
-		geo_area = face_areas[face_index]
+		# Call function from Library
+		tdcore.NewCalculateTDAreaArray(
+			uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+			uvs.size,
+			areas.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+			vertex_counts.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
+			areas.size,
+			scale,
+			int(td.units),
+			result_cpp.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+		)
 
-		if geo_area > 0 and uv_area > 0:
-			texel_density = scale * math.sqrt(uv_area) / math.sqrt(geo_area)
-		else:
-			texel_density = 0.0001
+		result = list(map(tuple, result_cpp.reshape(-1, 2)))
 
-		if td.units == '1':
-			texel_density *= 100.0
-		elif td.units == '2':
-			texel_density *= 2.54
-		elif td.units == '3':
-			texel_density *= 30.48
+		free_td_core_dll(tdcore)
+	else:
+		uv_area_by_face = defaultdict(float)
 
-		result.append([texel_density, uv_area])
+		for tri in mesh_data.loop_triangles:
+			face_index = tri.polygon_index
+			loops = tri.loops
+
+			uv0 = uv_layer[loops[0]].uv
+			uv1 = uv_layer[loops[1]].uv
+			uv2 = uv_layer[loops[2]].uv
+
+			u = uv1 - uv0
+			v = uv2 - uv0
+			cross = u.x * v.y - u.y * v.x
+			uv_area = 0.5 * abs(cross)
+
+			uv_area_by_face[face_index] += uv_area
+
+		for face_index, uv_area in uv_area_by_face.items():
+			geo_area = face_areas[face_index]
+
+			if geo_area > 0 and uv_area > 0:
+				texel_density = scale * math.sqrt(uv_area) / math.sqrt(geo_area)
+			else:
+				texel_density = 0.0001
+
+			if td.units == '1':
+				texel_density *= 100.0
+			elif td.units == '2':
+				texel_density *= 2.54
+			elif td.units == '3':
+				texel_density *= 30.48
+
+			result.append([texel_density, uv_area])
 
 	mesh_name = mesh_data.name
 	bpy.ops.object.delete()

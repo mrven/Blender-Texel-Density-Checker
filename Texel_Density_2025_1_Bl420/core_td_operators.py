@@ -90,6 +90,7 @@ class TexelDensityCheck(bpy.types.Operator):
 
 			td.uv_space = '%.4f' % round(area * 100, 4)
 			td.density = '%.3f' % round(texel_density, 3)
+
 		else:
 			self.report({'INFO'}, "No Faces Selected or UV Area is Very Small")
 			td.uv_space = '0'

@@ -32,6 +32,11 @@ extern "C"
         float* Result
     );
 
+    EXPORT_API void NewCalculateTDAreaArray(float *UVs, int UVCount, float *Areas,
+                                         int *VertexCount, int PolyCount,
+                                         float Scale, int Units,
+                                         float *Result);
+
     EXPORT_API void CalculateTotalTDArea(float* TDsAreas, unsigned char* SelectedPoly, int PolyCount, float* Result);
 
     EXPORT_API void SetTD(
