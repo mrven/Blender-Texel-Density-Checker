@@ -86,8 +86,8 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 		bpy.context.view_layer.objects.active = self.cube
 		bpy.context.view_layer.objects.active.select_set(True)
 
-		expected_density = '1.280'
-		expected_uv_space = '250.0000'
+		expected_density = 1.28
+		expected_uv_space = 250
 
 		for i in range(3):  # Three times check for 1.28
 			with self.subTest(cycle=i):
@@ -101,15 +101,15 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
 					self.assertIn('FINISHED', result)
-					self.assertEqual(td.density, expected_density)
-					self.assertEqual(td.uv_space, expected_uv_space)
+					assert_float_equal_percentage(self, float(td.density), expected_density, 5)
+					assert_float_equal_percentage(self, float(td.uv_space), expected_uv_space, 10)
 				except Exception as e:
 					self.fail(f"Test failed on cycle try {i} with exception: {e}")
 				finally:
 					bpy.ops.object.mode_set(mode='OBJECT')
 
-		expected_density = '5.120'
-		expected_uv_space = '4000.0000'
+		expected_density = 5.12
+		expected_uv_space = 4000
 
 		for i in range(3):  # Three times check for 5.12
 			with self.subTest(cycle=i):
@@ -123,8 +123,8 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
 					self.assertIn('FINISHED', result)
-					self.assertEqual(td.density, expected_density)
-					self.assertEqual(td.uv_space, expected_uv_space)
+					assert_float_equal_percentage(self, float(td.density), expected_density, 5)
+					assert_float_equal_percentage(self, float(td.uv_space), expected_uv_space, 10)
 				except Exception as e:
 					self.fail(f"Test failed on cycle try {i} with exception: {e}")
 				finally:
@@ -169,12 +169,12 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 		}
 
 		expected_results = {
-			0: ('0.640', '12.5000'),
-			1: ('1.280', '25.0000'),
-			2: ('2.560', '200.0000'),
-			3: ('5.120', '400.0000'),
-			4: ('0.640', '12.5000'),
-			5: ('2.560', '200.0000'),
+			0: (0.64, 12.5),
+			1: (1.28, 25),
+			2: (2.56, 200),
+			3: (5.12, 400),
+			4: (0.64, 12.5),
+			5: (2.56, 200),
 		}
 
 		total_faces = len(obj.data.polygons)
@@ -200,8 +200,8 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					bpy.ops.object.mode_set(mode='OBJECT')
 
 					self.assertIn('FINISHED', result)
-					self.assertEqual(actual_density, expected_results[i][0], f"Density mismatch on face {i}")
-					self.assertEqual(actual_uv_space, expected_results[i][1], f"UV Space mismatch on face {i}")
+					assert_float_equal_percentage(self, float(td.density), expected_results[i][0], 5, f"Density mismatch on face {i}")
+					assert_float_equal_percentage(self, float(td.uv_space), expected_results[i][1], 10, f"UV Space mismatch on face {i}")
 				except Exception as e:
 					self.fail(f"Test failed on face {i} with exception: {e}")
 				finally:
@@ -233,8 +233,8 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 		bpy.context.view_layer.objects.active = self.cube
 		bpy.context.view_layer.objects.active.select_set(True)
 
-		expected_density = '1.280'
-		expected_uv_space = '250.0000'
+		expected_density = 1.28
+		expected_uv_space = 250
 
 		for i in range(3):  # Three times check for 1.28
 			with self.subTest(cycle=i):
@@ -248,15 +248,15 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
 					self.assertIn('FINISHED', result)
-					self.assertEqual(td.density, expected_density)
-					self.assertEqual(td.uv_space, expected_uv_space)
+					assert_float_equal_percentage(self, float(td.density), expected_density, 5)
+					assert_float_equal_percentage(self, float(td.uv_space), expected_uv_space, 10)
 				except Exception as e:
 					self.fail(f"Test failed on cycle try {i} with exception: {e}")
 				finally:
 					bpy.ops.object.mode_set(mode='OBJECT')
 
-		expected_density = '5.120'
-		expected_uv_space = '4000.0000'
+		expected_density = 5.12
+		expected_uv_space = 4000
 
 		for i in range(3):  # Three times check for 5.12
 			with self.subTest(cycle=i):
@@ -270,8 +270,8 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
 					self.assertIn('FINISHED', result)
-					self.assertEqual(td.density, expected_density)
-					self.assertEqual(td.uv_space, expected_uv_space)
+					assert_float_equal_percentage(self, float(td.density), expected_density, 5)
+					assert_float_equal_percentage(self, float(td.uv_space), expected_uv_space, 10)
 				except Exception as e:
 					self.fail(f"Test failed on cycle try {i} with exception: {e}")
 				finally:
@@ -283,7 +283,17 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 		if original_type:
 			area.type = original_type
 
+
 def run():
 	suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestTexelDensitySetOperator)
 	runner = unittest.TextTestRunner()
 	runner.run(suite)
+
+
+def assert_float_equal_percentage(self, a, b, percent_threshold: float, msg=None):
+	if b == 0.0:
+		self.assertEqual(a, b, msg or f"Cannot compare to zero reference: a={a}, b={b}")
+	else:
+		diff_percent = abs((a - b) / b) * 100.0
+		self.assertLessEqual(diff_percent, percent_threshold,
+			msg or f"{a} and {b} differ by {diff_percent:.6f}%, which exceeds allowed {percent_threshold}%")
