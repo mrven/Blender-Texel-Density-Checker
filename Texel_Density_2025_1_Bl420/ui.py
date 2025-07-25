@@ -234,6 +234,17 @@ def panel_draw(layout, context):
 			row = box.row()
 			row.operator(viz_operators.ClearTDFromVC.bl_idname)
 
+	else:
+		if not context.active_object.type == 'MESH':
+			box = layout.box()
+			row = box.row(align=True)
+			row.label(text="Active object isn't a mesh", icon='WARNING_LARGE')
+		if len(context.active_object.data.uv_layers) == 0:
+			box = layout.box()
+			row = box.row(align=True)
+			row.label(text="Mesh doesn't have any UV", icon='WARNING_LARGE')
+
+
 
 # Panel in 3D View
 class TDAddonView3DPanel(bpy.types.Panel):
