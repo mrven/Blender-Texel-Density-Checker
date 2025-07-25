@@ -238,11 +238,11 @@ def panel_draw(layout, context):
 		if not context.active_object.type == 'MESH':
 			box = layout.box()
 			row = box.row(align=True)
-			row.label(text="Active object isn't a mesh", icon='WARNING_LARGE')
+			row.label(text="Active object isn't a mesh", icon='ERROR')
 		if len(context.active_object.data.uv_layers) == 0:
 			box = layout.box()
 			row = box.row(align=True)
-			row.label(text="Mesh doesn't have any UV", icon='WARNING_LARGE')
+			row.label(text="Mesh doesn't have any UV", icon='ERROR')
 
 
 
