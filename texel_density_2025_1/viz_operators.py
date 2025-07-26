@@ -6,6 +6,7 @@ import blf
 import gpu
 import random
 import bpy_extras.mesh_utils
+import numpy as np
 
 from gpu_extras.batch import batch_for_shader
 from bpy.props import StringProperty
@@ -250,18 +251,14 @@ class CheckerAssign(bpy.types.Operator):
 				if obj.type != 'MESH' or obj.td_settings:
 					continue
 
-				mesh = obj.data
-				bm = bmesh.new()
-				bm.from_mesh(mesh)
-				bm.faces.ensure_lookup_table()
+				poly_materials = np.fromiter(
+					(p.material_index for p in obj.data.polygons),
+					dtype=np.int32,
+					count=len(obj.data.polygons)
+				)
 
-				for face in bm.faces:
-					setting = obj.td_settings.add()
-					setting.tri_index = face.index
-					setting.mat_index = face.material_index
-					print(f"for face {face.index} material index is {face.material_index}")
-
-				bm.free()
+				for mat_index in poly_materials:
+					obj.td_settings.add().mat_index = int(mat_index)
 
 		# Remove all materials if REPLACE method
 		if td.checker_method == 'REPLACE':

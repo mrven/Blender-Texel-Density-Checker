@@ -153,7 +153,6 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 
 class TDObjectSetting(bpy.types.PropertyGroup):
-	tri_index: bpy.props.IntProperty(name="Tri Index", default=0)
 	mat_index: bpy.props.IntProperty(name="Material Index", default=0)
 
 
