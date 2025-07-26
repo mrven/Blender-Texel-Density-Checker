@@ -6,6 +6,7 @@ import blf
 import gpu
 import random
 import bpy_extras.mesh_utils
+import numpy as np
 
 from gpu_extras.batch import batch_for_shader
 from bpy.props import StringProperty
@@ -179,162 +180,121 @@ class CheckerAssign(bpy.types.Operator):
 		start_time = datetime.now()
 		td = context.scene.td
 
-		start_mode = bpy.context.object.mode
-		start_active_obj = bpy.context.active_object
-		need_select_again_obj = bpy.context.selected_objects
-
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		start_mode = context.object.mode
+		start_active_obj = context.active_object
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		# Get texture size from panel
 		checker_resolution_x, checker_resolution_y = utils.get_texture_resolution()
 
-		# Check exist texture image
-		td_checker_texture = None
-		for tex in bpy.data.images:
-			if tex.is_td_texture:
-				td_checker_texture = tex
-
-		# Create Checker Texture (if not Exist yet) with parameters from Panel
+		# Get or create checker texture
+		td_checker_texture = next((tex for tex in bpy.data.images if tex.is_td_texture), None)
 		if not td_checker_texture:
-			td_checker_texture = bpy.data.images.new(name='TD_Checker', width=checker_resolution_x, height=checker_resolution_y)
-			td_checker_texture.generated_type=td.checker_type
+			td_checker_texture = bpy.data.images.new(TD_MATERIAL_NAME, width=checker_resolution_x, height=checker_resolution_y)
+			td_checker_texture.generated_type = td.checker_type
 			td_checker_texture.is_td_texture = True
 		else:
 			td_checker_texture.generated_width = checker_resolution_x
 			td_checker_texture.generated_height = checker_resolution_y
 			td_checker_texture.generated_type = td.checker_type
 
-		# Check exist TD_Checker_mat
-		td_checker_material = None
-		for mat in bpy.data.materials:
-			if mat.is_td_material:
-				td_checker_material = mat
-
-		# Create material (if not Exist yet) and Setup nodes
+		# Get or create checker material
+		td_checker_material = next((mat for mat in bpy.data.materials if mat.is_td_material), None)
 		if not td_checker_material:
-			td_checker_material = bpy.data.materials.new('TD_Checker')
+			td_checker_material = bpy.data.materials.new(TD_MATERIAL_NAME)
 			td_checker_material.is_td_material = True
 			td_checker_material.use_nodes = True
+
 			nodes = td_checker_material.node_tree.nodes
 			links = td_checker_material.node_tree.links
-			# Color Mix Node for Blending Checker Texture with VC
-			mix_node = nodes.new(type="ShaderNodeMixRGB")
+			nodes.clear()
+
+			output_node = nodes.new('ShaderNodeOutputMaterial')
+			output_node.location = (300, 200)
+
+			bsdf = nodes.new('ShaderNodeBsdfPrincipled')
+			bsdf.location = (0, 200)
+			links.new(bsdf.outputs['BSDF'], output_node.inputs['Surface'])
+
+			mix_node = nodes.new('ShaderNodeMixRGB')
 			mix_node.location = (-200, 200)
 			mix_node.blend_type = 'COLOR'
-			mix_node.inputs['Fac'].default_value = 1
-			links.new(mix_node.outputs["Color"], nodes['Principled BSDF'].inputs['Base Color'])
-			# Get Checker Texture
+			mix_node.inputs['Fac'].default_value = 1.0
+			links.new(mix_node.outputs['Color'], bsdf.inputs['Base Color'])
+
 			tex_node = nodes.new('ShaderNodeTexImage')
 			tex_node.location = (-500, 300)
 			tex_node.image = td_checker_texture
 			tex_node.interpolation = 'Closest'
-			links.new(tex_node.outputs["Color"], mix_node.inputs['Color1'])
-			# Get VC with baked TD
-			vc_node = nodes.new(type="ShaderNodeAttribute")
+			links.new(tex_node.outputs['Color'], mix_node.inputs['Color1'])
+
+			vc_node = nodes.new('ShaderNodeAttribute')
 			vc_node.location = (-500, 0)
-			vc_node.attribute_name = "td_vis"
-			links.new(vc_node.outputs["Color"], mix_node.inputs['Color2'])
-			# UV Mapping for Checker Texture
-			mapper_node = nodes.new(type="ShaderNodeMapping")
-			mapper_node.location = (-800, 300)
-			# Scale of UV Mapping sets from Panel (UV Scale)
-			mapper_node.inputs['Scale'].default_value[0] = float(td.checker_uv_scale)
-			mapper_node.inputs['Scale'].default_value[1] = float(td.checker_uv_scale)
-			links.new(mapper_node.outputs["Vector"], tex_node.inputs['Vector'])
-			uv_node = nodes.new(type="ShaderNodeUVMap")
-			uv_node.location = (-1000, 220)
-			links.new(uv_node.outputs["UV"], mapper_node.inputs['Vector'])
+			vc_node.attribute_name = TD_VC_NAME
+			links.new(vc_node.outputs['Color'], mix_node.inputs['Color2'])
+
+			uv_map = nodes.new('ShaderNodeUVMap')
+			uv_map.location = (-1000, 220)
+
+			mapping = nodes.new('ShaderNodeMapping')
+			mapping.location = (-800, 300)
+			mapping.inputs['Scale'].default_value[0] = float(td.checker_uv_scale)
+			mapping.inputs['Scale'].default_value[1] = float(td.checker_uv_scale)
+
+			links.new(uv_map.outputs['UV'], mapping.inputs['Vector'])
+			links.new(mapping.outputs['Vector'], tex_node.inputs['Vector'])
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
-		# Store Real Materials and Replace to Checker Material
 		if td.checker_method == 'STORE':
-			bpy.ops.object.mode_set(mode='OBJECT')
-			bpy.ops.object.select_all(action='DESELECT')
+			for obj in start_selected_obj:
+				if obj.type != 'MESH' or obj.td_settings:
+					continue
 
+				poly_materials = np.fromiter(
+					(p.material_index for p in obj.data.polygons),
+					dtype=np.int32,
+					count=len(obj.data.polygons)
+				)
+
+				for mat_index in poly_materials:
+					obj.td_settings.add().mat_index = int(mat_index)
+
+		# Remove all materials if REPLACE method
+		if td.checker_method == 'REPLACE':
 			for obj in start_selected_obj:
 				if obj.type == 'MESH':
-					bpy.context.view_layer.objects.active = obj
-					bpy.context.view_layer.objects.active.select_set(True)
+					obj.data.materials.clear()
+					obj.data.materials.append(td_checker_material)
 
-					# Check save mats on this object or not
-					save_this_object = True
-
-					# td_settings is Custom Property per Object
-					# for saving Real Materials Assignment (Index, Mat Slot)
-					if len(obj.td_settings) > 0:
-						save_this_object = False
-
-					# Save Real Materials Assignment
-					if save_this_object:
-						if len(obj.data.materials) > 0:
-							bpy.ops.object.mode_set(mode='OBJECT')
-							face_count = len(bpy.context.active_object.data.polygons)
-							bpy.ops.object.mode_set(mode='EDIT')
-							bm = bmesh.from_edit_mesh(obj.data)
-							bm.faces.ensure_lookup_table()
-
-							for face_id in range(face_count):
-								obj.td_settings.add()
-								obj.td_settings[len(obj.td_settings) - 1].tri_index = face_id
-								obj.td_settings[len(obj.td_settings) - 1].mat_index = bm.faces[face_id].material_index
-
-							bpy.ops.object.mode_set(mode='OBJECT')
-
-		# Destroy Real Materials Slots and Assign Checker Material
-		if td.checker_method == 'REPLACE':
-			for o in start_selected_obj:
-				if o.type == 'MESH' and len(o.data.materials) > 0:
-					for q in reversed(range(len(o.data.materials))):
-						bpy.context.object.active_material_index = q
-						o.data.materials.pop(index=q)
-
-			for o in start_selected_obj:
-				if o.type == 'MESH':
-					o.data.materials.append(td_checker_material)
-
-		# If Store and Replace Method
+		# For STORE method, only assign if not already assigned
 		if td.checker_method == 'STORE':
-			for o in start_selected_obj:
-				bpy.ops.object.mode_set(mode='OBJECT')
-				bpy.ops.object.select_all(action='DESELECT')
+			for obj in start_selected_obj:
+				if obj.type != 'MESH':
+					continue
 
-				if o.type == 'MESH':
-					bpy.context.view_layer.objects.active = o
-					bpy.context.view_layer.objects.active.select_set(True)
+				if any(mat and mat.is_td_material for mat in obj.data.materials):
+					continue
 
-					# Check object already has slot with Checker Material
-					is_assign_td_mat = True
-					for mat in reversed(o.data.materials):
-						if mat and mat.is_td_material:
-							is_assign_td_mat = False
-							break
+				obj.data.materials.append(td_checker_material)
+				mat_index = len(obj.data.materials) - 1
 
-					# Added New Material Slot for Checker Material and Assign him to all faces
-					if is_assign_td_mat:
-						o.data.materials.append(td_checker_material)
-						mat_index = len(o.data.materials) - 1
-						bpy.ops.object.mode_set(mode='EDIT')
-						bpy.ops.mesh.reveal()
-						bpy.ops.mesh.select_all(action='SELECT')
-						bpy.context.object.active_material_index = mat_index
-						bpy.ops.object.material_slot_assign()
-						bpy.ops.object.mode_set(mode='OBJECT')
-
-		bpy.ops.object.mode_set(mode='OBJECT')
-		bpy.ops.object.select_all(action='DESELECT')
-
-		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+				context.view_layer.objects.active = obj
 				bpy.ops.object.mode_set(mode='EDIT')
+				bpy.ops.mesh.reveal()
+				bpy.ops.mesh.select_all(action='SELECT')
+				obj.active_material_index = mat_index
+				bpy.ops.object.material_slot_assign()
+				bpy.ops.object.mode_set(mode='OBJECT')
 
-		bpy.context.view_layer.objects.active = start_active_obj
-		for j in need_select_again_obj:
-			j.select_set(True)
+		# Restore original selection and mode
+		bpy.ops.object.select_all(action='DESELECT')
+		for obj in start_selected_obj:
+			obj.select_set(True)
+
+		context.view_layer.objects.active = start_active_obj
+		if start_mode == 'EDIT':
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		utils.print_execution_time("Assign of Checker Material", start_time)
 		return {'FINISHED'}
@@ -346,53 +306,63 @@ class CheckerRestore(bpy.types.Operator):
 	bl_label = "Restore Materials"
 	bl_options = {'REGISTER'}
 
-	def execute(self, _):
+	def execute(self, context):
 		start_time = datetime.now()
-		start_mode = bpy.context.object.mode
-		start_active_obj = bpy.context.active_object
-		need_select_again_obj = bpy.context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		start_mode = context.object.mode
+		start_active_obj = context.active_object
+		need_select_again_obj = context.selected_objects
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		for obj in start_selected_obj:
-			bpy.ops.object.mode_set(mode='OBJECT')
-			bpy.ops.object.select_all(action='DESELECT')
+			if obj.type != 'MESH':
+				continue
 
-			if obj.type == 'MESH':
-				bpy.context.view_layer.objects.active = obj
-				bpy.context.view_layer.objects.active.select_set(True)
-				face_count = len(bpy.context.active_object.data.polygons)
+			context.view_layer.objects.active = obj
+			obj.select_set(True)
+
+			if len(obj.td_settings) > 0:
+				# Get material indices
+				mat_indices = np.fromiter((s.mat_index for s in obj.td_settings), dtype=np.int32)
+
+				# Switch to OBJECT and then EDIT mode safely
+				bpy.ops.object.mode_set(mode='OBJECT')
 				bpy.ops.object.mode_set(mode='EDIT')
+
+				# Restore material indices
 				bm = bmesh.from_edit_mesh(obj.data)
 				bm.faces.ensure_lookup_table()
-				# Read and Apply Saved pairs (face, material index) from custom property td_settings
-				if len(obj.td_settings) > 0:
-					for face_id in range(face_count):
-						bm.faces[face_id].material_index = obj.td_settings[face_id].mat_index
+
+				for face, mat_index in zip(bm.faces, mat_indices):
+					face.material_index = int(mat_index)
+
+				bmesh.update_edit_mesh(obj.data)
 				bpy.ops.object.mode_set(mode='OBJECT')
-				# Delete all saved pairs
+
+				# Clear stored settings
 				obj.td_settings.clear()
+			else:
+				if context.object.mode == 'EDIT':
+					bpy.ops.object.mode_set(mode='OBJECT')
 
-				# Delete Checker Material from object
-				if len(obj.data.materials) > 0:
-					for q in reversed(range(len(obj.data.materials))):
-						obj.active_material_index = q
-						if obj.active_material is not None:
-							if obj.active_material.is_td_material:
-								obj.data.materials.pop(index=q)
+			# Remove TD material(s)
+			mats = obj.data.materials
+			remove_indices = [i for i, m in enumerate(mats) if m and m.is_td_material]
 
+			for i in reversed(remove_indices):
+				mats.pop(index=i)
+
+		# Restore selection and modes
 		bpy.ops.object.select_all(action='DESELECT')
+
+		for o in need_select_again_obj:
+			o.select_set(True)
+		context.view_layer.objects.active = start_active_obj
+
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+				context.view_layer.objects.active = o
 				bpy.ops.object.mode_set(mode='EDIT')
-
-		bpy.context.view_layer.objects.active = start_active_obj
-		for j in need_select_again_obj:
-			j.select_set(True)
 
 		utils.print_execution_time("Restore Materials", start_time)
 		return {'FINISHED'}
@@ -404,34 +374,30 @@ class ClearSavedMaterials(bpy.types.Operator):
 	bl_label = "Clear Stored Materials"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	def execute(self, _):
+	def execute(self, context):
 		start_time = datetime.now()
-		start_mode = bpy.context.object.mode
-		start_active_obj = bpy.context.active_object
-		need_select_again_obj = bpy.context.selected_objects
+		start_mode = context.object.mode
+		start_active_obj = context.active_object
+		need_select_again_obj = context.selected_objects
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		bpy.ops.object.mode_set(mode='OBJECT')
+		bpy.ops.object.select_all(action='DESELECT')
 
 		for obj in start_selected_obj:
-			bpy.ops.object.mode_set(mode='OBJECT')
-			bpy.ops.object.select_all(action='DESELECT')
 			if obj.type == 'MESH':
-				bpy.context.view_layer.objects.active = obj
-				bpy.context.view_layer.objects.active.select_set(True)
-				# Delete pairs (face, material slot index)
-				if len(obj.td_settings) > 0:
-					obj.td_settings.clear()
+				context.view_layer.objects.active = obj
+				obj.select_set(True)
+				obj.td_settings.clear()
 
 		bpy.ops.object.select_all(action='DESELECT')
+
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+				context.view_layer.objects.active = o
 				bpy.ops.object.mode_set(mode='EDIT')
 
-		bpy.context.view_layer.objects.active = start_active_obj
+		context.view_layer.objects.active = start_active_obj
 		for j in need_select_again_obj:
 			j.select_set(True)
 
@@ -448,18 +414,13 @@ class BakeTDToVC(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-
 		version = bpy.app.version
 
 		# Save current mode and active object
-		start_active_obj = bpy.context.active_object
-		start_mode = bpy.context.object.mode
-		need_select_again_obj = bpy.context.selected_objects
-
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		start_active_obj = context.active_object
+		start_mode = context.object.mode
+		need_select_again_obj = context.selected_objects
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		# Range for baking TD
 		bake_vc_min_td = float(td.bake_vc_min_td)
@@ -467,203 +428,201 @@ class BakeTDToVC(bpy.types.Operator):
 		# Range for baking UV Space
 		bake_vc_min_space = float(td.bake_vc_min_space)
 		bake_vc_max_space = float(td.bake_vc_max_space)
-
 		# Range for baking UV Distortion
 		bake_vc_distortion_range = float(td.bake_vc_distortion_range)
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
+		# Calculate TD and UV Area for all objects
+		td_area_map = {}
+
+		for obj in start_selected_obj:
+			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
+				continue
+
+			bpy.ops.object.select_all(action='DESELECT')
+			context.view_layer.objects.active = obj
+			obj.select_set(True)
+
+			td_area_map[obj.name] = utils.calculate_td_area_to_list()
+
 		# Automatic Min/Max TD
 		if td.bake_vc_auto_min_max and (td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC'):
-			td_area_list = []
-			for x in start_selected_obj:
-				bpy.ops.object.select_all(action='DESELECT')
-				if x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0:
-					bpy.context.view_layer.objects.active = x
-					bpy.context.view_layer.objects.active.select_set(True)
+			min_td = float('inf')
+			max_td = float('-inf')
 
-					td_area_list.append(utils.calculate_td_area_to_list())
+			for td_list in td_area_map.values():
+				for td_val, _ in td_list:
+					min_td = min(min_td, td_val)
+					max_td = max(max_td, td_val)
 
-			# Found Min and Max TD
-			if len(td_area_list) > 0:
-				min_calculated_td = 9999999
-				max_calculated_td = 0
-				for obj_td_list in td_area_list:
-					for face_td_area_value in obj_td_list:
-						if face_td_area_value[0] < min_calculated_td:
-							min_calculated_td = face_td_area_value[0]
-						if face_td_area_value[0] > max_calculated_td:
-							max_calculated_td = face_td_area_value[0]
+			if min_td != float('inf') and max_td != float('-inf'):
+				td.bake_vc_min_td = f"{min_td:.3f}"
+				td.bake_vc_max_td = f"{max_td:.3f}"
+				bake_vc_min_td = min_td
+				bake_vc_max_td = max_td
 
-				bake_vc_min_td = min_calculated_td
-				bake_vc_max_td = max_calculated_td
-
-				td.bake_vc_min_td = '%.3f' % round(min_calculated_td, 3)
-				td.bake_vc_max_td = '%.3f' % round(max_calculated_td, 3)
-
-		for x in start_selected_obj:
+		for obj in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0:
-				bpy.context.view_layer.objects.active = x
-				bpy.context.view_layer.objects.active.select_set(True)
+			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
+				continue
 
-				face_count = len(bpy.context.active_object.data.polygons)
+			mesh_data = obj.data
 
-				# Save selected faces
-				start_selected_faces = []
-				if start_mode == "EDIT":
-					for f in bpy.context.active_object.data.polygons:
-						if f.select:
-							start_selected_faces.append(f.index)
+			context.view_layer.objects.active = obj
+			context.view_layer.objects.active.select_set(True)
 
-				# Add vertex color group for visualization over material
-				should_add_vc = True
-				for vc in x.data.vertex_colors:
-					if vc.name == "td_vis":
-						should_add_vc = False
+			start_selected_faces = None
 
-				if should_add_vc:
-					if version < (3, 3, 0):
-						bpy.ops.mesh.vertex_color_add()
-						x.data.vertex_colors.active.name = "td_vis"
-					else:
-						bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
-						x.data.attributes.active_color.name = "td_vis"
+			# Save selected faces
+			if start_mode == "EDIT":
+				start_selected_faces = np.array([
+						p.index for p in mesh_data.polygons if p.select
+					], dtype=np.int32)
 
-				x.data.vertex_colors["td_vis"].active = True
-
-				# Get UV islands
-				if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
-					# Overlapping islands like one island
-					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+			# Add vertex color group for visualization over material
+			if TD_VC_NAME not in mesh_data.vertex_colors:
+				if version < (3, 3, 0):
+					bpy.ops.mesh.vertex_color_add()
+					mesh_data.vertex_colors.active.name = TD_VC_NAME
 				else:
-					# Overlapping islands like separated islands
-					islands_list = utils.get_uv_islands()
+					bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
+					mesh_data.attributes.active_color.name = TD_VC_NAME
 
-				# Get TD and UV Area for each polygon (TD, Area)
-				face_td_area_list = utils.calculate_td_area_to_list()
+			mesh_data.vertex_colors[TD_VC_NAME].active = True
 
+			# Get UV islands
+			if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
+				# Overlapping islands like one island
+				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(mesh_data)
+			elif td.bake_vc_mode in {'UV_ISLANDS_TO_VC', 'UV_SPACE_TO_VC', 'TD_ISLANDS_TO_VC'}:
+				# Overlapping islands like separated islands
+				islands_list = utils.get_uv_islands()
+			else:
+				islands_list = []
+
+			# Get TD and UV Area for each polygon (TD, Area)
+			face_td_area_list = td_area_map.get(obj.name)
+
+			if not face_td_area_list:
+				continue
+
+			bpy.ops.object.mode_set(mode='EDIT')
+			bm = bmesh.from_edit_mesh(mesh_data)
+			bm.faces.ensure_lookup_table()
+
+			color_layer = bm.loops.layers.color.get(TD_VC_NAME)
+
+			# Calculate and assign color from TD to VC for each polygon
+			if td.bake_vc_mode == "TD_FACES_TO_VC":
+				td_values = np.array(face_td_area_list, dtype=np.float32)[:, 0]
+				colors = utils.value_to_color(td_values.tolist(), bake_vc_min_td, bake_vc_max_td)
+
+				for face, color in zip(bm.faces, colors):
+					for loop in face.loops:
+						loop[color_layer] = color
+
+			# Assign random color for each island
+			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				for uv_island in islands_list:
+					hue = random.randint(0, 9) / 10
+					saturation = random.randint(7, 9) / 10
+					value = random.randint(2, 9) / 10
+					r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
+					color = (r, g, b, 1)
+
+					for face_id in uv_island:
+						for loop in bm.faces[face_id].loops:
+							loop[color_layer] = color
+
+			# Calculate and assign color from UV area to VC for each island (UV areas sum of polygons of island)
+			elif td.bake_vc_mode == "UV_SPACE_TO_VC":
+				island_areas = []
+				for uv_island in islands_list:
+					island_area = 0
+					for face_id in uv_island:
+						island_area += face_td_area_list[face_id][1]
+
+					# Convert island area value to percentage of area
+					island_areas.append(island_area * 100)
+
+				colors = utils.value_to_color(island_areas, bake_vc_min_space, bake_vc_max_space)
+
+				for color, uv_island in zip(colors, islands_list):
+					for face_id in uv_island:
+						for loop in bm.faces[face_id].loops:
+							loop[color_layer] = color
+
+			# Calculate and assign color from TD to VC for each island (average TD between polygons of island)
+			elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
+				td_area_array = np.asarray(face_td_area_list, dtype=np.float32)
+				td_vals = td_area_array[:, 0]
+				uv_areas = td_area_array[:, 1]
+
+				# Собираем island TD массив
+				islands_td = np.array([
+					np.dot(td_vals[island], uv_areas[island]) / max(uv_areas[island].sum(), 0.0001)
+					for island in islands_list
+				], dtype=np.float32)
+
+				colors = utils.value_to_color(islands_td.tolist(), bake_vc_min_td, bake_vc_max_td)
+
+				for color, uv_island in zip(colors, islands_list):
+					for face_id in uv_island:
+						for loop in bm.faces[face_id].loops:
+							loop[color_layer] = color
+
+			elif td.bake_vc_mode == 'DISTORTION':
+				geom_areas = [p.area for p in mesh_data.polygons]
+				uv_areas = [uv_area for _, uv_area in face_td_area_list]
+
+				geom_area_total = sum(geom_areas)
+				uv_area_total = sum(uv_areas)
+
+				geom_area_total = max(geom_area_total, 0.0001)
+				uv_area_total = max(uv_area_total, 0.0001)
+
+				min_range = max(0, 1 - (bake_vc_distortion_range / 100))
+				max_range = 1 + (bake_vc_distortion_range / 100)
+
+				distortions = []
+
+				# Назначение цвета по искажению
+				for face, geom_area, uv_area in zip(bm.faces, geom_areas, uv_areas):
+					uv_percent = uv_area / uv_area_total
+					geom_percent = geom_area / geom_area_total
+					distortion_ratio = uv_percent / geom_percent
+					distortions.append(distortion_ratio)
+
+				colors = utils.value_to_color(distortions, min_range, max_range)
+
+				for color, face in zip(colors, bm.faces):
+					for loop in face.loops:
+						loop[color_layer] = color
+
+			bpy.ops.object.mode_set(mode='OBJECT')
+
+			if start_mode == "EDIT" and start_selected_faces is not None:
 				bpy.ops.object.mode_set(mode='EDIT')
-				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
-				bm.faces.ensure_lookup_table()
-
-				# Calculate and assign color from TD to VC for each polygon
-				if td.bake_vc_mode == "TD_FACES_TO_VC":
-					for face_id in range(0, face_count):
-						color = utils.value_to_color(face_td_area_list[face_id][0], bake_vc_min_td, bake_vc_max_td)
-
-						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.get("td_vis")] = color
-
-				# Assign random color for each island
-				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
-					for uv_island in islands_list:
-						random_hue = random.randrange(0, 10, 1) / 10
-						random_value = random.randrange(2, 10, 1) / 10
-						random_saturation = random.randrange(7, 10, 1) / 10
-						color = colorsys.hsv_to_rgb(random_hue, random_saturation, random_value)
-						color4 = (color[0], color[1], color[2], 1)
-
-						for face_id in uv_island:
-							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.get("td_vis")] = color4
-
-				# Calculate and assign color from UV area to VC for each island (UV areas sum of polygons of island)
-				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
-					for uv_island in islands_list:
-						island_area = 0
-						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
-
-						# Convert island area value to percentage of area
-						island_area *= 100
-						color = utils.value_to_color(island_area, bake_vc_min_space, bake_vc_max_space)
-
-						for face_id in uv_island:
-							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.get("td_vis")] = color
-
-				# Calculate and assign color from TD to VC for each island (average TD between polygons of island)
-				elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
-					for uv_island in islands_list:
-						island_td = 0
-						island_area = 0
-
-						# Calculate Total Island Area
-						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
-
-						if island_area == 0:
-							island_area = 0.000001
-
-						# Calculate Average Island TD
-						for face_id in uv_island:
-							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / island_area
-
-						color = utils.value_to_color(island_td, bake_vc_min_td, bake_vc_max_td)
-
-						for face_id in uv_island:
-							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.get("td_vis")] = color
-
-				elif td.bake_vc_mode == 'DISTORTION':
-					uv_area_total = 0
-					geom_area_total = 0
-					geom_area_list = []
-
-					# Get Total UV and Geometry areas and Geometry area for each poly
-					for face_id in range(0, face_count):
-						# Geometry Area
-						gm_area = bpy.context.active_object.data.polygons[face_id].area
-						geom_area_total += gm_area
-						geom_area_list.append(gm_area)
-						# Total UV Area
-						uv_area_total += face_td_area_list[face_id][1]
-
-					# Protection from zero division
-					if uv_area_total < 0.0001:
-						uv_area_total = 0.0001
-					if geom_area_total < 0.0001:
-						geom_area_total = 0.0001
-
-					# Calculate Min/Max for range
-					min_range = 1 - (bake_vc_distortion_range / 100)
-					if min_range < 0:
-						min_range = 0
-					max_range = 1 + (bake_vc_distortion_range / 100)
-
-					for face_id in range(0, face_count):
-						uv_percent = face_td_area_list[face_id][1] / uv_area_total
-						geom_percent = geom_area_list[face_id] / geom_area_total
-
-						color = utils.value_to_color(uv_percent / geom_percent, min_range, max_range)
-
-						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.get("td_vis")] = color
-
+				bpy.ops.mesh.select_all(action='DESELECT')
 				bpy.ops.object.mode_set(mode='OBJECT')
-
-				if start_mode == "EDIT":
-					bpy.ops.object.mode_set(mode='EDIT')
-					bpy.ops.mesh.select_all(action='DESELECT')
-					bpy.ops.object.mode_set(mode='OBJECT')
-					for face_id in start_selected_faces:
-						bpy.context.active_object.data.polygons[face_id].select = True
+				for face_id in start_selected_faces:
+					mesh_data.polygons[face_id].select = True
 
 		bpy.ops.object.select_all(action='DESELECT')
 
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+				context.view_layer.objects.active = o
 				bpy.ops.object.mode_set(mode='EDIT')
 
-		bpy.context.view_layer.objects.active = start_active_obj
+		context.view_layer.objects.active = start_active_obj
 
 		for j in need_select_again_obj:
 			j.select_set(True)
 
 		# Activate VC shading in viewport and show gradient line
-		bpy.context.space_data.shading.color_type = 'VERTEX'
+		context.space_data.shading.color_type = 'VERTEX'
 		if td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC' \
 				or td.bake_vc_mode == 'UV_SPACE_TO_VC' or td.bake_vc_mode == 'DISTORTION':
 			props.show_gradient(self, context)
@@ -678,35 +637,29 @@ class ClearTDFromVC(bpy.types.Operator):
 	bl_label = "Clear TD Vertex Colors"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	def execute(self, _):
-		version = bpy.app.version
-
+	def execute(self, context):
 		start_time = datetime.now()
-		start_mode = bpy.context.object.mode
-		start_active_obj = bpy.context.active_object
-		need_select_again_obj = bpy.context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		version = bpy.app.version
+		start_mode = context.object.mode
+		start_active_obj = context.active_object
+		need_select_again_obj = context.selected_objects
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		for obj in start_selected_obj:
 			bpy.ops.object.mode_set(mode='OBJECT')
 			bpy.ops.object.select_all(action='DESELECT')
 			if obj.type == 'MESH':
-				bpy.context.view_layer.objects.active = obj
-				bpy.context.view_layer.objects.active.select_set(True)
+				context.view_layer.objects.active = obj
+				context.view_layer.objects.active.select_set(True)
 
 				# Delete vertex color for baked TD or UV area
-				if len(obj.data.vertex_colors) > 0:
-					for vc in obj.data.vertex_colors:
-						if vc.name == "td_vis":
-							vc.active = True
-							if version < (3, 3, 0):
-								bpy.ops.mesh.vertex_color_remove()
-							else:
-								bpy.ops.geometry.color_attribute_remove()
+				if TD_VC_NAME in obj.data.vertex_colors:
+					obj.data.vertex_colors[TD_VC_NAME].active = True
+					if version < (3, 3, 0):
+						bpy.ops.mesh.vertex_color_remove()
+					else:
+						bpy.ops.geometry.color_attribute_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
 		if start_mode == 'EDIT':

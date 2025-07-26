@@ -1,3 +1,6 @@
+TD_VC_NAME = 'td_vis'
+TD_MATERIAL_NAME = 'TD_Checker'
+
 VERTEX_SHADER_TEXT_3_0 = '''
 	in vec2 position;
 	out vec3 pos;
