@@ -204,9 +204,8 @@ def get_texture_resolution():
 
 
 # Value by range to Color gradient by hue
-def value_to_color(value, range_min, range_max):
+def value_to_color(values, range_min, range_max):
 	backend = get_preferences().calculation_backend
-
 	tdcore = None
 
 	if backend == 'CPP':
@@ -215,7 +214,8 @@ def value_to_color(value, range_min, range_max):
 
 		if tdcore:
 			tdcore.ValueToColor.argtypes = [
-				ctypes.c_float,  # Value
+				ctypes.POINTER(ctypes.c_float),  # Values
+				ctypes.c_int,  # Values Count
 				ctypes.c_float,  # Range Min
 				ctypes.c_float,  # Range Max
 				ctypes.POINTER(ctypes.c_float)  # Results
@@ -223,34 +223,41 @@ def value_to_color(value, range_min, range_max):
 
 			tdcore.ValueToColor.restype = None
 
+	result = []
+
 	if backend == 'CPP' and tdcore:
-		# Results Buffer (RGBA (4 floats))
-		result_cpp = np.zeros(4, dtype=np.float32)
+		# Results Buffer (values count * RGBA (4 floats))
+		result_cpp = np.zeros(len(values) * 4, dtype=np.float32)
+
+		values_np = np.array(values, dtype=np.float32)
 
 		# Call function from Library
 		tdcore.ValueToColor(
-			value,
-			range_min,
-			range_max,
+			values_np.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+			len(values),
+			ctypes.c_float(range_min),
+			ctypes.c_float(range_max),
 			result_cpp.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 		)
 
+		result = [tuple(result_cpp[i:i + 4]) for i in range(0, len(result_cpp), 4)]
+
 		free_td_core_dll(tdcore)
-
-		return tuple(result_cpp[:4])
 	else:
-		# Remap value to range 0.0 - 1.0
-		if range_min == range_max or abs(range_max - range_min) < 0.001:
+		for value in values:
+			# Remap value to range 0.0 - 1.0
 			remapped_value = 0.5
-		else:
-			remapped_value = (value - range_min) / (range_max - range_min)
-			remapped_value = saturate(remapped_value)
 
-		# Calculate hue and get color
-		hue = (1 - remapped_value) * 0.67
-		r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
+			if abs(range_max - range_min) > 0.001:
+				remapped_value = saturate((value - range_min) / (range_max - range_min))
 
-		return r, g, b, 1
+			# Calculate hue and get color
+			hue = (1 - remapped_value) * 0.67
+			r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
+
+			result.append((r, g, b, 1))
+
+	return result
 
 
 # Get list of islands (slow)

@@ -66,23 +66,27 @@ EXPORT_API void CalculateTDAreaArray(float *UVs, int UVCount, float *Areas, int 
     }
 }
 
-EXPORT_API void ValueToColor(float Value, float RangeMin, float RangeMax, float *Result) 
+EXPORT_API void ValueToColor(float *Values, int ValuesCount, float RangeMin, float RangeMax, float *Result) 
 {
-    float remappedValue = 0.5f;
-
-    if (std::abs(RangeMax - RangeMin) > 0.001f) 
+    for (int i = 0; i < ValuesCount; i++) 
     {
-        remappedValue = Saturate((Value - RangeMin) / (RangeMax - Value));
+  
+        float remappedValue = 0.5f;
+
+        if (std::abs(RangeMax - RangeMin) > 0.001f) 
+        {
+            remappedValue = Saturate((Values[i] - RangeMin) / (RangeMax - RangeMin));
+        }
+
+        float hue = (1.0f - remappedValue) * 0.67f;
+        float r, g, b;
+        HSVtoRGB(hue, 1.0f, 1.0f, r, g, b);
+
+        Result[i * 4] = r;
+        Result[i * 4 + 1] = g;
+        Result[i * 4 + 2] = b;
+        Result[i * 4 + 3] = 1.0f;
     }
-
-    float hue = (1.0f - remappedValue) * 0.67f;
-    float r, g, b;
-    HSVtoRGB(hue, 1.0f, 1.0f, r, g, b);
-
-    Result[0] = r;
-    Result[1] = g;
-    Result[2] = b;
-    Result[3] = 1.0f;
 }
 
 void HSVtoRGB(float h, float s, float v, float &r, float &g, float &b) 
