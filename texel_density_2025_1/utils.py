@@ -260,166 +260,79 @@ def value_to_color(values, range_min, range_max):
 	return result
 
 
-# Get list of islands (slow)
+# Get list of islands
 def get_uv_islands():
-	start_selected_3d_faces = []
-	start_selected_uv_faces = []
-	start_hidden_faces = []
-	start_mode = bpy.context.object.mode
-	start_uv_sync_mode = bpy.context.scene.tool_settings.use_uv_select_sync
-
+	obj = bpy.context.active_object
+	start_mode = obj.mode
 	bpy.ops.object.mode_set(mode='EDIT')
 
-	bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+	bm = bmesh.from_edit_mesh(obj.data)
 	bm.faces.ensure_lookup_table()
 	uv_layer = bm.loops.layers.uv.active
 	face_count = len(bm.faces)
 
-	# Save start selected and hidden faces
-	for face in bm.faces:
-		if face.select:
-			start_selected_3d_faces.append(face.index)
-		if face.hide:
-			start_hidden_faces.append(face.index)
+	# Сохраняем состояние выделений и скрытий
+	start_selected_3d_faces = {f.index for f in bm.faces if f.select}
+	start_hidden_faces = {f.index for f in bm.faces if f.hide}
+	start_selected_uv_faces = {f.index for f in bm.faces if all(loop[uv_layer].select for loop in f.loops)}
 
-		face_is_uv_selected = True
-		for loop in face.loops:
-			if not loop[uv_layer].select:
-				face_is_uv_selected = False
+	scene = bpy.context.scene
+	start_uv_sync = scene.tool_settings.use_uv_select_sync
+	scene.tool_settings.use_uv_select_sync = False
 
-		if face_is_uv_selected:
-			start_selected_uv_faces.append(face.index)
-
-	bpy.context.scene.tool_settings.use_uv_select_sync = False
 	bpy.ops.mesh.reveal()
 	bpy.ops.mesh.select_all(action='SELECT')
 
-	face_dict = [f for f in range(0, face_count)]
+	# Используем set для быстрого удаления
+	remaining_faces = set(range(face_count))
 	uv_islands = []
 
-	face_dict_len_start = len(face_dict)
-	face_dict_len_finish = 0
+	while remaining_faces:
+		# Начинаем с любого оставшегося лица
+		seed_face_idx = next(iter(remaining_faces))
 
-	while len(face_dict) > 0:
-		if face_dict_len_finish == face_dict_len_start:
-			print("Can not Select Island")
-			uv_islands = []
-			break
-
-		face_dict_len_start = len(face_dict)
-
-		uv_island = []
+		# Делаем локальный выбор для оператора uv.select_linked()
 		bpy.ops.uv.select_all(action='DESELECT')
-
-		for loop in bm.faces[face_dict[0]].loops:
+		for loop in bm.faces[seed_face_idx].loops:
 			loop[uv_layer].select = True
 
 		bpy.ops.uv.select_linked()
 
-		for face_id in range(face_count):
-			face_is_selected = True
-			for loop in bm.faces[face_id].loops:
-				if not loop[uv_layer].select:
-					face_is_selected = False
+		# Собираем выбранные грани, которые ещё в remaining_faces
+		current_island = []
+		for face_idx in list(remaining_faces):
+			face = bm.faces[face_idx]
+			if face.select and all(loop[uv_layer].select for loop in face.loops):
+				current_island.append(face_idx)
 
-			if face_is_selected and bm.faces[face_id].select:
-				uv_island.append(face_id)
+		if not current_island:
+			print("Warning: Could not select UV island properly.")
+			break
 
-		for face_id in uv_island:
-			face_dict.remove(face_id)
+		uv_islands.append(current_island)
 
-		face_dict_len_finish = len(face_dict)
+		# Удаляем найденные грани из множества
+		remaining_faces.difference_update(current_island)
 
-		bpy.ops.uv.select_all(action='DESELECT')
-
-		uv_islands.append(uv_island)
-
-	# Restore Saved Parameters
+	# Восстанавливаем выделения и скрытия
 	bpy.ops.mesh.select_all(action='DESELECT')
-	bpy.context.scene.tool_settings.use_uv_select_sync = start_uv_sync_mode
+	scene.tool_settings.use_uv_select_sync = start_uv_sync
 	bpy.ops.uv.select_all(action='DESELECT')
 
-	for face_id in start_selected_3d_faces:
-		bm.faces[face_id].select = True
+	for face_idx in start_selected_3d_faces:
+		bm.faces[face_idx].select = True
 
-	for face_id in start_selected_uv_faces:
-		for loop in bm.faces[face_id].loops:
+	for face_idx in start_selected_uv_faces:
+		for loop in bm.faces[face_idx].loops:
 			loop[uv_layer].select = True
 
-	for face_id in start_hidden_faces:
-		bm.faces[face_id].hide_set(True)
+	for face_idx in start_hidden_faces:
+		bm.faces[face_idx].hide_set(True)
 
-	bmesh.update_edit_mesh(bpy.context.active_object.data)
-
+	bmesh.update_edit_mesh(obj.data)
 	bpy.ops.object.mode_set(mode=start_mode)
 
 	return uv_islands
-
-
-# Example for use get_selected_islands()
-
-# data = bpy.context.active_object.data
-# bm = bmesh.from_edit_mesh(data)
-# uv_layers = bm.loops.layers.uv.verify()
-# islands = get_selected_islands(bm, uv_layers)
-
-# Get list of islands (fast)
-def get_selected_islands(bm, uv_layers):
-	islands = []
-	island = []
-
-	sync = bpy.context.scene.tool_settings.use_uv_select_sync
-
-	faces = bm.faces
-	# Reset tags for unselected (if tag is False - skip)
-	if sync is False:
-		for face in faces:
-			face.tag = all(l[uv_layers].select for l in face.loops)
-	else:
-		for face in faces:
-			face.tag = face.select
-
-	for face in faces:
-		# Skip unselected and appended faces
-		if face.tag is False:
-			continue
-
-		# Tag first element in island (for don't add again)
-		face.tag = False
-
-		# Container collector of island elements
-		parts_of_island = [face]
-
-		# Conteiner for get elements from loop from parts_of_island
-		temp = []
-
-		# Blank list == all faces of the island taken
-		while parts_of_island:
-			for f in parts_of_island:
-				# Running through all the neighboring faces
-				for l in f.loops:
-					link_face = l.link_loop_radial_next.face
-					# Skip appended
-					if link_face.tag is False:
-						continue
-
-					for ll in link_face.loops:
-						if ll.face.tag is False:
-							continue
-						# If the coordinates of the vertices of adjacent
-						# faces on the uv match, then this is part of the
-						# island, and we append face to the list
-						co = l[uv_layers].uv
-						if ll[uv_layers].uv == co:
-							temp.append(ll.face)
-							ll.face.tag = False
-
-			island.extend(parts_of_island)
-			parts_of_island = temp
-			temp = []
-		islands.append(island)
-		island = []
-	return islands
 
 
 def saturate(val):

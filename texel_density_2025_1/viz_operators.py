@@ -497,7 +497,6 @@ class BakeTDToVC(bpy.types.Operator):
 				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(mesh_data)
 			elif td.bake_vc_mode in {'UV_ISLANDS_TO_VC', 'UV_SPACE_TO_VC', 'TD_ISLANDS_TO_VC'}:
 				# Overlapping islands like separated islands
-				# TODO: Optimization
 				islands_list = utils.get_uv_islands()
 			else:
 				islands_list = []
@@ -603,7 +602,7 @@ class BakeTDToVC(bpy.types.Operator):
 
 			bpy.ops.object.mode_set(mode='OBJECT')
 
-			if start_mode == "EDIT" and start_selected_faces:
+			if start_mode == "EDIT" and start_selected_faces is not None:
 				bpy.ops.object.mode_set(mode='EDIT')
 				bpy.ops.mesh.select_all(action='DESELECT')
 				bpy.ops.object.mode_set(mode='OBJECT')
