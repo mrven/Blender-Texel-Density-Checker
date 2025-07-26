@@ -495,9 +495,12 @@ class BakeTDToVC(bpy.types.Operator):
 			if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
 				# Overlapping islands like one island
 				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(mesh_data)
-			else:
+			elif td.bake_vc_mode in {'UV_ISLANDS_TO_VC', 'UV_SPACE_TO_VC', 'TD_ISLANDS_TO_VC'}:
 				# Overlapping islands like separated islands
+				# TODO: Optimization
 				islands_list = utils.get_uv_islands()
+			else:
+				islands_list = []
 
 			# Get TD and UV Area for each polygon (TD, Area)
 			face_td_area_list = td_area_map.get(obj.name)
