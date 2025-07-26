@@ -332,8 +332,8 @@ class CheckerRestore(bpy.types.Operator):
 			bm = bmesh.from_edit_mesh(obj.data)
 			bm.faces.ensure_lookup_table()
 
-			for idx, face in enumerate(bm.faces[:len(mat_indices)]):  # Avoid out-of-bounds
-				face.material_index = int(mat_indices[idx])
+			for face, mat_index in zip(bm.faces, mat_indices):
+				face.material_index = int(mat_index)
 
 			bmesh.update_edit_mesh(obj.data)
 			bpy.ops.object.mode_set(mode='OBJECT')
