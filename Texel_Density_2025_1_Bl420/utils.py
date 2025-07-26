@@ -80,6 +80,7 @@ def calculate_td_area_to_list():
 
 	bpy.ops.object.duplicate()
 	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+	bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', object=True, obdata=True)
 	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
 	obj = bpy.context.active_object

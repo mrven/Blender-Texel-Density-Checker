@@ -226,8 +226,9 @@ def change_bake_vc_mode(self, context):
 	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
 		show_gradient(self, context)
 	else:
-		bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
-		draw_info["handler"] = None
+		if draw_info["handler"] is not None:
+			bpy.types.SpaceView3D.draw_handler_remove(draw_info["handler"], 'WINDOW')
+			draw_info["handler"] = None
 
 	if utils.get_preferences().automatic_recalc:
 		bpy.ops.texel_density.vc_bake()

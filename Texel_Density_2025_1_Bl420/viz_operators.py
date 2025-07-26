@@ -13,6 +13,7 @@ from datetime import datetime
 
 from . import utils
 from . import props
+from .constants import *
 
 
 # Draw Reference Gradient Line for Color Visualizer
@@ -99,62 +100,6 @@ def draw_callback_px(_, __):
 	blf.position(font_id, font_start_pos_x + 177, font_start_pos_y - 15, 0)
 	blf.draw(font_id, str(round((bake_max_value - bake_min_value) * 0.75 + bake_min_value, bake_value_precision)))
 
-	# Draw Gradient Line via Shader
-	vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
-	vert_out.smooth('VEC3', "pos")
-
-	shader_info = gpu.types.GPUShaderCreateInfo()
-	shader_info.push_constant('FLOAT', "pos_x_min")
-	shader_info.push_constant('FLOAT', "pos_x_max")
-	shader_info.vertex_in(0, 'VEC2', "position")
-	shader_info.vertex_out(vert_out)
-	shader_info.fragment_out(0, 'VEC4', "FragColor")
-
-	shader_info.vertex_source('''
-	//in vec2 position;
-	//out vec3 pos;
-
-	void main()
-	{
-		pos = vec3(position, 0.0f);
-		gl_Position = vec4(position, 0.0f, 1.0f);
-	}
-	''')
-
-	shader_info.fragment_source('''
-	//uniform float pos_x_min;
-	//uniform float pos_x_max;
-
-	//in vec3 pos;
-
-	void main()
-	{
-		// Pure Colors
-		vec4 b = vec4(0.0f, 0.0f, 1.0f, 1.0f);	// Blue	0%
-		vec4 c = vec4(0.0f, 1.0f, 1.0f, 1.0f);	// Cyan	25%
-		vec4 g = vec4(0.0f, 1.0f, 0.0f, 1.0f);	// Green	50%
-		vec4 y = vec4(1.0f, 1.0f, 0.0f, 1.0f);	// Yellow	75%
-		vec4 r = vec4(1.0f, 0.0f, 0.0f, 1.0f);	// Red	100%
-
-		// Screen Space Coordinates for Intermediate Pure Colors
-		float pos_x_25 = (pos_x_max - pos_x_min) * 0.25 + pos_x_min;
-		float pos_x_50 = (pos_x_max - pos_x_min) * 0.5 + pos_x_min;
-		float pos_x_75 = (pos_x_max - pos_x_min) * 0.75 + pos_x_min;
-
-		// Intermediate Blend Values (0% - 25% => 0 - 1, 25% - 50% => 0 - 1, etc.)
-		float blendColor1 = (pos.x - pos_x_min)/(pos_x_25 - pos_x_min);
-		float blendColor2 = (pos.x - pos_x_25)/(pos_x_50 - pos_x_25);
-		float blendColor3 = (pos.x - pos_x_50)/(pos_x_75 - pos_x_50);
-		float blendColor4 = (pos.x - pos_x_75)/(pos_x_max - pos_x_75);
-
-		// Calculate Final Colors - Pure Colors and Blends between them 
-		FragColor = (c * blendColor1 + b * (1 - blendColor1)) * step(pos.x, pos_x_25) +
-						(g * blendColor2 + c * (1 - blendColor2)) * step(pos.x, pos_x_50) * step(pos_x_25, pos.x) +
-						(y * blendColor3 + g * (1 - blendColor3)) * step(pos.x, pos_x_75) * step(pos_x_50, pos.x) +
-						(r * blendColor4 + y * (1 - blendColor4)) * step(pos.x, pos_x_max) * step(pos_x_75, pos.x);
-	}
-	''')
-
 	# Gradient Bounds with range 0.0 - 2.0
 	gradient_line_width = 250
 	gradient_line_height = 15
@@ -194,11 +139,29 @@ def draw_callback_px(_, __):
 	# Set Shader Parameters and Draw
 	indices = ((0, 1, 2), (2, 1, 3))
 
-	shader = gpu.shader.create_from_info(shader_info)
-	del vert_out
-	del shader_info
+	if version < (3, 3, 0):
+		shader = gpu.types.GPUShader(VERTEX_SHADER_TEXT_3_0, FRAGMENT_SHADER_TEXT_3_0)
+		batch = batch_for_shader(shader, 'TRIS', {"position": vertices}, indices=indices)
+	else:
+		# Draw Gradient Line via Shader
+		vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
+		vert_out.smooth('VEC3', "pos")
 
-	batch = batch_for_shader(shader, 'TRIS', {"position": vertices}, indices=indices)
+		shader_info = gpu.types.GPUShaderCreateInfo()
+		shader_info.push_constant('FLOAT', "pos_x_min")
+		shader_info.push_constant('FLOAT', "pos_x_max")
+		shader_info.vertex_in(0, 'VEC2', "position")
+		shader_info.vertex_out(vert_out)
+		shader_info.fragment_out(0, 'VEC4', "FragColor")
+
+		shader_info.vertex_source(VERTEX_SHADER_TEXT_3_3)
+		shader_info.fragment_source(FRAGMENT_SHADER_TEXT_3_3)
+
+		shader = gpu.shader.create_from_info(shader_info)
+		del vert_out
+		del shader_info
+
+		batch = batch_for_shader(shader, 'TRIS', {"position": vertices}, indices=indices)
 
 	shader.bind()
 	shader.uniform_float("pos_x_min", pos_x_min)
@@ -486,6 +449,8 @@ class BakeTDToVC(bpy.types.Operator):
 		start_time = datetime.now()
 		td = context.scene.td
 
+		version = bpy.app.version
+
 		# Save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_mode = bpy.context.object.mode
@@ -558,8 +523,12 @@ class BakeTDToVC(bpy.types.Operator):
 						should_add_vc = False
 
 				if should_add_vc:
-					bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
-					x.data.attributes.active_color.name = "td_vis"
+					if version < (3, 3, 0):
+						bpy.ops.mesh.vertex_color_add()
+						x.data.vertex_colors.active.name = "td_vis"
+					else:
+						bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
+						x.data.attributes.active_color.name = "td_vis"
 
 				x.data.vertex_colors["td_vis"].active = True
 
@@ -710,6 +679,8 @@ class ClearTDFromVC(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, _):
+		version = bpy.app.version
+
 		start_time = datetime.now()
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
@@ -732,7 +703,10 @@ class ClearTDFromVC(bpy.types.Operator):
 					for vc in obj.data.vertex_colors:
 						if vc.name == "td_vis":
 							vc.active = True
-							bpy.ops.geometry.color_attribute_remove()
+							if version < (3, 3, 0):
+								bpy.ops.mesh.vertex_color_remove()
+							else:
+								bpy.ops.geometry.color_attribute_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
 		if start_mode == 'EDIT':
