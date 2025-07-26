@@ -179,162 +179,125 @@ class CheckerAssign(bpy.types.Operator):
 		start_time = datetime.now()
 		td = context.scene.td
 
-		start_mode = bpy.context.object.mode
-		start_active_obj = bpy.context.active_object
-		need_select_again_obj = bpy.context.selected_objects
-
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		start_mode = context.object.mode
+		start_active_obj = context.active_object
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		# Get texture size from panel
 		checker_resolution_x, checker_resolution_y = utils.get_texture_resolution()
 
-		# Check exist texture image
-		td_checker_texture = None
-		for tex in bpy.data.images:
-			if tex.is_td_texture:
-				td_checker_texture = tex
-
-		# Create Checker Texture (if not Exist yet) with parameters from Panel
+		# Get or create checker texture
+		td_checker_texture = next((tex for tex in bpy.data.images if tex.is_td_texture), None)
 		if not td_checker_texture:
-			td_checker_texture = bpy.data.images.new(name='TD_Checker', width=checker_resolution_x, height=checker_resolution_y)
-			td_checker_texture.generated_type=td.checker_type
+			td_checker_texture = bpy.data.images.new('TD_Checker', width=checker_resolution_x, height=checker_resolution_y)
+			td_checker_texture.generated_type = td.checker_type
 			td_checker_texture.is_td_texture = True
 		else:
 			td_checker_texture.generated_width = checker_resolution_x
 			td_checker_texture.generated_height = checker_resolution_y
 			td_checker_texture.generated_type = td.checker_type
 
-		# Check exist TD_Checker_mat
-		td_checker_material = None
-		for mat in bpy.data.materials:
-			if mat.is_td_material:
-				td_checker_material = mat
-
-		# Create material (if not Exist yet) and Setup nodes
+		# Get or create checker material
+		td_checker_material = next((mat for mat in bpy.data.materials if mat.is_td_material), None)
 		if not td_checker_material:
 			td_checker_material = bpy.data.materials.new('TD_Checker')
 			td_checker_material.is_td_material = True
 			td_checker_material.use_nodes = True
+
 			nodes = td_checker_material.node_tree.nodes
 			links = td_checker_material.node_tree.links
-			# Color Mix Node for Blending Checker Texture with VC
-			mix_node = nodes.new(type="ShaderNodeMixRGB")
+			nodes.clear()
+
+			output_node = nodes.new('ShaderNodeOutputMaterial')
+			output_node.location = (300, 200)
+
+			bsdf = nodes.new('ShaderNodeBsdfPrincipled')
+			bsdf.location = (0, 200)
+			links.new(bsdf.outputs['BSDF'], output_node.inputs['Surface'])
+
+			mix_node = nodes.new('ShaderNodeMixRGB')
 			mix_node.location = (-200, 200)
 			mix_node.blend_type = 'COLOR'
-			mix_node.inputs['Fac'].default_value = 1
-			links.new(mix_node.outputs["Color"], nodes['Principled BSDF'].inputs['Base Color'])
-			# Get Checker Texture
+			mix_node.inputs['Fac'].default_value = 1.0
+			links.new(mix_node.outputs['Color'], bsdf.inputs['Base Color'])
+
 			tex_node = nodes.new('ShaderNodeTexImage')
 			tex_node.location = (-500, 300)
 			tex_node.image = td_checker_texture
 			tex_node.interpolation = 'Closest'
-			links.new(tex_node.outputs["Color"], mix_node.inputs['Color1'])
-			# Get VC with baked TD
-			vc_node = nodes.new(type="ShaderNodeAttribute")
+			links.new(tex_node.outputs['Color'], mix_node.inputs['Color1'])
+
+			vc_node = nodes.new('ShaderNodeAttribute')
 			vc_node.location = (-500, 0)
 			vc_node.attribute_name = "td_vis"
-			links.new(vc_node.outputs["Color"], mix_node.inputs['Color2'])
-			# UV Mapping for Checker Texture
-			mapper_node = nodes.new(type="ShaderNodeMapping")
-			mapper_node.location = (-800, 300)
-			# Scale of UV Mapping sets from Panel (UV Scale)
-			mapper_node.inputs['Scale'].default_value[0] = float(td.checker_uv_scale)
-			mapper_node.inputs['Scale'].default_value[1] = float(td.checker_uv_scale)
-			links.new(mapper_node.outputs["Vector"], tex_node.inputs['Vector'])
-			uv_node = nodes.new(type="ShaderNodeUVMap")
-			uv_node.location = (-1000, 220)
-			links.new(uv_node.outputs["UV"], mapper_node.inputs['Vector'])
+			links.new(vc_node.outputs['Color'], mix_node.inputs['Color2'])
+
+			uv_map = nodes.new('ShaderNodeUVMap')
+			uv_map.location = (-1000, 220)
+
+			mapping = nodes.new('ShaderNodeMapping')
+			mapping.location = (-800, 300)
+			mapping.inputs['Scale'].default_value[0] = float(td.checker_uv_scale)
+			mapping.inputs['Scale'].default_value[1] = float(td.checker_uv_scale)
+
+			links.new(uv_map.outputs['UV'], mapping.inputs['Vector'])
+			links.new(mapping.outputs['Vector'], tex_node.inputs['Vector'])
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
-		# Store Real Materials and Replace to Checker Material
 		if td.checker_method == 'STORE':
-			bpy.ops.object.mode_set(mode='OBJECT')
-			bpy.ops.object.select_all(action='DESELECT')
+			for obj in start_selected_obj:
+				if obj.type != 'MESH' or obj.td_settings:
+					continue
 
+				mesh = obj.data
+				bm = bmesh.new()
+				bm.from_mesh(mesh)
+				bm.faces.ensure_lookup_table()
+
+				for face in bm.faces:
+					setting = obj.td_settings.add()
+					setting.tri_index = face.index
+					setting.mat_index = face.material_index
+					print(f"for face {face.index} material index is {face.material_index}")
+
+				bm.free()
+
+		# Remove all materials if REPLACE method
+		if td.checker_method == 'REPLACE':
 			for obj in start_selected_obj:
 				if obj.type == 'MESH':
-					bpy.context.view_layer.objects.active = obj
-					bpy.context.view_layer.objects.active.select_set(True)
+					obj.data.materials.clear()
+					obj.data.materials.append(td_checker_material)
 
-					# Check save mats on this object or not
-					save_this_object = True
-
-					# td_settings is Custom Property per Object
-					# for saving Real Materials Assignment (Index, Mat Slot)
-					if len(obj.td_settings) > 0:
-						save_this_object = False
-
-					# Save Real Materials Assignment
-					if save_this_object:
-						if len(obj.data.materials) > 0:
-							bpy.ops.object.mode_set(mode='OBJECT')
-							face_count = len(bpy.context.active_object.data.polygons)
-							bpy.ops.object.mode_set(mode='EDIT')
-							bm = bmesh.from_edit_mesh(obj.data)
-							bm.faces.ensure_lookup_table()
-
-							for face_id in range(face_count):
-								obj.td_settings.add()
-								obj.td_settings[len(obj.td_settings) - 1].tri_index = face_id
-								obj.td_settings[len(obj.td_settings) - 1].mat_index = bm.faces[face_id].material_index
-
-							bpy.ops.object.mode_set(mode='OBJECT')
-
-		# Destroy Real Materials Slots and Assign Checker Material
-		if td.checker_method == 'REPLACE':
-			for o in start_selected_obj:
-				if o.type == 'MESH' and len(o.data.materials) > 0:
-					for q in reversed(range(len(o.data.materials))):
-						bpy.context.object.active_material_index = q
-						o.data.materials.pop(index=q)
-
-			for o in start_selected_obj:
-				if o.type == 'MESH':
-					o.data.materials.append(td_checker_material)
-
-		# If Store and Replace Method
+		# For STORE method, only assign if not already assigned
 		if td.checker_method == 'STORE':
-			for o in start_selected_obj:
-				bpy.ops.object.mode_set(mode='OBJECT')
-				bpy.ops.object.select_all(action='DESELECT')
+			for obj in start_selected_obj:
+				if obj.type != 'MESH':
+					continue
 
-				if o.type == 'MESH':
-					bpy.context.view_layer.objects.active = o
-					bpy.context.view_layer.objects.active.select_set(True)
+				if any(mat and mat.is_td_material for mat in obj.data.materials):
+					continue
 
-					# Check object already has slot with Checker Material
-					is_assign_td_mat = True
-					for mat in reversed(o.data.materials):
-						if mat and mat.is_td_material:
-							is_assign_td_mat = False
-							break
+				obj.data.materials.append(td_checker_material)
+				mat_index = len(obj.data.materials) - 1
 
-					# Added New Material Slot for Checker Material and Assign him to all faces
-					if is_assign_td_mat:
-						o.data.materials.append(td_checker_material)
-						mat_index = len(o.data.materials) - 1
-						bpy.ops.object.mode_set(mode='EDIT')
-						bpy.ops.mesh.reveal()
-						bpy.ops.mesh.select_all(action='SELECT')
-						bpy.context.object.active_material_index = mat_index
-						bpy.ops.object.material_slot_assign()
-						bpy.ops.object.mode_set(mode='OBJECT')
-
-		bpy.ops.object.mode_set(mode='OBJECT')
-		bpy.ops.object.select_all(action='DESELECT')
-
-		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+				context.view_layer.objects.active = obj
 				bpy.ops.object.mode_set(mode='EDIT')
+				bpy.ops.mesh.reveal()
+				bpy.ops.mesh.select_all(action='SELECT')
+				obj.active_material_index = mat_index
+				bpy.ops.object.material_slot_assign()
+				bpy.ops.object.mode_set(mode='OBJECT')
 
-		bpy.context.view_layer.objects.active = start_active_obj
-		for j in need_select_again_obj:
-			j.select_set(True)
+		# Restore original selection and mode
+		bpy.ops.object.select_all(action='DESELECT')
+		for obj in start_selected_obj:
+			obj.select_set(True)
+
+		context.view_layer.objects.active = start_active_obj
+		if start_mode == 'EDIT':
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		utils.print_execution_time("Assign of Checker Material", start_time)
 		return {'FINISHED'}
