@@ -512,6 +512,8 @@ class BakeTDToVC(bpy.types.Operator):
 			bm = bmesh.from_edit_mesh(mesh_data)
 			bm.faces.ensure_lookup_table()
 
+			color_layer = bm.loops.layers.color.get("td_vis")
+
 			# Calculate and assign color from TD to VC for each polygon
 			if td.bake_vc_mode == "TD_FACES_TO_VC":
 				td_values = np.array(face_td_area_list, dtype=np.float32)[:, 0]
@@ -519,12 +521,10 @@ class BakeTDToVC(bpy.types.Operator):
 
 				for face, color in zip(bm.faces, colors):
 					for loop in face.loops:
-						loop[bm.loops.layers.color.get("td_vis")] = color
+						loop[color_layer] = color
 
 			# Assign random color for each island
 			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
-				color_layer = bm.loops.layers.color.get("td_vis")
-
 				for uv_island in islands_list:
 					hue = random.randint(0, 9) / 10
 					saturation = random.randint(7, 9) / 10
@@ -552,7 +552,7 @@ class BakeTDToVC(bpy.types.Operator):
 				for color, uv_island in zip(colors, islands_list):
 					for face_id in uv_island:
 						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.get("td_vis")] = color
+							loop[color_layer] = color
 
 			# Calculate and assign color from TD to VC for each island (average TD between polygons of island)
 			elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
@@ -571,7 +571,7 @@ class BakeTDToVC(bpy.types.Operator):
 				for color, uv_island in zip(colors, islands_list):
 					for face_id in uv_island:
 						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.get("td_vis")] = color
+							loop[color_layer] = color
 
 			elif td.bake_vc_mode == 'DISTORTION':
 				geom_areas = [p.area for p in mesh_data.polygons]
@@ -585,8 +585,6 @@ class BakeTDToVC(bpy.types.Operator):
 
 				min_range = max(0, 1 - (bake_vc_distortion_range / 100))
 				max_range = 1 + (bake_vc_distortion_range / 100)
-
-				color_layer = bm.loops.layers.color.get("td_vis")
 
 				distortions = []
 
@@ -640,35 +638,29 @@ class ClearTDFromVC(bpy.types.Operator):
 	bl_label = "Clear TD Vertex Colors"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	def execute(self, _):
-		version = bpy.app.version
-
+	def execute(self, context):
 		start_time = datetime.now()
-		start_mode = bpy.context.object.mode
-		start_active_obj = bpy.context.active_object
-		need_select_again_obj = bpy.context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		version = bpy.app.version
+		start_mode = context.object.mode
+		start_active_obj = context.active_object
+		need_select_again_obj = context.selected_objects
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		for obj in start_selected_obj:
 			bpy.ops.object.mode_set(mode='OBJECT')
 			bpy.ops.object.select_all(action='DESELECT')
 			if obj.type == 'MESH':
-				bpy.context.view_layer.objects.active = obj
-				bpy.context.view_layer.objects.active.select_set(True)
+				context.view_layer.objects.active = obj
+				context.view_layer.objects.active.select_set(True)
 
 				# Delete vertex color for baked TD or UV area
-				if len(obj.data.vertex_colors) > 0:
-					for vc in obj.data.vertex_colors:
-						if vc.name == "td_vis":
-							vc.active = True
-							if version < (3, 3, 0):
-								bpy.ops.mesh.vertex_color_remove()
-							else:
-								bpy.ops.geometry.color_attribute_remove()
+				if "td_vis" in obj.data.vertex_colors:
+					obj.data.vertex_colors["td_vis"].active = True
+					if version < (3, 3, 0):
+						bpy.ops.mesh.vertex_color_remove()
+					else:
+						bpy.ops.geometry.color_attribute_remove()
 
 		bpy.ops.object.select_all(action='DESELECT')
 		if start_mode == 'EDIT':
