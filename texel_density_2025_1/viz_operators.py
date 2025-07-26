@@ -315,36 +315,40 @@ class CheckerRestore(bpy.types.Operator):
 		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		for obj in start_selected_obj:
-			if obj.type != 'MESH' or len(obj.td_settings) == 0:
+			if obj.type != 'MESH':
 				continue
 
 			context.view_layer.objects.active = obj
 			obj.select_set(True)
 
-			# Get material indices
-			mat_indices = np.fromiter((s.mat_index for s in obj.td_settings), dtype=np.int32)
+			if len(obj.td_settings) > 0:
+				# Get material indices
+				mat_indices = np.fromiter((s.mat_index for s in obj.td_settings), dtype=np.int32)
 
-			# Switch to OBJECT and then EDIT mode safely
-			bpy.ops.object.mode_set(mode='OBJECT')
-			bpy.ops.object.mode_set(mode='EDIT')
+				# Switch to OBJECT and then EDIT mode safely
+				bpy.ops.object.mode_set(mode='OBJECT')
+				bpy.ops.object.mode_set(mode='EDIT')
 
-			# Restore material indices
-			bm = bmesh.from_edit_mesh(obj.data)
-			bm.faces.ensure_lookup_table()
+				# Restore material indices
+				bm = bmesh.from_edit_mesh(obj.data)
+				bm.faces.ensure_lookup_table()
 
-			for face, mat_index in zip(bm.faces, mat_indices):
-				face.material_index = int(mat_index)
+				for face, mat_index in zip(bm.faces, mat_indices):
+					face.material_index = int(mat_index)
 
-			bmesh.update_edit_mesh(obj.data)
-			bpy.ops.object.mode_set(mode='OBJECT')
+				bmesh.update_edit_mesh(obj.data)
+				bpy.ops.object.mode_set(mode='OBJECT')
 
-			# Clear stored settings
-			obj.td_settings.clear()
+				# Clear stored settings
+				obj.td_settings.clear()
+			else:
+				if context.object.mode == 'EDIT':
+					bpy.ops.object.mode_set(mode='OBJECT')
 
 			# Remove TD material(s)
 			mats = obj.data.materials
 			remove_indices = [i for i, m in enumerate(mats) if m and m.is_td_material]
-
+			
 			for i in reversed(remove_indices):
 				mats.pop(index=i)
 
@@ -370,34 +374,30 @@ class ClearSavedMaterials(bpy.types.Operator):
 	bl_label = "Clear Stored Materials"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	def execute(self, _):
+	def execute(self, context):
 		start_time = datetime.now()
-		start_mode = bpy.context.object.mode
-		start_active_obj = bpy.context.active_object
-		need_select_again_obj = bpy.context.selected_objects
+		start_mode = context.object.mode
+		start_active_obj = context.active_object
+		need_select_again_obj = context.selected_objects
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
-		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
-		else:
-			start_selected_obj = bpy.context.selected_objects
+		bpy.ops.object.mode_set(mode='OBJECT')
+		bpy.ops.object.select_all(action='DESELECT')
 
 		for obj in start_selected_obj:
-			bpy.ops.object.mode_set(mode='OBJECT')
-			bpy.ops.object.select_all(action='DESELECT')
 			if obj.type == 'MESH':
-				bpy.context.view_layer.objects.active = obj
-				bpy.context.view_layer.objects.active.select_set(True)
-				# Delete pairs (face, material slot index)
-				if len(obj.td_settings) > 0:
-					obj.td_settings.clear()
+				context.view_layer.objects.active = obj
+				obj.select_set(True)
+				obj.td_settings.clear()
 
 		bpy.ops.object.select_all(action='DESELECT')
+
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+				context.view_layer.objects.active = o
 				bpy.ops.object.mode_set(mode='EDIT')
 
-		bpy.context.view_layer.objects.active = start_active_obj
+		context.view_layer.objects.active = start_active_obj
 		for j in need_select_again_obj:
 			j.select_set(True)
 
@@ -418,14 +418,14 @@ class BakeTDToVC(bpy.types.Operator):
 		version = bpy.app.version
 
 		# Save current mode and active object
-		start_active_obj = bpy.context.active_object
-		start_mode = bpy.context.object.mode
-		need_select_again_obj = bpy.context.selected_objects
+		start_active_obj = context.active_object
+		start_mode = context.object.mode
+		need_select_again_obj = context.selected_objects
 
 		if start_mode == 'EDIT':
-			start_selected_obj = bpy.context.objects_in_mode
+			start_selected_obj = context.objects_in_mode
 		else:
-			start_selected_obj = bpy.context.selected_objects
+			start_selected_obj = context.selected_objects
 
 		# Range for baking TD
 		bake_vc_min_td = float(td.bake_vc_min_td)
@@ -445,8 +445,8 @@ class BakeTDToVC(bpy.types.Operator):
 			for x in start_selected_obj:
 				bpy.ops.object.select_all(action='DESELECT')
 				if x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0:
-					bpy.context.view_layer.objects.active = x
-					bpy.context.view_layer.objects.active.select_set(True)
+					context.view_layer.objects.active = x
+					context.view_layer.objects.active.select_set(True)
 
 					td_area_list.append(utils.calculate_td_area_to_list())
 
@@ -470,15 +470,15 @@ class BakeTDToVC(bpy.types.Operator):
 		for x in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
 			if x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0:
-				bpy.context.view_layer.objects.active = x
-				bpy.context.view_layer.objects.active.select_set(True)
+				context.view_layer.objects.active = x
+				context.view_layer.objects.active.select_set(True)
 
-				face_count = len(bpy.context.active_object.data.polygons)
+				face_count = len(context.active_object.data.polygons)
 
 				# Save selected faces
 				start_selected_faces = []
 				if start_mode == "EDIT":
-					for f in bpy.context.active_object.data.polygons:
+					for f in context.active_object.data.polygons:
 						if f.select:
 							start_selected_faces.append(f.index)
 
@@ -501,7 +501,7 @@ class BakeTDToVC(bpy.types.Operator):
 				# Get UV islands
 				if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
 					# Overlapping islands like one island
-					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(bpy.context.active_object.data)
+					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(context.active_object.data)
 				else:
 					# Overlapping islands like separated islands
 					islands_list = utils.get_uv_islands()
@@ -510,7 +510,7 @@ class BakeTDToVC(bpy.types.Operator):
 				face_td_area_list = utils.calculate_td_area_to_list()
 
 				bpy.ops.object.mode_set(mode='EDIT')
-				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+				bm = bmesh.from_edit_mesh(context.active_object.data)
 				bm.faces.ensure_lookup_table()
 
 				# Calculate and assign color from TD to VC for each polygon
@@ -580,7 +580,7 @@ class BakeTDToVC(bpy.types.Operator):
 					# Get Total UV and Geometry areas and Geometry area for each poly
 					for face_id in range(0, face_count):
 						# Geometry Area
-						gm_area = bpy.context.active_object.data.polygons[face_id].area
+						gm_area = context.active_object.data.polygons[face_id].area
 						geom_area_total += gm_area
 						geom_area_list.append(gm_area)
 						# Total UV Area
@@ -614,22 +614,22 @@ class BakeTDToVC(bpy.types.Operator):
 					bpy.ops.mesh.select_all(action='DESELECT')
 					bpy.ops.object.mode_set(mode='OBJECT')
 					for face_id in start_selected_faces:
-						bpy.context.active_object.data.polygons[face_id].select = True
+						context.active_object.data.polygons[face_id].select = True
 
 		bpy.ops.object.select_all(action='DESELECT')
 
 		if start_mode == 'EDIT':
 			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
+				context.view_layer.objects.active = o
 				bpy.ops.object.mode_set(mode='EDIT')
 
-		bpy.context.view_layer.objects.active = start_active_obj
+		context.view_layer.objects.active = start_active_obj
 
 		for j in need_select_again_obj:
 			j.select_set(True)
 
 		# Activate VC shading in viewport and show gradient line
-		bpy.context.space_data.shading.color_type = 'VERTEX'
+		context.space_data.shading.color_type = 'VERTEX'
 		if td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC' \
 				or td.bake_vc_mode == 'UV_SPACE_TO_VC' or td.bake_vc_mode == 'DISTORTION':
 			props.show_gradient(self, context)
