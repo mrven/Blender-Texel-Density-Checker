@@ -348,7 +348,7 @@ class CheckerRestore(bpy.types.Operator):
 			# Remove TD material(s)
 			mats = obj.data.materials
 			remove_indices = [i for i, m in enumerate(mats) if m and m.is_td_material]
-			
+
 			for i in reversed(remove_indices):
 				mats.pop(index=i)
 
@@ -414,18 +414,13 @@ class BakeTDToVC(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-
 		version = bpy.app.version
 
 		# Save current mode and active object
 		start_active_obj = context.active_object
 		start_mode = context.object.mode
 		need_select_again_obj = context.selected_objects
-
-		if start_mode == 'EDIT':
-			start_selected_obj = context.objects_in_mode
-		else:
-			start_selected_obj = context.selected_objects
+		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		# Range for baking TD
 		bake_vc_min_td = float(td.bake_vc_min_td)
@@ -433,188 +428,195 @@ class BakeTDToVC(bpy.types.Operator):
 		# Range for baking UV Space
 		bake_vc_min_space = float(td.bake_vc_min_space)
 		bake_vc_max_space = float(td.bake_vc_max_space)
-
 		# Range for baking UV Distortion
 		bake_vc_distortion_range = float(td.bake_vc_distortion_range)
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
+		# Calculate TD and UV Area for all objects
+		td_area_map = {}
+
+		for obj in start_selected_obj:
+			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
+				continue
+
+			bpy.ops.object.select_all(action='DESELECT')
+			context.view_layer.objects.active = obj
+			obj.select_set(True)
+
+			td_area_map[obj.name] = utils.calculate_td_area_to_list()
+
 		# Automatic Min/Max TD
 		if td.bake_vc_auto_min_max and (td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC'):
-			td_area_list = []
-			for x in start_selected_obj:
-				bpy.ops.object.select_all(action='DESELECT')
-				if x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0:
-					context.view_layer.objects.active = x
-					context.view_layer.objects.active.select_set(True)
+			min_td = float('inf')
+			max_td = float('-inf')
 
-					td_area_list.append(utils.calculate_td_area_to_list())
+			for td_list in td_area_map.values():
+				for td_val, _ in td_list:
+					min_td = min(min_td, td_val)
+					max_td = max(max_td, td_val)
 
-			# Found Min and Max TD
-			if len(td_area_list) > 0:
-				min_calculated_td = 9999999
-				max_calculated_td = 0
-				for obj_td_list in td_area_list:
-					for face_td_area_value in obj_td_list:
-						if face_td_area_value[0] < min_calculated_td:
-							min_calculated_td = face_td_area_value[0]
-						if face_td_area_value[0] > max_calculated_td:
-							max_calculated_td = face_td_area_value[0]
+			if min_td != float('inf') and max_td != float('-inf'):
+				td.bake_vc_min_td = f"{min_td:.3f}"
+				td.bake_vc_max_td = f"{max_td:.3f}"
+				bake_vc_min_td = min_td
+				bake_vc_max_td = max_td
 
-				bake_vc_min_td = min_calculated_td
-				bake_vc_max_td = max_calculated_td
-
-				td.bake_vc_min_td = '%.3f' % round(min_calculated_td, 3)
-				td.bake_vc_max_td = '%.3f' % round(max_calculated_td, 3)
-
-		for x in start_selected_obj:
+		for obj in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
-			if x.type == 'MESH' and len(x.data.uv_layers) > 0 and len(x.data.polygons) > 0:
-				context.view_layer.objects.active = x
-				context.view_layer.objects.active.select_set(True)
+			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
+				continue
 
-				face_count = len(context.active_object.data.polygons)
+			mesh_data = obj.data
 
-				# Save selected faces
-				start_selected_faces = []
-				if start_mode == "EDIT":
-					for f in context.active_object.data.polygons:
-						if f.select:
-							start_selected_faces.append(f.index)
+			context.view_layer.objects.active = obj
+			context.view_layer.objects.active.select_set(True)
 
-				# Add vertex color group for visualization over material
-				should_add_vc = True
-				for vc in x.data.vertex_colors:
-					if vc.name == "td_vis":
-						should_add_vc = False
+			face_count = len(mesh_data.polygons)
 
-				if should_add_vc:
-					if version < (3, 3, 0):
-						bpy.ops.mesh.vertex_color_add()
-						x.data.vertex_colors.active.name = "td_vis"
-					else:
-						bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
-						x.data.attributes.active_color.name = "td_vis"
+			# Save selected faces
+			start_selected_faces = []
 
-				x.data.vertex_colors["td_vis"].active = True
+			if start_mode == "EDIT":
+				for f in mesh_data.polygons:
+					if f.select:
+						start_selected_faces.append(f.index)
 
-				# Get UV islands
-				if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
-					# Overlapping islands like one island
-					islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(context.active_object.data)
+			# Add vertex color group for visualization over material
+			should_add_vc = True
+			for vc in mesh_data.vertex_colors:
+				if vc.name == "td_vis":
+					should_add_vc = False
+
+			if should_add_vc:
+				if version < (3, 3, 0):
+					bpy.ops.mesh.vertex_color_add()
+					mesh_data.vertex_colors.active.name = "td_vis"
 				else:
-					# Overlapping islands like separated islands
-					islands_list = utils.get_uv_islands()
+					bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
+					mesh_data.attributes.active_color.name = "td_vis"
 
-				# Get TD and UV Area for each polygon (TD, Area)
-				face_td_area_list = utils.calculate_td_area_to_list()
+			mesh_data.vertex_colors["td_vis"].active = True
 
+			# Get UV islands
+			if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
+				# Overlapping islands like one island
+				islands_list = bpy_extras.mesh_utils.mesh_linked_uv_islands(mesh_data)
+			else:
+				# Overlapping islands like separated islands
+				islands_list = utils.get_uv_islands()
+
+			# Get TD and UV Area for each polygon (TD, Area)
+			face_td_area_list = td_area_map.get(obj.name)
+			if not face_td_area_list:
+				continue
+
+			bpy.ops.object.mode_set(mode='EDIT')
+			bm = bmesh.from_edit_mesh(mesh_data)
+			bm.faces.ensure_lookup_table()
+
+			# Calculate and assign color from TD to VC for each polygon
+			if td.bake_vc_mode == "TD_FACES_TO_VC":
+				for face_id in range(0, face_count):
+					color = utils.value_to_color(face_td_area_list[face_id][0], bake_vc_min_td, bake_vc_max_td)
+
+					for loop in bm.faces[face_id].loops:
+						loop[bm.loops.layers.color.get("td_vis")] = color
+
+			# Assign random color for each island
+			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				for uv_island in islands_list:
+					random_hue = random.randrange(0, 10, 1) / 10
+					random_value = random.randrange(2, 10, 1) / 10
+					random_saturation = random.randrange(7, 10, 1) / 10
+					color = colorsys.hsv_to_rgb(random_hue, random_saturation, random_value)
+					color4 = (color[0], color[1], color[2], 1)
+
+					for face_id in uv_island:
+						for loop in bm.faces[face_id].loops:
+							loop[bm.loops.layers.color.get("td_vis")] = color4
+
+			# Calculate and assign color from UV area to VC for each island (UV areas sum of polygons of island)
+			elif td.bake_vc_mode == "UV_SPACE_TO_VC":
+				for uv_island in islands_list:
+					island_area = 0
+					for face_id in uv_island:
+						island_area += face_td_area_list[face_id][1]
+
+					# Convert island area value to percentage of area
+					island_area *= 100
+					color = utils.value_to_color(island_area, bake_vc_min_space, bake_vc_max_space)
+
+					for face_id in uv_island:
+						for loop in bm.faces[face_id].loops:
+							loop[bm.loops.layers.color.get("td_vis")] = color
+
+			# Calculate and assign color from TD to VC for each island (average TD between polygons of island)
+			elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
+				for uv_island in islands_list:
+					island_td = 0
+					island_area = 0
+
+					# Calculate Total Island Area
+					for face_id in uv_island:
+						island_area += face_td_area_list[face_id][1]
+
+					if island_area == 0:
+						island_area = 0.000001
+
+					# Calculate Average Island TD
+					for face_id in uv_island:
+						island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / island_area
+
+					color = utils.value_to_color(island_td, bake_vc_min_td, bake_vc_max_td)
+
+					for face_id in uv_island:
+						for loop in bm.faces[face_id].loops:
+							loop[bm.loops.layers.color.get("td_vis")] = color
+
+			elif td.bake_vc_mode == 'DISTORTION':
+				uv_area_total = 0
+				geom_area_total = 0
+				geom_area_list = []
+
+				# Get Total UV and Geometry areas and Geometry area for each poly
+				for face_id in range(0, face_count):
+					# Geometry Area
+					gm_area = mesh_data.polygons[face_id].area
+					geom_area_total += gm_area
+					geom_area_list.append(gm_area)
+					# Total UV Area
+					uv_area_total += face_td_area_list[face_id][1]
+
+				# Protection from zero division
+				if uv_area_total < 0.0001:
+					uv_area_total = 0.0001
+				if geom_area_total < 0.0001:
+					geom_area_total = 0.0001
+
+				# Calculate Min/Max for range
+				min_range = 1 - (bake_vc_distortion_range / 100)
+				if min_range < 0:
+					min_range = 0
+				max_range = 1 + (bake_vc_distortion_range / 100)
+
+				for face_id in range(0, face_count):
+					uv_percent = face_td_area_list[face_id][1] / uv_area_total
+					geom_percent = geom_area_list[face_id] / geom_area_total
+
+					color = utils.value_to_color(uv_percent / geom_percent, min_range, max_range)
+
+					for loop in bm.faces[face_id].loops:
+						loop[bm.loops.layers.color.get("td_vis")] = color
+
+			bpy.ops.object.mode_set(mode='OBJECT')
+
+			if start_mode == "EDIT":
 				bpy.ops.object.mode_set(mode='EDIT')
-				bm = bmesh.from_edit_mesh(context.active_object.data)
-				bm.faces.ensure_lookup_table()
-
-				# Calculate and assign color from TD to VC for each polygon
-				if td.bake_vc_mode == "TD_FACES_TO_VC":
-					for face_id in range(0, face_count):
-						color = utils.value_to_color(face_td_area_list[face_id][0], bake_vc_min_td, bake_vc_max_td)
-
-						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.get("td_vis")] = color
-
-				# Assign random color for each island
-				elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
-					for uv_island in islands_list:
-						random_hue = random.randrange(0, 10, 1) / 10
-						random_value = random.randrange(2, 10, 1) / 10
-						random_saturation = random.randrange(7, 10, 1) / 10
-						color = colorsys.hsv_to_rgb(random_hue, random_saturation, random_value)
-						color4 = (color[0], color[1], color[2], 1)
-
-						for face_id in uv_island:
-							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.get("td_vis")] = color4
-
-				# Calculate and assign color from UV area to VC for each island (UV areas sum of polygons of island)
-				elif td.bake_vc_mode == "UV_SPACE_TO_VC":
-					for uv_island in islands_list:
-						island_area = 0
-						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
-
-						# Convert island area value to percentage of area
-						island_area *= 100
-						color = utils.value_to_color(island_area, bake_vc_min_space, bake_vc_max_space)
-
-						for face_id in uv_island:
-							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.get("td_vis")] = color
-
-				# Calculate and assign color from TD to VC for each island (average TD between polygons of island)
-				elif td.bake_vc_mode == "TD_ISLANDS_TO_VC":
-					for uv_island in islands_list:
-						island_td = 0
-						island_area = 0
-
-						# Calculate Total Island Area
-						for face_id in uv_island:
-							island_area += face_td_area_list[face_id][1]
-
-						if island_area == 0:
-							island_area = 0.000001
-
-						# Calculate Average Island TD
-						for face_id in uv_island:
-							island_td += face_td_area_list[face_id][0] * face_td_area_list[face_id][1] / island_area
-
-						color = utils.value_to_color(island_td, bake_vc_min_td, bake_vc_max_td)
-
-						for face_id in uv_island:
-							for loop in bm.faces[face_id].loops:
-								loop[bm.loops.layers.color.get("td_vis")] = color
-
-				elif td.bake_vc_mode == 'DISTORTION':
-					uv_area_total = 0
-					geom_area_total = 0
-					geom_area_list = []
-
-					# Get Total UV and Geometry areas and Geometry area for each poly
-					for face_id in range(0, face_count):
-						# Geometry Area
-						gm_area = context.active_object.data.polygons[face_id].area
-						geom_area_total += gm_area
-						geom_area_list.append(gm_area)
-						# Total UV Area
-						uv_area_total += face_td_area_list[face_id][1]
-
-					# Protection from zero division
-					if uv_area_total < 0.0001:
-						uv_area_total = 0.0001
-					if geom_area_total < 0.0001:
-						geom_area_total = 0.0001
-
-					# Calculate Min/Max for range
-					min_range = 1 - (bake_vc_distortion_range / 100)
-					if min_range < 0:
-						min_range = 0
-					max_range = 1 + (bake_vc_distortion_range / 100)
-
-					for face_id in range(0, face_count):
-						uv_percent = face_td_area_list[face_id][1] / uv_area_total
-						geom_percent = geom_area_list[face_id] / geom_area_total
-
-						color = utils.value_to_color(uv_percent / geom_percent, min_range, max_range)
-
-						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.get("td_vis")] = color
-
+				bpy.ops.mesh.select_all(action='DESELECT')
 				bpy.ops.object.mode_set(mode='OBJECT')
-
-				if start_mode == "EDIT":
-					bpy.ops.object.mode_set(mode='EDIT')
-					bpy.ops.mesh.select_all(action='DESELECT')
-					bpy.ops.object.mode_set(mode='OBJECT')
-					for face_id in start_selected_faces:
-						context.active_object.data.polygons[face_id].select = True
+				for face_id in start_selected_faces:
+					mesh_data.polygons[face_id].select = True
 
 		bpy.ops.object.select_all(action='DESELECT')
 
