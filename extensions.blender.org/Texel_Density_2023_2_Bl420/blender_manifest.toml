@@ -4,7 +4,7 @@ id = "texel_density_checker"
 version = "2023.2.2"
 name = "Texel Density Checker"
 tagline = "Toolset for working with Texel Density"
-maintainer = "Ivan Vostrikov <valday.team@gmail.com>"
+maintainer = "Ivan Vostrikov <mrven1989@gmail.com>"
 type = "add-on"
 
 website = "https://github.com/mrven/Blender-Texel-Density-Checker"
