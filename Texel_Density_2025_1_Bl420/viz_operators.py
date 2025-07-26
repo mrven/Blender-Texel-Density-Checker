@@ -18,6 +18,7 @@ from . import props
 # Draw Reference Gradient Line for Color Visualizer
 def draw_callback_px(_, __):
 	td = bpy.context.scene.td
+	version = bpy.app.version
 
 	# Get Parameters
 	region = bpy.context.region
@@ -29,7 +30,12 @@ def draw_callback_px(_, __):
 	offset_y = int(bpy.context.preferences.addons[__package__].preferences.offset_y)
 	anchor_pos = bpy.context.preferences.addons[__package__].preferences.anchor_pos
 	font_id = 0
-	blf.size(font_id, font_size)
+
+	if version < (3, 6, 0):
+		blf.size(font_id, font_size, 72)
+	else:
+		blf.size(font_id, font_size)
+
 	blf.color(font_id, 1, 1, 1, 1)
 
 	bake_min_value = 0

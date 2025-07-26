@@ -6,7 +6,7 @@ bl_info = {
 	"tracker_url": "https://github.com/mrven/Blender-Texel-Density-Checker/issues",
 	"doc_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
 	"version": (2025, 1, 0),
-	"blender": (4, 2, 0),
+	"blender": (3, 0, 0),
 	"location": "3D View > Toolbox",
 	"category": "Object",
 }
