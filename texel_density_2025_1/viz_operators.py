@@ -472,23 +472,16 @@ class BakeTDToVC(bpy.types.Operator):
 			context.view_layer.objects.active = obj
 			context.view_layer.objects.active.select_set(True)
 
-			face_count = len(mesh_data.polygons)
+			start_selected_faces = None
 
 			# Save selected faces
-			start_selected_faces = []
-
 			if start_mode == "EDIT":
-				for f in mesh_data.polygons:
-					if f.select:
-						start_selected_faces.append(f.index)
+				start_selected_faces = np.array([
+						p.index for p in mesh_data.polygons if p.select
+					], dtype=np.int32)
 
 			# Add vertex color group for visualization over material
-			should_add_vc = True
-			for vc in mesh_data.vertex_colors:
-				if vc.name == "td_vis":
-					should_add_vc = False
-
-			if should_add_vc:
+			if "td_vis" not in mesh_data.vertex_colors:
 				if version < (3, 3, 0):
 					bpy.ops.mesh.vertex_color_add()
 					mesh_data.vertex_colors.active.name = "td_vis"
@@ -508,6 +501,7 @@ class BakeTDToVC(bpy.types.Operator):
 
 			# Get TD and UV Area for each polygon (TD, Area)
 			face_td_area_list = td_area_map.get(obj.name)
+
 			if not face_td_area_list:
 				continue
 
@@ -517,24 +511,25 @@ class BakeTDToVC(bpy.types.Operator):
 
 			# Calculate and assign color from TD to VC for each polygon
 			if td.bake_vc_mode == "TD_FACES_TO_VC":
-				for face_id in range(0, face_count):
-					color = utils.value_to_color(face_td_area_list[face_id][0], bake_vc_min_td, bake_vc_max_td)
-
-					for loop in bm.faces[face_id].loops:
+				for face, (density, _) in zip(bm.faces, face_td_area_list):
+					color = utils.value_to_color(density, bake_vc_min_td, bake_vc_max_td)
+					for loop in face.loops:
 						loop[bm.loops.layers.color.get("td_vis")] = color
 
 			# Assign random color for each island
 			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				color_layer = bm.loops.layers.color.get("td_vis")
+
 				for uv_island in islands_list:
-					random_hue = random.randrange(0, 10, 1) / 10
-					random_value = random.randrange(2, 10, 1) / 10
-					random_saturation = random.randrange(7, 10, 1) / 10
-					color = colorsys.hsv_to_rgb(random_hue, random_saturation, random_value)
-					color4 = (color[0], color[1], color[2], 1)
+					hue = random.randint(0, 9) / 10
+					saturation = random.randint(7, 9) / 10
+					value = random.randint(2, 9) / 10
+					r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
+					color = (r, g, b, 1)
 
 					for face_id in uv_island:
 						for loop in bm.faces[face_id].loops:
-							loop[bm.loops.layers.color.get("td_vis")] = color4
+							loop[color_layer] = color
 
 			# Calculate and assign color from UV area to VC for each island (UV areas sum of polygons of island)
 			elif td.bake_vc_mode == "UV_SPACE_TO_VC":
@@ -575,43 +570,34 @@ class BakeTDToVC(bpy.types.Operator):
 							loop[bm.loops.layers.color.get("td_vis")] = color
 
 			elif td.bake_vc_mode == 'DISTORTION':
-				uv_area_total = 0
-				geom_area_total = 0
-				geom_area_list = []
+				geom_areas = [p.area for p in mesh_data.polygons]
+				uv_areas = [uv_area for _, uv_area in face_td_area_list]
 
-				# Get Total UV and Geometry areas and Geometry area for each poly
-				for face_id in range(0, face_count):
-					# Geometry Area
-					gm_area = mesh_data.polygons[face_id].area
-					geom_area_total += gm_area
-					geom_area_list.append(gm_area)
-					# Total UV Area
-					uv_area_total += face_td_area_list[face_id][1]
+				geom_area_total = sum(geom_areas)
+				uv_area_total = sum(uv_areas)
 
-				# Protection from zero division
-				if uv_area_total < 0.0001:
-					uv_area_total = 0.0001
-				if geom_area_total < 0.0001:
-					geom_area_total = 0.0001
+				geom_area_total = max(geom_area_total, 0.0001)
+				uv_area_total = max(uv_area_total, 0.0001)
 
-				# Calculate Min/Max for range
-				min_range = 1 - (bake_vc_distortion_range / 100)
-				if min_range < 0:
-					min_range = 0
+				min_range = max(0, 1 - (bake_vc_distortion_range / 100))
 				max_range = 1 + (bake_vc_distortion_range / 100)
 
-				for face_id in range(0, face_count):
-					uv_percent = face_td_area_list[face_id][1] / uv_area_total
-					geom_percent = geom_area_list[face_id] / geom_area_total
+				color_layer = bm.loops.layers.color.get("td_vis")
 
-					color = utils.value_to_color(uv_percent / geom_percent, min_range, max_range)
+				# Назначение цвета по искажению
+				for face, geom_area, uv_area in zip(bm.faces, geom_areas, uv_areas):
+					uv_percent = uv_area / uv_area_total
+					geom_percent = geom_area / geom_area_total
+					distortion_ratio = uv_percent / geom_percent
 
-					for loop in bm.faces[face_id].loops:
-						loop[bm.loops.layers.color.get("td_vis")] = color
+					color = utils.value_to_color(distortion_ratio, min_range, max_range)
+
+					for loop in face.loops:
+						loop[color_layer] = color
 
 			bpy.ops.object.mode_set(mode='OBJECT')
 
-			if start_mode == "EDIT":
+			if start_mode == "EDIT" and start_selected_faces:
 				bpy.ops.object.mode_set(mode='EDIT')
 				bpy.ops.mesh.select_all(action='DESELECT')
 				bpy.ops.object.mode_set(mode='OBJECT')
