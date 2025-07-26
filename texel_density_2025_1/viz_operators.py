@@ -190,7 +190,7 @@ class CheckerAssign(bpy.types.Operator):
 		# Get or create checker texture
 		td_checker_texture = next((tex for tex in bpy.data.images if tex.is_td_texture), None)
 		if not td_checker_texture:
-			td_checker_texture = bpy.data.images.new('TD_Checker', width=checker_resolution_x, height=checker_resolution_y)
+			td_checker_texture = bpy.data.images.new(TD_MATERIAL_NAME, width=checker_resolution_x, height=checker_resolution_y)
 			td_checker_texture.generated_type = td.checker_type
 			td_checker_texture.is_td_texture = True
 		else:
@@ -201,7 +201,7 @@ class CheckerAssign(bpy.types.Operator):
 		# Get or create checker material
 		td_checker_material = next((mat for mat in bpy.data.materials if mat.is_td_material), None)
 		if not td_checker_material:
-			td_checker_material = bpy.data.materials.new('TD_Checker')
+			td_checker_material = bpy.data.materials.new(TD_MATERIAL_NAME)
 			td_checker_material.is_td_material = True
 			td_checker_material.use_nodes = True
 
@@ -230,7 +230,7 @@ class CheckerAssign(bpy.types.Operator):
 
 			vc_node = nodes.new('ShaderNodeAttribute')
 			vc_node.location = (-500, 0)
-			vc_node.attribute_name = "td_vis"
+			vc_node.attribute_name = TD_VC_NAME
 			links.new(vc_node.outputs['Color'], mix_node.inputs['Color2'])
 
 			uv_map = nodes.new('ShaderNodeUVMap')
@@ -481,15 +481,15 @@ class BakeTDToVC(bpy.types.Operator):
 					], dtype=np.int32)
 
 			# Add vertex color group for visualization over material
-			if "td_vis" not in mesh_data.vertex_colors:
+			if TD_VC_NAME not in mesh_data.vertex_colors:
 				if version < (3, 3, 0):
 					bpy.ops.mesh.vertex_color_add()
-					mesh_data.vertex_colors.active.name = "td_vis"
+					mesh_data.vertex_colors.active.name = TD_VC_NAME
 				else:
 					bpy.ops.geometry.color_attribute_add(domain='CORNER', data_type='BYTE_COLOR')
-					mesh_data.attributes.active_color.name = "td_vis"
+					mesh_data.attributes.active_color.name = TD_VC_NAME
 
-			mesh_data.vertex_colors["td_vis"].active = True
+			mesh_data.vertex_colors[TD_VC_NAME].active = True
 
 			# Get UV islands
 			if td.bake_vc_mode == "UV_ISLANDS_TO_VC" and td.uv_islands_to_vc_mode == "OVERLAP":
@@ -511,7 +511,7 @@ class BakeTDToVC(bpy.types.Operator):
 			bm = bmesh.from_edit_mesh(mesh_data)
 			bm.faces.ensure_lookup_table()
 
-			color_layer = bm.loops.layers.color.get("td_vis")
+			color_layer = bm.loops.layers.color.get(TD_VC_NAME)
 
 			# Calculate and assign color from TD to VC for each polygon
 			if td.bake_vc_mode == "TD_FACES_TO_VC":
@@ -654,8 +654,8 @@ class ClearTDFromVC(bpy.types.Operator):
 				context.view_layer.objects.active.select_set(True)
 
 				# Delete vertex color for baked TD or UV area
-				if "td_vis" in obj.data.vertex_colors:
-					obj.data.vertex_colors["td_vis"].active = True
+				if TD_VC_NAME in obj.data.vertex_colors:
+					obj.data.vertex_colors[TD_VC_NAME].active = True
 					if version < (3, 3, 0):
 						bpy.ops.mesh.vertex_color_remove()
 					else:
