@@ -119,6 +119,13 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		description="Show/Hide UV Editor TD UI Panel",
 		default=True)
 
+	# Defaults
+	default_units_list = (('0', 'px/cm', ''),
+				  ('1', 'px/m', ''),
+				  ('2', 'px/in', ''),
+				  ('3', 'px/ft', ''))
+	default_units: EnumProperty(name="Units", items=default_units_list)
+
 	def draw(self, _):
 		layout = self.layout
 		box = layout.box()
@@ -149,6 +156,12 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 			row.prop(self, 'uv_panel_category', text="Panel")
 
 		layout.prop(self, 'automatic_recalc')
+
+		box = layout.box()
+		row = box.row()
+		row.label(text='Default Preferences:')
+		row = box.row()
+		row.prop(self, 'default_units')
 
 
 class TDObjectSetting(bpy.types.PropertyGroup):

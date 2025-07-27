@@ -260,6 +260,8 @@ def show_gradient(_, context):
 
 
 class TDAddonProps(bpy.types.PropertyGroup):
+	initialized: BoolProperty(default=False)
+
 	uv_space: StringProperty(
 		name="",
 		description="Wasting of uv space",
