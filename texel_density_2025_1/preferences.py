@@ -132,6 +132,13 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		row = box.row(align=True)
 		row.label(text='Calculation Backend:')
 		row.prop(self, 'calculation_backend', expand=False)
+
+		box = layout.box()
+		row = box.row()
+		row.label(text='Default Preferences:')
+		row = box.row()
+		row.prop(self, 'default_units')
+
 		box = layout.box()
 		row = box.row()
 		row.label(text='Texel Density Gradient Position:')
@@ -156,12 +163,6 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 			row.prop(self, 'uv_panel_category', text="Panel")
 
 		layout.prop(self, 'automatic_recalc')
-
-		box = layout.box()
-		row = box.row()
-		row.label(text='Default Preferences:')
-		row = box.row()
-		row.prop(self, 'default_units')
 
 
 class TDObjectSetting(bpy.types.PropertyGroup):

@@ -8,6 +8,12 @@ def panel_draw(layout, context):
 	td = context.scene.td
 	is_view_3d_panel = context.area.type == 'VIEW_3D'
 
+	box = layout.box()
+	row = box.row(align=True)
+	row.operator(add_td_operators.ShowAddonPrefs.bl_idname, text="Prefs", icon='PREFERENCES')
+	row.operator(add_td_operators.OpenURL.bl_idname, text="Docs", icon='HELP').url = TD_DOC_URL
+	row.operator(add_td_operators.OpenURL.bl_idname, text="Report", icon='URL').url = TD_REPORT_URL
+
 	if context.active_object.type == 'MESH' and len(context.active_object.data.uv_layers) > 0:
 		row = layout.row(align=True)
 		row.label(text="Units:")
@@ -228,19 +234,11 @@ def panel_draw(layout, context):
 			row = box.row(align=True)
 			row.label(text="Mesh doesn't have any UV", icon='ERROR')
 
-	box = layout.box()
-	row = box.row()
-	row.label(text="Support:")
-	row = box.row()
-	row.operator(add_td_operators.OpenURL.bl_idname, text="Documentation", icon='HELP').url=TD_DOC_URL
-	row = box.row()
-	row.operator(add_td_operators.OpenURL.bl_idname, text="Report Issue", icon='URL').url = TD_REPORT_URL
-
 
 # Panel in 3D View
 class TDAddonView3DPanel(bpy.types.Panel):
 	bl_idname = "VIEW3D_PT_texel_density_checker"
-	bl_label = "Texel Density Checker"
+	bl_label = "Texel Density Checker 2025.1"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
 	bl_category = "Texel Density"
@@ -257,7 +255,7 @@ class TDAddonView3DPanel(bpy.types.Panel):
 # Panel in UV Editor
 class TDAddonUVPanel(bpy.types.Panel):
 	bl_idname = "UV_PT_texel_density_checker"
-	bl_label = "Texel Density Checker"
+	bl_label = "Texel Density Checker 2025.1"
 	bl_space_type = "IMAGE_EDITOR"
 	bl_region_type = "UI"
 	bl_category = "Texel Density"

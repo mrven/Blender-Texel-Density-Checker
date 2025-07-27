@@ -234,6 +234,19 @@ class OpenURL(bpy.types.Operator):
 			return {'CANCELLED'}
 
 
+class ShowAddonPrefs(bpy.types.Operator):
+	bl_idname = "texel_density.show_addon_prefs"
+	bl_label = "Open Addon Preferences"
+
+	def execute(self, _):
+		addon_name = __name__.split('.')[0]
+		bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
+		bpy.context.preferences.active_section = 'ADDONS'
+		bpy.ops.preferences.addon_show(module=addon_name)
+
+		return {'FINISHED'}
+
+
 classes = (
 	TexelDensityCopy,
 	CalculatedToSet,
@@ -241,6 +254,7 @@ classes = (
 	PresetSet,
 	SelectByTDOrUVSpace,
 	OpenURL,
+	ShowAddonPrefs,
 )
 
 
