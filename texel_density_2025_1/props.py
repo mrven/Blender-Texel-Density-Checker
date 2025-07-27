@@ -366,13 +366,13 @@ class TDAddonProps(bpy.types.PropertyGroup):
 	bake_vc_min_space: StringProperty(
 		name="",
 		description="Min UV Space",
-		default="0.0001",
+		default="0.1",
 		update=filter_bake_vc_min_space)
 
 	bake_vc_max_space: StringProperty(
 		name="",
 		description="Max UV Space",
-		default="2.0",
+		default="25.0",
 		update=filter_bake_vc_max_space)
 
 	bake_vc_distortion_range: StringProperty(

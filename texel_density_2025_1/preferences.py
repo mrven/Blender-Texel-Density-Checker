@@ -122,7 +122,6 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 	def draw(self, _):
 		layout = self.layout
 		box = layout.box()
-		row = box.row()
 		row = box.row(align=True)
 		row.label(text='Calculation Backend:')
 		row.prop(self, 'calculation_backend', expand=False)
