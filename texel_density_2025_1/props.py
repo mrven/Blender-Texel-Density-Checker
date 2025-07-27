@@ -223,7 +223,7 @@ def filter_select_threshold(_, context):
 def change_bake_vc_mode(self, context):
 	td = context.scene.td
 
-	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC" or td.bake_vc_mode == "UV_SPACE_TO_VC":
+	if td.bake_vc_mode in {"TD_FACES_TO_VC", "TD_ISLANDS_TO_VC", "UV_SPACE_TO_VC"}:
 		show_gradient(self, context)
 	else:
 		if draw_info["handler"] is not None:

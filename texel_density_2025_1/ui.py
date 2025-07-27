@@ -2,7 +2,7 @@ import bpy
 
 from . import utils
 from . import core_td_operators, add_td_operators, viz_operators
-
+from .constants import *
 
 def panel_draw(layout, context):
 	td = context.scene.td
@@ -99,41 +99,13 @@ def panel_draw(layout, context):
 		row.operator(core_td_operators.TexelDensitySet.bl_idname)
 
 		# Preset Buttons
-		row = box.row(align=True)
-		if td.units == '0':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="20.48").td_value = "20.48"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="10.24").td_value = "10.24"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="5.12").td_value = "5.12"
-		if td.units == '1':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="2048").td_value = "2048"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="1024").td_value = "1024"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="512").td_value = "512"
-		if td.units == '2':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="52.019").td_value = "52.019"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="26.01").td_value = "26.01"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="13.005").td_value = "13.005"
-		if td.units == '3':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="624.23").td_value = "624.23"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="312.115").td_value = "312.115"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="156.058").td_value = "156.058"
-
-		row = box.row(align=True)
-		if td.units == '0':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="2.56").td_value = "2.56"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="1.28").td_value = "1.28"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="0.64").td_value = "0.64"
-		if td.units == '1':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="256").td_value = "256"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="128").td_value = "128"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="64").td_value = "64"
-		if td.units == '2':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="6.502").td_value = "6.502"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="3.251").td_value = "3.251"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="1.626").td_value = "1.626"
-		if td.units == '3':
-			row.operator(add_td_operators.PresetSet.bl_idname, text="78.029").td_value = "78.029"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="39.014").td_value = "39.014"
-			row.operator(add_td_operators.PresetSet.bl_idname, text="19.507").td_value = "19.507"
+		preset_rows = PRESET_VALUES.get(td.units)
+		if preset_rows:
+			for preset_row in preset_rows:
+				row = box.row(align=True)
+				for val in preset_row:
+					op = row.operator(add_td_operators.PresetSet.bl_idname, text=val)
+					op.td_value = val
 
 		row = box.row(align=True)
 		row.operator(add_td_operators.PresetSet.bl_idname, text="Half TD").td_value = "Half"

@@ -43,7 +43,7 @@ def draw_callback_px(_, __):
 	bake_min_value = 0
 	bake_max_value = 0
 
-	if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC":
+	if td.bake_vc_mode in {"TD_FACES_TO_VC", "TD_ISLANDS_TO_VC"}:
 		bake_min_value = float(td.bake_vc_min_td)
 		bake_max_value = float(td.bake_vc_max_td)
 
@@ -447,7 +447,7 @@ class BakeTDToVC(bpy.types.Operator):
 			td_area_map[obj.name] = utils.calculate_td_area_to_list()
 
 		# Automatic Min/Max TD
-		if td.bake_vc_auto_min_max and (td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC'):
+		if td.bake_vc_auto_min_max and (td.bake_vc_mode in {'TD_FACES_TO_VC', 'TD_ISLANDS_TO_VC'}):
 			min_td = float('inf')
 			max_td = float('-inf')
 
@@ -623,8 +623,7 @@ class BakeTDToVC(bpy.types.Operator):
 
 		# Activate VC shading in viewport and show gradient line
 		context.space_data.shading.color_type = 'VERTEX'
-		if td.bake_vc_mode == 'TD_FACES_TO_VC' or td.bake_vc_mode == 'TD_ISLANDS_TO_VC' \
-				or td.bake_vc_mode == 'UV_SPACE_TO_VC' or td.bake_vc_mode == 'DISTORTION':
+		if td.bake_vc_mode in {'TD_FACES_TO_VC', 'TD_ISLANDS_TO_VC', 'UV_SPACE_TO_VC', 'DISTORTION'}:
 			props.show_gradient(self, context)
 
 		utils.print_execution_time("Bake TD to VC", start_time)
