@@ -45,13 +45,31 @@ def on_load_post(_):
 		props.checker_type = prefs.default_checker_type
 		props.checker_uv_scale = prefs.default_checker_uv_scale
 		props.density_set = prefs.default_density_set
-		props.set_method_list = prefs.default_set_method_list
+		props.set_method = prefs.default_set_method
 		props.rescale_anchor = prefs.default_rescale_anchor
 		props.select_mode = prefs.default_select_mode
 		props.select_type = prefs.default_select_type
 		props.select_value = prefs.default_select_value
-		props.select_threshold = prefs.default_select_threshold
-		# props. = prefs.default_
+		if prefs.default_select_type == 'EQUAL':
+			props.select_threshold = prefs.default_select_threshold
+		props.bake_vc_mode = prefs.default_bake_vc_mode
+		if prefs.default_bake_vc_mode in {'TD_FACES_TO_VC', 'TD_ISLANDS_TO_VC'}:
+			props.bake_vc_auto_min_max = prefs.default_bake_vc_auto_min_max
+			props.bake_vc_min_td = prefs.default_bake_vc_min_td
+			props.bake_vc_max_td = prefs.default_bake_vc_max_td
+		if prefs.default_bake_vc_mode == 'UV_ISLANDS_TO_VC':
+			props.uv_islands_to_vc_mode = prefs.default_uv_islands_to_vc_mode
+		if prefs.default_bake_vc_mode == 'UV_SPACE_TO_VC':
+			props.bake_vc_min_space = prefs.default_bake_vc_min_space
+			props.bake_vc_max_space = prefs.default_bake_vc_max_space
+		if prefs.default_bake_vc_mode == 'DISTORTION':
+			props.bake_vc_distortion_range = prefs.default_bake_vc_distortion_range
+		if prefs.default_bake_vc_mode in {'TD_FACES_TO_VC',
+										 'TD_ISLANDS_TO_VC',
+										 'UV_SPACE_TO_VC',
+										 'DISTORTION'}:
+			props.bake_vc_show_gradient = prefs.default_bake_vc_show_gradient
+
 		props.initialized = True
 
 

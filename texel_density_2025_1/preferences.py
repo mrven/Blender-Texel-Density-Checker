@@ -118,24 +118,22 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		default=True)
 
 	# Defaults
-	default_units: EnumProperty(name="", items=TD_UNITS_ITEMS)
+	default_units: EnumProperty(name="",
+								items=TD_UNITS_ITEMS)
 
 	default_texture_size: EnumProperty(name="",
 									   items=TD_TEXTURE_SIZE_ITEMS)
 
 	default_custom_width: StringProperty(
 		name="W",
-		description="Custom Width",
 		default="1024")
 
 	default_custom_height: StringProperty(
 		name="  H",
-		description="Custom Height",
 		default="1024")
 
 	default_selected_faces: BoolProperty(
 		name="",
-		description="Operate only on selected faces",
 		default=True)
 
 	default_checker_method: EnumProperty(name="",
@@ -147,12 +145,10 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 	default_checker_uv_scale: StringProperty(
 		name="",
-		description="UV Scale",
 		default="1")
 
 	default_density_set: StringProperty(
 		name="",
-		description="Texel Density",
 		default="1.28")
 
 	default_set_method: EnumProperty(name="", items=TD_SET_METHOD_ITEMS)
@@ -165,14 +161,44 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 	default_select_value: StringProperty(
 		name="",
-		description="Select Value",
 		default="1.0")
 
 	default_select_threshold: StringProperty(
 		name="",
-		description="Select Threshold",
 		default="0.1")
 
+	default_bake_vc_mode: EnumProperty(name="", items=TD_BAKE_VC_MODE_ITEMS)
+
+	default_bake_vc_auto_min_max: BoolProperty(
+		name="",
+		default=True)
+
+	default_bake_vc_min_td: StringProperty(
+		name="Min",
+		default="0.64")
+
+	default_bake_vc_max_td: StringProperty(
+		name="   Max",
+		default="10.24")
+
+	default_uv_islands_to_vc_mode: EnumProperty(name="",
+										items=TD_BAKE_UV_ISLANDS_MODE_ITEMS)
+
+	default_bake_vc_min_space: StringProperty(
+		name="Min",
+		default="0.1")
+
+	default_bake_vc_max_space: StringProperty(
+		name="   Max",
+		default="25.0")
+
+	default_bake_vc_distortion_range: StringProperty(
+		name="",
+		default="50")
+
+	default_bake_vc_show_gradient: BoolProperty(
+		name="",
+		default=False)
 
 
 	def draw(self, _):
@@ -230,10 +256,40 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		row = box.row(align=True)
 		row.label(text='Select Value:')
 		row.prop(self, 'default_select_value')
-		row = box.row(align=True)
-		row.label(text='Select Threshold:')
-		row.prop(self, 'default_select_threshold')
+		if self.default_select_type == 'EQUAL':
+			row = box.row(align=True)
+			row.label(text='Select Threshold:')
+			row.prop(self, 'default_select_threshold')
 		box.separator(factor=0.5)
+		row = box.row(align=True)
+		row.label(text='Bake VC Mode:')
+		row.prop(self, 'default_bake_vc_mode')
+		if self.default_bake_vc_mode in {'TD_FACES_TO_VC', 'TD_ISLANDS_TO_VC'}:
+			row = box.row(align=True)
+			row.label(text='Auto Min/Max Value:')
+			row.prop(self, 'default_bake_vc_auto_min_max')
+			row = box.row(align=True)
+			row.prop(self, 'default_bake_vc_min_td')
+			row.prop(self, 'default_bake_vc_max_td')
+		if self.default_bake_vc_mode == 'UV_ISLANDS_TO_VC':
+			row = box.row(align=True)
+			row.label(text='Island Detect Mode:')
+			row.prop(self, 'default_uv_islands_to_vc_mode')
+		if self.default_bake_vc_mode == 'UV_SPACE_TO_VC':
+			row = box.row(align=True)
+			row.prop(self, 'default_bake_vc_min_space')
+			row.prop(self, 'default_bake_vc_max_space')
+		if self.default_bake_vc_mode == 'DISTORTION':
+			row = box.row(align=True)
+			row.label(text='Distortion Range:')
+			row.prop(self, 'default_bake_vc_distortion_range')
+		if self.default_bake_vc_mode in {'TD_FACES_TO_VC',
+										 'TD_ISLANDS_TO_VC',
+										 'UV_SPACE_TO_VC',
+										 'DISTORTION'}:
+			row = box.row(align=True)
+			row.label(text='Show Gradient:')
+			row.prop(self, 'default_bake_vc_show_gradient')
 
 		box = layout.box()
 		row = box.row()
