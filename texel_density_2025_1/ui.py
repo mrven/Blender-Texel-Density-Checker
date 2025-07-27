@@ -55,8 +55,12 @@ def panel_draw(layout, context):
 				row.operator(viz_operators.ClearSavedMaterials.bl_idname)
 
 		if context.object.mode == 'EDIT':
-			row = layout.row()
-			row.prop(td, "selected_faces", text="Selected Faces")
+			box = layout.box()
+			row = box.row()
+			if td.selected_faces:
+				row.prop(td, "selected_faces", text="Selected Faces", icon="CHECKBOX_HLT")
+			else:
+				row.prop(td, "selected_faces", text="Selected Faces", icon="CHECKBOX_DEHLT")
 
 		box = layout.box()
 		row = box.row(align=True)
@@ -181,9 +185,12 @@ def panel_draw(layout, context):
 			row.label(text="Bake VC Mode:")
 			row.prop(td, "bake_vc_mode", expand=False)
 
-			if td.bake_vc_mode == "TD_FACES_TO_VC" or td.bake_vc_mode == "TD_ISLANDS_TO_VC":
+			if td.bake_vc_mode in {"TD_FACES_TO_VC", "TD_ISLANDS_TO_VC"}:
 				row = box.row()
-				row.prop(td, "bake_vc_auto_min_max", text="Auto Min/Max Value")
+				if td.bake_vc_auto_min_max:
+					row.prop(td, "bake_vc_auto_min_max", text="Auto Min/Max Value", icon="CHECKBOX_HLT")
+				else:
+					row.prop(td, "bake_vc_auto_min_max", text="Auto Min/Max Value", icon="CHECKBOX_DEHLT")
 
 				row = box.row(align=True)
 				row.label(text="Min TD Value:")
@@ -193,20 +200,7 @@ def panel_draw(layout, context):
 				row.prop(td, "bake_vc_min_td")
 				row.prop(td, "bake_vc_max_td")
 
-				row = box.row()
-				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
-				row = box.row()
-				row.operator(viz_operators.BakeTDToVC.bl_idname, text="Texel Density to VC")
-
-			elif td.bake_vc_mode == "UV_ISLANDS_TO_VC":
-				row = box.row(align=True)
-				row.label(text="Island Detect Mode:")
-				row.prop(td, "uv_islands_to_vc_mode", expand=False)
-
-				row = box.row()
-				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Islands to VC")
-
-			elif td.bake_vc_mode == "UV_SPACE_TO_VC":
+			if td.bake_vc_mode == "UV_SPACE_TO_VC":
 				row = box.row(align=True)
 				row.label(text="Min UV Space:")
 				row.label(text="Max UV Space:")
@@ -215,19 +209,37 @@ def panel_draw(layout, context):
 				row.prop(td, "bake_vc_min_space")
 				row.prop(td, "bake_vc_max_space")
 
-				row = box.row()
-				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
-				row = box.row()
-				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Space to VC")
+			if td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				row = box.row(align=True)
+				row.label(text="Island Detect Mode:")
+				row.prop(td, "uv_islands_to_vc_mode", expand=False)
 
-			elif td.bake_vc_mode == 'DISTORTION':
+			if td.bake_vc_mode == 'DISTORTION':
 				row = box.row(align=True)
 				row.label(text="Range:")
 				row.prop(td, "bake_vc_distortion_range")
 				row.label(text=" %")
 
+			if td.bake_vc_mode in {"TD_FACES_TO_VC", "TD_ISLANDS_TO_VC", "UV_SPACE_TO_VC", 'DISTORTION'}:
 				row = box.row()
-				row.prop(td, "bake_vc_show_gradient", text="Show Gradient")
+				if td.bake_vc_show_gradient:
+					row.prop(td, "bake_vc_show_gradient", text="Show Gradient", icon="CHECKBOX_HLT")
+				else:
+					row.prop(td, "bake_vc_show_gradient", text="Show Gradient", icon="CHECKBOX_DEHLT")
+
+			if td.bake_vc_mode in {"TD_FACES_TO_VC", "TD_ISLANDS_TO_VC"}:
+				row = box.row()
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="Texel Density to VC")
+
+			if td.bake_vc_mode == "UV_SPACE_TO_VC":
+				row = box.row()
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Space to VC")
+
+			if td.bake_vc_mode == "UV_ISLANDS_TO_VC":
+				row = box.row()
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Islands to VC")
+
+			if td.bake_vc_mode == 'DISTORTION':
 				row = box.row()
 				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Distortion to VC")
 
