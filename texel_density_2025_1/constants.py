@@ -1,9 +1,14 @@
+# Asset Names
 TD_VC_NAME = 'td_vis'
 TD_MATERIAL_NAME = 'TD_Checker'
 
+
+# URLs
 TD_DOC_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker#readme'
 TD_REPORT_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker/issues'
 
+
+# Enums/Dictionaries/Lists
 TD_PRESET_VALUES = {
     # px/cm
     '0': [
@@ -27,6 +32,53 @@ TD_PRESET_VALUES = {
     ]
 }
 
+TD_ANCHOR_ORIGIN_ITEMS = (('SELECTION', 'Selection', ''),
+                          ('UV_CENTER', 'UV Center', ''),
+                          ('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
+                          ('UV_LEFT_TOP', 'UV Left Top', ''),
+                          ('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
+                          ('UV_RIGHT_TOP', 'UV Right Top', ''),
+                          ('2D_CURSOR', '2D Cursor', ''))
+
+TD_TEXTURE_SIZE_ITEMS = (('512', '512px', ''),
+                        ('1024', '1024px', ''),
+                        ('2048', '2048px', ''),
+                        ('4096', '4096px', ''),
+                        ('CUSTOM', 'Custom', ''))
+
+TD_UNITS_ITEMS = (('0', 'px/cm', ''),
+				  ('1', 'px/m', ''),
+				  ('2', 'px/in', ''),
+				  ('3', 'px/ft', ''))
+
+TD_SET_METHOD_ITEMS = (('EACH', 'Each', ''),
+                       ('AVERAGE', 'Average', ''))
+
+TD_CHECKER_METHOD_ITEMS = (('REPLACE', 'Replace', ''),
+                           ('STORE', 'Store and Replace', ''))
+
+TD_CHECKER_TYPE_ITEMS = (('COLOR_GRID', 'Color Grid', ''),
+                         ('UV_GRID', 'UV Grid', ''))
+
+TD_BAKE_VC_MODE_ITEMS = (('TD_FACES_TO_VC', 'Texel (by Face)', ''),
+						 ('TD_ISLANDS_TO_VC', 'Texel (by Island)', ''),
+						 ('UV_ISLANDS_TO_VC', 'UV Islands', ''),
+						 ('UV_SPACE_TO_VC', 'UV Space (%)', ''),
+						 ('DISTORTION', 'UV Distortion', ''))
+
+TD_BAKE_UV_ISLANDS_MODE_ITEMS = (('ISLAND', 'By Island', ''),
+                                 ('OVERLAP', 'By Overlap', ''))
+
+TD_SELECT_MODE_ITEMS = (('FACES_BY_TD', 'Faces (by Texel)', ''),
+                        ('ISLANDS_BY_TD', 'Islands (by Texel)', ''),
+						('ISLANDS_BY_SPACE', 'Islands (by UV Space)', ''))
+
+TD_SELECT_TYPE_ITEMS = (('EQUAL', 'Equal To', ''),
+                        ('LESS', 'Less Than', ''),
+                        ('GREATER', 'Greater Than', ''))
+
+
+# Shaders
 VERTEX_SHADER_TEXT_3_0 = '''
 	in vec2 position;
 	out vec3 pos;

@@ -47,7 +47,11 @@ def on_load_post(_):
 		props.density_set = prefs.default_density_set
 		props.set_method_list = prefs.default_set_method_list
 		props.rescale_anchor = prefs.default_rescale_anchor
-
+		props.select_mode = prefs.default_select_mode
+		props.select_type = prefs.default_select_type
+		props.select_value = prefs.default_select_value
+		props.select_threshold = prefs.default_select_threshold
+		# props. = prefs.default_
 		props.initialized = True
 
 

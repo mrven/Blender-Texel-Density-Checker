@@ -7,6 +7,7 @@ from bpy.props import (
 
 from . import ui
 from .ui import TDAddonView3DPanel, TDAddonUVPanel
+from.constants import *
 
 def update_view3d_panel_category(_, __):
 	is_panel = hasattr(bpy.types, 'VIEW3D_PT_texel_density_checker')
@@ -117,19 +118,10 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		default=True)
 
 	# Defaults
-	default_units_list = (('0', 'px/cm', ''),
-						  ('1', 'px/m', ''),
-						  ('2', 'px/in', ''),
-						  ('3', 'px/ft', ''))
-	default_units: EnumProperty(name="", items=default_units_list)
+	default_units: EnumProperty(name="", items=TD_UNITS_ITEMS)
 
-	default_tex_size_list = (('512', '512px', ''),
-						('1024', '1024px', ''),
-						('2048', '2048px', ''),
-						('4096', '4096px', ''),
-						('CUSTOM', 'Custom', ''))
 	default_texture_size: EnumProperty(name="",
-									   items=default_tex_size_list)
+									   items=TD_TEXTURE_SIZE_ITEMS)
 
 	default_custom_width: StringProperty(
 		name="W",
@@ -146,14 +138,12 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		description="Operate only on selected faces",
 		default=True)
 
-	default_checker_method_list = (('REPLACE', 'Replace', ''), ('STORE', 'Store and Replace', ''))
 	default_checker_method: EnumProperty(name="",
-										 items=default_checker_method_list,
+										 items=TD_CHECKER_METHOD_ITEMS,
 										 default='STORE')
 
-	default_checker_type_list = (('COLOR_GRID', 'Color Grid', ''), ('UV_GRID', 'UV Grid', ''))
 	default_checker_type: EnumProperty(name="",
-									   items=default_checker_type_list)
+									   items=TD_CHECKER_TYPE_ITEMS)
 
 	default_checker_uv_scale: StringProperty(
 		name="",
@@ -165,18 +155,23 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		description="Texel Density",
 		default="1.28")
 
-	default_set_method_list = (('EACH', 'Each', ''), ('AVERAGE', 'Average', ''))
-	default_set_method: EnumProperty(name="", items=default_set_method_list)
+	default_set_method: EnumProperty(name="", items=TD_SET_METHOD_ITEMS)
 
-	default_rescale_anchor_list = (('SELECTION', 'Selection', ''),
-								   ('UV_CENTER', 'UV Center', ''),
-								   ('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
-								   ('UV_LEFT_TOP', 'UV Left Top', ''),
-								   ('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
-								   ('UV_RIGHT_TOP', 'UV Right Top', ''),
-								   ('2D_CURSOR', '2D Cursor', ''))
-	default_rescale_anchor: EnumProperty(name="", items=default_rescale_anchor_list)
+	default_rescale_anchor: EnumProperty(name="", items=TD_ANCHOR_ORIGIN_ITEMS)
 
+	default_select_mode: EnumProperty(name="", items=TD_SELECT_MODE_ITEMS)
+
+	default_select_type: EnumProperty(name="", items=TD_SELECT_TYPE_ITEMS)
+
+	default_select_value: StringProperty(
+		name="",
+		description="Select Value",
+		default="1.0")
+
+	default_select_threshold: StringProperty(
+		name="",
+		description="Select Threshold",
+		default="0.1")
 
 
 
@@ -189,7 +184,7 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 		box = layout.box()
 		row = box.row()
-		row.label(text='Default Preferences:')
+		row.label(text='Default Settings:')
 		row = box.row(align=True)
 		row.label(text='Units:')
 		row.prop(self, 'default_units')
@@ -226,7 +221,19 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		row.label(text='Scale Anchor Origin:')
 		row.prop(self, 'default_rescale_anchor')
 		box.separator(factor=0.5)
-
+		row = box.row(align=True)
+		row.label(text='Select Mode:')
+		row.prop(self, 'default_select_mode')
+		row = box.row(align=True)
+		row.label(text='Select Type:')
+		row.prop(self, 'default_select_type')
+		row = box.row(align=True)
+		row.label(text='Select Value:')
+		row.prop(self, 'default_select_value')
+		row = box.row(align=True)
+		row.label(text='Select Threshold:')
+		row.prop(self, 'default_select_threshold')
+		box.separator(factor=0.5)
 
 		box = layout.box()
 		row = box.row()

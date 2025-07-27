@@ -10,7 +10,7 @@ from bpy.props import (
 
 from . import viz_operators
 from . import utils
-
+from .constants import *
 
 # Update Event Function for Changing Size of Texture
 def change_texture_size(_, context):
@@ -278,12 +278,7 @@ class TDAddonProps(bpy.types.PropertyGroup):
 		default="1.28",
 		update=filter_density_set)
 
-	tex_size = (('512', '512px', ''),
-				('1024', '1024px', ''),
-				('2048', '2048px', ''),
-				('4096', '4096px', ''),
-				('CUSTOM', 'Custom', ''))
-	texture_size: EnumProperty(name="", items=tex_size, update=change_texture_size)
+	texture_size: EnumProperty(name="", items=TD_TEXTURE_SIZE_ITEMS, update=change_texture_size)
 
 	selected_faces: BoolProperty(
 		name="Selected Faces",
@@ -302,11 +297,7 @@ class TDAddonProps(bpy.types.PropertyGroup):
 		default="1024",
 		update=change_texture_size)
 
-	units_list = (('0', 'px/cm', ''),
-				  ('1', 'px/m', ''),
-				  ('2', 'px/in', ''),
-				  ('3', 'px/ft', ''))
-	units: EnumProperty(name="", items=units_list, update=change_units)
+	units: EnumProperty(name="", items=TD_UNITS_ITEMS, update=change_units)
 
 	select_value: StringProperty(
 		name="",
@@ -320,14 +311,11 @@ class TDAddonProps(bpy.types.PropertyGroup):
 		default="0.1",
 		update=filter_select_threshold)
 
-	set_method_list = (('EACH', 'Each', ''), ('AVERAGE', 'Average', ''))
-	set_method: EnumProperty(name="", items=set_method_list)
+	set_method: EnumProperty(name="", items=TD_SET_METHOD_ITEMS)
 
-	checker_method_list = (('REPLACE', 'Replace', ''), ('STORE', 'Store and Replace', ''))
-	checker_method: EnumProperty(name="", items=checker_method_list, default='STORE')
+	checker_method: EnumProperty(name="", items=TD_CHECKER_METHOD_ITEMS, default='STORE')
 
-	checker_type_list = (('COLOR_GRID', 'Color Grid', ''), ('UV_GRID', 'UV Grid', ''))
-	checker_type: EnumProperty(name="", items=checker_type_list, update=change_texture_type)
+	checker_type: EnumProperty(name="", items=TD_CHECKER_TYPE_ITEMS, update=change_texture_type)
 
 	checker_uv_scale: StringProperty(
 		name="",
@@ -358,12 +346,7 @@ class TDAddonProps(bpy.types.PropertyGroup):
 		description="Auto Min/Max Value",
 		default=True)
 
-	bake_vc_mode_list = (('TD_FACES_TO_VC', 'Texel (by Face)', ''),
-						 ('TD_ISLANDS_TO_VC', 'Texel (by Island)', ''),
-						 ('UV_ISLANDS_TO_VC', 'UV Islands', ''),
-						 ('UV_SPACE_TO_VC', 'UV Space (%)', ''),
-						 ('DISTORTION', 'UV Distortion', ''))
-	bake_vc_mode: EnumProperty(name="", items=bake_vc_mode_list, update=change_bake_vc_mode)
+	bake_vc_mode: EnumProperty(name="", items=TD_BAKE_VC_MODE_ITEMS, update=change_bake_vc_mode)
 
 	bake_vc_min_space: StringProperty(
 		name="",
@@ -383,24 +366,13 @@ class TDAddonProps(bpy.types.PropertyGroup):
 		default="50",
 		update=filter_bake_vc_distortion_range)
 
-	uv_islands_to_vc_mode_list = (('ISLAND', 'By Island', ''), ('OVERLAP', 'By Overlap', ''))
-	uv_islands_to_vc_mode: EnumProperty(name="", items=uv_islands_to_vc_mode_list, update=change_uv_islands_mode)
+	uv_islands_to_vc_mode: EnumProperty(name="", items=TD_BAKE_UV_ISLANDS_MODE_ITEMS, update=change_uv_islands_mode)
 
-	select_mode_list = (('FACES_BY_TD', 'Faces (by Texel)', ''), ('ISLANDS_BY_TD', 'Islands (by Texel)', ''),
-						('ISLANDS_BY_SPACE', 'Islands (by UV Space)', ''))
-	select_mode: EnumProperty(name="", items=select_mode_list, update=change_select_mode)
+	select_mode: EnumProperty(name="", items=TD_SELECT_MODE_ITEMS, update=change_select_mode)
 
-	select_type_list = (('EQUAL', 'Equal To', ''), ('LESS', 'Less Than', ''), ('GREATER', 'Greater Than', ''))
-	select_type: EnumProperty(name="", items=select_type_list, update=change_select_mode)
+	select_type: EnumProperty(name="", items=TD_SELECT_TYPE_ITEMS, update=change_select_mode)
 
-	rescale_anchor_list = (('SELECTION', 'Selection', ''),
-						   ('UV_CENTER', 'UV Center', ''),
-						   ('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
-						   ('UV_LEFT_TOP', 'UV Left Top', ''),
-						   ('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
-						   ('UV_RIGHT_TOP', 'UV Right Top', ''),
-						   ('2D_CURSOR', '2D Cursor', ''))
-	rescale_anchor: EnumProperty(name="", items=rescale_anchor_list)
+	rescale_anchor: EnumProperty(name="", items=TD_ANCHOR_ORIGIN_ITEMS)
 
 	# Debug Property
 	debug: BoolProperty(

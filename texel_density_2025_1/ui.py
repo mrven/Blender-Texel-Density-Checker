@@ -72,7 +72,7 @@ def panel_draw(layout, context):
 		row.label(text="UV Space:")
 		row.label(text=f"{td.uv_space} %")
 
-		cur_units = td.units_list[int(td.units)][1]
+		cur_units = TD_UNITS_ITEMS[int(td.units)][1]
 
 		row = box.row(align=True)
 		row.label(text="Density:")
@@ -173,9 +173,14 @@ def panel_draw(layout, context):
 				row.label(text="Min TD Value:")
 				row.label(text="Max TD Value:")
 
-				row = box.row(align=True)
-				row.prop(td, "bake_vc_min_td")
-				row.prop(td, "bake_vc_max_td")
+				if td.bake_vc_auto_min_max:
+					row = box.row(align=True)
+					row.label(text=f"  {td.bake_vc_min_td}")
+					row.label(text=f"  {td.bake_vc_max_td}")
+				else:
+					row = box.row(align=True)
+					row.prop(td, "bake_vc_min_td")
+					row.prop(td, "bake_vc_max_td")
 
 			if td.bake_vc_mode == "UV_SPACE_TO_VC":
 				row = box.row(align=True)
