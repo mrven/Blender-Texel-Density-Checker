@@ -99,7 +99,7 @@ def panel_draw(layout, context):
 		row.operator(core_td_operators.TexelDensitySet.bl_idname)
 
 		# Preset Buttons
-		preset_rows = PRESET_VALUES.get(td.units)
+		preset_rows = TD_PRESET_VALUES.get(td.units)
 		if preset_rows:
 			for preset_row in preset_rows:
 				row = box.row(align=True)
@@ -227,6 +227,14 @@ def panel_draw(layout, context):
 			box = layout.box()
 			row = box.row(align=True)
 			row.label(text="Mesh doesn't have any UV", icon='ERROR')
+
+	box = layout.box()
+	row = box.row()
+	row.label(text="Support:")
+	row = box.row()
+	row.operator(add_td_operators.OpenURL.bl_idname, text="Documentation", icon='HELP').url=TD_DOC_URL
+	row = box.row()
+	row.operator(add_td_operators.OpenURL.bl_idname, text="Report Issue", icon='URL').url = TD_REPORT_URL
 
 
 # Panel in 3D View

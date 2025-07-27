@@ -2,6 +2,7 @@ import bpy
 import bmesh
 from bpy.props import StringProperty
 from datetime import datetime
+import webbrowser
 
 from . import utils
 
@@ -214,12 +215,32 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 		return {'FINISHED'}
 
 
+class OpenURL(bpy.types.Operator):
+	bl_idname = "texel_density.open_url"
+	bl_label = "Open URL"
+
+	url: bpy.props.StringProperty(
+		name="URL",
+		description="Destination URL",
+		default="https://blender.org"
+	)
+
+	def execute(self, _):
+		try:
+			webbrowser.open(self.url)
+			return {'FINISHED'}
+		except Exception as e:
+			print(f"[ERROR] Failed to Open URL {self.url}: {e}")
+			return {'CANCELLED'}
+
+
 classes = (
 	TexelDensityCopy,
 	CalculatedToSet,
 	CalculatedToSelect,
 	PresetSet,
 	SelectByTDOrUVSpace,
+	OpenURL,
 )
 
 

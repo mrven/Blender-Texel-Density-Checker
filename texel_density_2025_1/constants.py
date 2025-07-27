@@ -1,7 +1,10 @@
 TD_VC_NAME = 'td_vis'
 TD_MATERIAL_NAME = 'TD_Checker'
 
-PRESET_VALUES = {
+TD_DOC_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker#readme'
+TD_REPORT_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker/issues'
+
+TD_PRESET_VALUES = {
     # px/cm
     '0': [
         ["20.48", "10.24", "5.12"],
