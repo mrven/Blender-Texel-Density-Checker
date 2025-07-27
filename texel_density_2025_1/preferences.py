@@ -1,15 +1,12 @@
 import bpy
-
-from . import ui
-
-from .ui import TDAddonView3DPanel, TDAddonUVPanel
-
 from bpy.props import (
 	StringProperty,
 	EnumProperty,
 	BoolProperty
 )
 
+from . import ui
+from .ui import TDAddonView3DPanel, TDAddonUVPanel
 
 def update_view3d_panel_category(_, __):
 	is_panel = hasattr(bpy.types, 'VIEW3D_PT_texel_density_checker')
@@ -121,10 +118,67 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 	# Defaults
 	default_units_list = (('0', 'px/cm', ''),
-				  ('1', 'px/m', ''),
-				  ('2', 'px/in', ''),
-				  ('3', 'px/ft', ''))
-	default_units: EnumProperty(name="Units", items=default_units_list)
+						  ('1', 'px/m', ''),
+						  ('2', 'px/in', ''),
+						  ('3', 'px/ft', ''))
+	default_units: EnumProperty(name="", items=default_units_list)
+
+	default_tex_size_list = (('512', '512px', ''),
+						('1024', '1024px', ''),
+						('2048', '2048px', ''),
+						('4096', '4096px', ''),
+						('CUSTOM', 'Custom', ''))
+	default_texture_size: EnumProperty(name="",
+									   items=default_tex_size_list)
+
+	default_custom_width: StringProperty(
+		name="W",
+		description="Custom Width",
+		default="1024")
+
+	default_custom_height: StringProperty(
+		name="  H",
+		description="Custom Height",
+		default="1024")
+
+	default_selected_faces: BoolProperty(
+		name="",
+		description="Operate only on selected faces",
+		default=True)
+
+	default_checker_method_list = (('REPLACE', 'Replace', ''), ('STORE', 'Store and Replace', ''))
+	default_checker_method: EnumProperty(name="",
+										 items=default_checker_method_list,
+										 default='STORE')
+
+	default_checker_type_list = (('COLOR_GRID', 'Color Grid', ''), ('UV_GRID', 'UV Grid', ''))
+	default_checker_type: EnumProperty(name="",
+									   items=default_checker_type_list)
+
+	default_checker_uv_scale: StringProperty(
+		name="",
+		description="UV Scale",
+		default="1")
+
+	default_density_set: StringProperty(
+		name="",
+		description="Texel Density",
+		default="1.28")
+
+	default_set_method_list = (('EACH', 'Each', ''), ('AVERAGE', 'Average', ''))
+	default_set_method: EnumProperty(name="", items=default_set_method_list)
+
+	default_rescale_anchor_list = (('SELECTION', 'Selection', ''),
+								   ('UV_CENTER', 'UV Center', ''),
+								   ('UV_LEFT_BOTTOM', 'UV Left Bottom', ''),
+								   ('UV_LEFT_TOP', 'UV Left Top', ''),
+								   ('UV_RIGHT_BOTTOM', 'UV Right Bottom', ''),
+								   ('UV_RIGHT_TOP', 'UV Right Top', ''),
+								   ('2D_CURSOR', '2D Cursor', ''))
+	default_rescale_anchor: EnumProperty(name="", items=default_rescale_anchor_list)
+
+
+
 
 	def draw(self, _):
 		layout = self.layout
@@ -136,8 +190,43 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		box = layout.box()
 		row = box.row()
 		row.label(text='Default Preferences:')
-		row = box.row()
+		row = box.row(align=True)
+		row.label(text='Units:')
 		row.prop(self, 'default_units')
+		row = box.row(align=True)
+		row.label(text='Texture Size:')
+		row.prop(self, 'default_texture_size')
+		if self.default_texture_size == 'CUSTOM':
+			row = box.row(align=True)
+			row.label(text='   Custom Size:')
+			row.prop(self, 'default_custom_width')
+			row.prop(self, 'default_custom_height')
+		box.separator(factor=0.5)
+		row = box.row(align=True)
+		row.label(text='Selected Faces:')
+		row.prop(self, 'default_selected_faces')
+		box.separator(factor=0.5)
+		row = box.row(align=True)
+		row.label(text='Checker Method:')
+		row.prop(self, 'default_checker_method')
+		row = box.row(align=True)
+		row.label(text='Checker Type:')
+		row.prop(self, 'default_checker_type')
+		row = box.row(align=True)
+		row.label(text='Checker UV Scale:')
+		row.prop(self, 'default_checker_uv_scale')
+		box.separator(factor=0.5)
+		row = box.row(align=True)
+		row.label(text='Set TD Value:')
+		row.prop(self, 'default_density_set')
+		row = box.row(align=True)
+		row.label(text='Set Method:')
+		row.prop(self, 'default_set_method')
+		row = box.row(align=True)
+		row.label(text='Scale Anchor Origin:')
+		row.prop(self, 'default_rescale_anchor')
+		box.separator(factor=0.5)
+
 
 		box = layout.box()
 		row = box.row()

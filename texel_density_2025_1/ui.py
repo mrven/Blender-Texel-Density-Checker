@@ -15,11 +15,10 @@ def panel_draw(layout, context):
 	row.operator(add_td_operators.OpenURL.bl_idname, text="Report", icon='URL').url = TD_REPORT_URL
 
 	if context.active_object.type == 'MESH' and len(context.active_object.data.uv_layers) > 0:
-		row = layout.row(align=True)
+		box = layout.box()
+		row = box.row(align=True)
 		row.label(text="Units:")
 		row.prop(td, 'units', expand=False)
-
-		box = layout.box()
 		row = box.row(align=True)
 		row.label(text="Texture Size:")
 		row.prop(td, 'texture_size', expand=False)

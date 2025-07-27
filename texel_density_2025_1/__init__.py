@@ -35,9 +35,19 @@ def on_load_post(_):
 	prefs = bpy.context.preferences.addons[__package__].preferences
 
 	if not getattr(props, "initialized", False):
-		# props.td_value = prefs.default_td_value
-		# props.texture_size = prefs.default_texture_size
 		props.units = prefs.default_units
+		props.texture_size = prefs.default_texture_size
+		if prefs.default_texture_size == 'CUSTOM':
+			props.custom_width = prefs.default_custom_width
+			props.custom_height = prefs.default_custom_height
+		props.selected_faces = prefs.default_selected_faces
+		props.checker_method = prefs.default_checker_method
+		props.checker_type = prefs.default_checker_type
+		props.checker_uv_scale = prefs.default_checker_uv_scale
+		props.density_set = prefs.default_density_set
+		props.set_method_list = prefs.default_set_method_list
+		props.rescale_anchor = prefs.default_rescale_anchor
+
 		props.initialized = True
 
 
