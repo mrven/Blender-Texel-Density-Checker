@@ -9,6 +9,7 @@ import ctypes
 
 # Calculate TD for selected polygons
 class TexelDensityCheck(bpy.types.Operator):
+	"""Calculate TD for selected objects/faces"""
 	bl_idname = "texel_density.check"
 	bl_label = "Calculate TD"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -115,6 +116,7 @@ class TexelDensityCheck(bpy.types.Operator):
 
 # Set TD
 class TexelDensitySet(bpy.types.Operator):
+	"""Sets texel density for selected UV islands based on target value"""
 	bl_idname = "texel_density.set"
 	bl_label = "Set TD"
 	bl_options = {'REGISTER', 'UNDO'}

@@ -50,7 +50,7 @@ def panel_draw(layout, context):
 			row.prop(td, 'checker_uv_scale')
 
 			row = box.row()
-			row.operator(viz_operators.CheckerAssign.bl_idname)
+			row.operator(viz_operators.CheckerAssign.bl_idname, icon='MATSPHERE')
 
 			# If Checker Method "Store and Replace"
 			if td.checker_method == 'STORE':
@@ -79,12 +79,12 @@ def panel_draw(layout, context):
 		row.label(text=f"{td.density} {cur_units}")
 
 		row = box.row()
-		row.operator(core_td_operators.TexelDensityCheck.bl_idname)
+		row.operator(core_td_operators.TexelDensityCheck.bl_idname, icon='EXPORT')
 		row = box.row()
-		row.operator(add_td_operators.CalculatedToSet.bl_idname)
+		row.operator(add_td_operators.CalculatedToSet.bl_idname, icon='COPYDOWN')
 		if context.object.mode == 'EDIT':
 			row = box.row()
-			row.operator(add_td_operators.CalculatedToSelect.bl_idname)
+			row.operator(add_td_operators.CalculatedToSelect.bl_idname, icon='COPYDOWN')
 
 		box = layout.box()
 		row = box.row(align=True)
@@ -101,7 +101,7 @@ def panel_draw(layout, context):
 		row.prop(td, 'rescale_anchor', expand=False)
 
 		row = box.row()
-		row.operator(core_td_operators.TexelDensitySet.bl_idname)
+		row.operator(core_td_operators.TexelDensitySet.bl_idname, icon='IMPORT')
 
 		# Preset Buttons
 		preset_rows = TD_PRESET_VALUES.get(td.units)
@@ -113,12 +113,12 @@ def panel_draw(layout, context):
 					op.td_value = val
 
 		row = box.row(align=True)
-		row.operator(add_td_operators.PresetSet.bl_idname, text="Half TD").td_value = "Half"
-		row.operator(add_td_operators.PresetSet.bl_idname, text="Double TD").td_value = "Double"
+		row.operator(add_td_operators.PresetSet.bl_idname, text="Half TD", icon='FULLSCREEN_EXIT').td_value = "Half"
+		row.operator(add_td_operators.PresetSet.bl_idname, text="Double TD", icon='FULLSCREEN_ENTER').td_value = "Double"
 
 		if context.object.mode == 'OBJECT':
 			row = layout.row()
-			row.operator(add_td_operators.TexelDensityCopy.bl_idname)
+			row.operator(add_td_operators.TexelDensityCopy.bl_idname, icon='UV_SYNC_SELECT')
 
 		if context.object.mode == 'EDIT':
 			box = layout.box()
@@ -150,11 +150,11 @@ def panel_draw(layout, context):
 
 			row = box.row()
 			if td.select_mode == "FACES_BY_TD":
-				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Faces By TD")
+				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Faces By TD", icon='ZOOM_SELECTED')
 			elif td.select_mode == "ISLANDS_BY_TD":
-				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By TD")
+				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By TD", icon='ZOOM_SELECTED')
 			elif td.select_mode == "ISLANDS_BY_SPACE":
-				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By UV Space")
+				row.operator(add_td_operators.SelectByTDOrUVSpace.bl_idname, text="Select Islands By UV Space", icon='ZOOM_SELECTED')
 
 		if is_view_3d_panel:
 			box = layout.box()
@@ -211,19 +211,19 @@ def panel_draw(layout, context):
 
 			if td.bake_vc_mode in {"TD_FACES_TO_VC", "TD_ISLANDS_TO_VC"}:
 				row = box.row()
-				row.operator(viz_operators.BakeTDToVC.bl_idname, text="Texel Density to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="Texel Density to VC", icon='RESTRICT_RENDER_OFF')
 
 			if td.bake_vc_mode == "UV_SPACE_TO_VC":
 				row = box.row()
-				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Space to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Space to VC", icon='RESTRICT_RENDER_OFF')
 
 			if td.bake_vc_mode == "UV_ISLANDS_TO_VC":
 				row = box.row()
-				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Islands to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Islands to VC", icon='RESTRICT_RENDER_OFF')
 
 			if td.bake_vc_mode == 'DISTORTION':
 				row = box.row()
-				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Distortion to VC")
+				row.operator(viz_operators.BakeTDToVC.bl_idname, text="UV Distortion to VC", icon='RESTRICT_RENDER_OFF')
 
 			row = box.row()
 			row.operator(viz_operators.ClearTDFromVC.bl_idname)

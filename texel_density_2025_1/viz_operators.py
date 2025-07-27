@@ -172,6 +172,7 @@ def draw_callback_px(_, __):
 
 # Assign of Checker Material
 class CheckerAssign(bpy.types.Operator):
+	"""Assign of checker material"""
 	bl_idname = "texel_density.material_assign"
 	bl_label = "Assign Checker Material"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -302,6 +303,7 @@ class CheckerAssign(bpy.types.Operator):
 
 # Restore Real Materials
 class CheckerRestore(bpy.types.Operator):
+	"""Restores original materials saved before applying the checker material"""
 	bl_idname = "texel_density.material_restore"
 	bl_label = "Restore Materials"
 	bl_options = {'REGISTER'}
@@ -370,6 +372,7 @@ class CheckerRestore(bpy.types.Operator):
 
 # Clear Saved Real Materials assignment from Objects
 class ClearSavedMaterials(bpy.types.Operator):
+	"""Clear original materials assignment saved before applying the checker material"""
 	bl_idname = "texel_density.material_clear"
 	bl_label = "Clear Stored Materials"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -407,6 +410,7 @@ class ClearSavedMaterials(bpy.types.Operator):
 
 # Bake TD to VC
 class BakeTDToVC(bpy.types.Operator):
+	"""Visualize TD/Islands/UV with vertex color"""
 	bl_idname = "texel_density.vc_bake"
 	bl_label = "Bake TD to Vertex Color"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -632,6 +636,7 @@ class BakeTDToVC(bpy.types.Operator):
 
 # Clear Baked TD or UV area form VC
 class ClearTDFromVC(bpy.types.Operator):
+	"""Clear baked values from vertex colors"""
 	bl_idname = "texel_density.vc_clear"
 	bl_label = "Clear TD Vertex Colors"
 	bl_options = {'REGISTER', 'UNDO'}

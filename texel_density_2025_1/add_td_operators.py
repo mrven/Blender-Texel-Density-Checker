@@ -9,6 +9,7 @@ from . import utils
 
 # Copy average TD from object to object
 class TexelDensityCopy(bpy.types.Operator):
+	"""Copies texel density from the active to selected objects"""
 	bl_idname = "texel_density.copy"
 	bl_label = "TD from Active to Others"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -48,6 +49,7 @@ class TexelDensityCopy(bpy.types.Operator):
 
 # Copy last calculated value of TD to "Set TD Value" field
 class CalculatedToSet(bpy.types.Operator):
+	"""Copy calculated value of TD to "Set TD Value" field"""
 	bl_idname = "texel_density.calculated_to_set"
 	bl_label = "Calc -> Set Value"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -63,6 +65,7 @@ class CalculatedToSet(bpy.types.Operator):
 
 # Copy last calculated value to "Select Value" field
 class CalculatedToSelect(bpy.types.Operator):
+	"""Copy calculated value of TD/UV to "Select Value" field"""
 	bl_idname = "texel_density.calculated_to_select"
 	bl_label = "Calc -> Select Value"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -80,6 +83,7 @@ class CalculatedToSelect(bpy.types.Operator):
 
 # Buttons "Half/Double TD" and presets with values (0.64 - 20.48 px/cm)
 class PresetSet(bpy.types.Operator):
+	"""Sets texel density for selected UV islands based on predefined value"""
 	bl_idname = "texel_density.preset_set"
 	bl_label = "Set Texel Density"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -109,6 +113,7 @@ class PresetSet(bpy.types.Operator):
 
 # Select polygons or islands with same TD or UV space
 class SelectByTDOrUVSpace(bpy.types.Operator):
+	"""Select polygons or islands based on TD or UV space value"""
 	bl_idname = "texel_density.select_by_td_uv"
 	bl_label = "Select Faces with same TD"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -216,6 +221,7 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 
 
 class OpenURL(bpy.types.Operator):
+	"""Open URL in web-browser"""
 	bl_idname = "texel_density.open_url"
 	bl_label = "Open URL"
 
@@ -235,6 +241,7 @@ class OpenURL(bpy.types.Operator):
 
 
 class ShowAddonPrefs(bpy.types.Operator):
+	"""Open addon preferences"""
 	bl_idname = "texel_density.show_addon_prefs"
 	bl_label = "Open Addon Preferences"
 
