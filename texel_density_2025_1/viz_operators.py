@@ -180,9 +180,9 @@ class CheckerAssign(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-
 		start_mode = context.object.mode
 		start_active_obj = context.active_object
+		need_select_again_obj = context.selected_objects
 		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		# Get texture size from panel
@@ -292,7 +292,7 @@ class CheckerAssign(bpy.types.Operator):
 
 		# Restore original selection and mode
 		bpy.ops.object.select_all(action='DESELECT')
-		for obj in start_selected_obj:
+		for obj in need_select_again_obj:
 			obj.select_set(True)
 
 		context.view_layer.objects.active = start_active_obj
@@ -312,11 +312,14 @@ class CheckerRestore(bpy.types.Operator):
 
 	def execute(self, context):
 		start_time = datetime.now()
-
 		start_mode = context.object.mode
 		start_active_obj = context.active_object
 		need_select_again_obj = context.selected_objects
 		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
+
+		bpy.ops.object.mode_set(mode='OBJECT')
+
+		bm = bmesh.new()
 
 		for obj in start_selected_obj:
 			if obj.type != 'MESH':
@@ -329,25 +332,18 @@ class CheckerRestore(bpy.types.Operator):
 				# Get material indices
 				mat_indices = np.fromiter((s.mat_index for s in obj.td_settings), dtype=np.int32)
 
-				# Switch to OBJECT and then EDIT mode safely
-				bpy.ops.object.mode_set(mode='OBJECT')
-				bpy.ops.object.mode_set(mode='EDIT')
-
 				# Restore material indices
-				bm = bmesh.from_edit_mesh(obj.data)
+				bm.clear()
+				bm.from_mesh(obj.data)
 				bm.faces.ensure_lookup_table()
 
 				for face, mat_index in zip(bm.faces, mat_indices):
 					face.material_index = int(mat_index)
 
-				bmesh.update_edit_mesh(obj.data)
-				bpy.ops.object.mode_set(mode='OBJECT')
+				bm.to_mesh(obj.data)
 
 				# Clear stored settings
 				obj.td_settings.clear()
-			else:
-				if context.object.mode == 'EDIT':
-					bpy.ops.object.mode_set(mode='OBJECT')
 
 			# Remove TD material(s)
 			mats = obj.data.materials
@@ -356,17 +352,16 @@ class CheckerRestore(bpy.types.Operator):
 			for i in reversed(remove_indices):
 				mats.pop(index=i)
 
-		# Restore selection and modes
+		bm.free()
+
+		# Restore original selection and mode
 		bpy.ops.object.select_all(action='DESELECT')
+		for obj in need_select_again_obj:
+			obj.select_set(True)
 
-		for o in need_select_again_obj:
-			o.select_set(True)
 		context.view_layer.objects.active = start_active_obj
-
 		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode='EDIT')
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		utils.print_execution_time("Restore Materials", start_time)
 		return {'FINISHED'}
@@ -382,29 +377,16 @@ class ClearSavedMaterials(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		start_mode = context.object.mode
-		start_active_obj = context.active_object
-		need_select_again_obj = context.selected_objects
 		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
 		bpy.ops.object.mode_set(mode='OBJECT')
-		bpy.ops.object.select_all(action='DESELECT')
 
 		for obj in start_selected_obj:
 			if obj.type == 'MESH':
-				context.view_layer.objects.active = obj
-				obj.select_set(True)
 				obj.td_settings.clear()
 
-		bpy.ops.object.select_all(action='DESELECT')
-
 		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode='EDIT')
-
-		context.view_layer.objects.active = start_active_obj
-		for j in need_select_again_obj:
-			j.select_set(True)
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		utils.print_execution_time("Clear Saved Materials", start_time)
 		return {'FINISHED'}
