@@ -10,8 +10,7 @@ import sys
 import math
 from collections import defaultdict
 
-
-from . import cpp_interface
+from .cpp_interface import TDCoreWrapper
 
 def sync_uv_selection():
 	mesh = bpy.context.active_object.data
@@ -44,7 +43,7 @@ def sync_uv_selection():
 	bmesh.update_edit_mesh(mesh)
 
 
-def calculate_td_area_to_list():
+def calculate_td_area_to_list(tdcore):
 	backend = get_preferences().calculation_backend
 	td = bpy.context.scene.td
 
@@ -74,7 +73,7 @@ def calculate_td_area_to_list():
 
 	result = []
 
-	if backend == 'CPP' and cpp_interface.tdcore:
+	if backend == 'CPP' and tdcore:
 		# Get UV-coordinates
 		uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
 		uv_layer.foreach_get("uv", uvs)
@@ -90,7 +89,7 @@ def calculate_td_area_to_list():
 		result_cpp = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
 
 		# Call function from Library
-		cpp_interface.tdcore.CalculateTDAreaArray(
+		tdcore.lib.CalculateTDAreaArray(
 			uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
 			uvs.size,
 			areas.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
@@ -184,19 +183,19 @@ def get_texture_resolution():
 
 
 # Value by range to Color gradient by hue
-def value_to_color(values, range_min, range_max):
+def value_to_color(values, range_min, range_max, tdcore):
 	td = bpy.context.scene.td
 	backend = get_preferences().calculation_backend
 
 	result = []
 
-	if backend == 'CPP' and cpp_interface.tdcore:
+	if backend == 'CPP' and tdcore:
 		# Results Buffer (values count * RGBA (4 floats))
 		result_cpp = np.zeros(len(values) * 4, dtype=np.float32)
 		values_np = np.array(values, dtype=np.float32)
 
 		# Call function from Library
-		cpp_interface.tdcore.ValueToColor(
+		tdcore.lib.ValueToColor(
 			values_np.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
 			len(values),
 			ctypes.c_float(range_min),

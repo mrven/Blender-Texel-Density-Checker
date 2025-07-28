@@ -6,6 +6,8 @@ from . import utils
 import numpy as np
 import ctypes
 
+from . import utils
+from .cpp_interface import TDCoreWrapper
 
 # Calculate TD for selected polygons
 class TexelDensityCheck(bpy.types.Operator):
@@ -30,6 +32,8 @@ class TexelDensityCheck(bpy.types.Operator):
 
 		local_area_list = []
 		local_td_list = []
+
+		tdcore_lib = TDCoreWrapper() if utils.get_preferences().calculation_backend == 'CPP' else None
 
 		for o in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
@@ -67,7 +71,7 @@ class TexelDensityCheck(bpy.types.Operator):
 			if selected_faces.size == 0:
 				continue
 
-			face_td_area_array = np.array(utils.calculate_td_area_to_list(), dtype=np.float32)
+			face_td_area_array = np.array(utils.calculate_td_area_to_list(tdcore_lib), dtype=np.float32)
 
 			selected_areas = face_td_area_array[selected_faces, 1]
 			selected_densities = face_td_area_array[selected_faces, 0]

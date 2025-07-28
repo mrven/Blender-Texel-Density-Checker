@@ -5,7 +5,7 @@ from datetime import datetime
 import webbrowser
 
 from . import utils
-
+from .cpp_interface import TDCoreWrapper
 
 # Copy average TD from object to object
 class TexelDensityCopy(bpy.types.Operator):
@@ -136,6 +136,8 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 		bpy.context.scene.tool_settings.uv_select_mode = 'FACE'
 		bpy.ops.object.mode_set(mode='OBJECT')
 
+		tdcore_lib = TDCoreWrapper() if utils.get_preferences().calculation_backend == 'CPP' else None
+
 		# Select polygons
 		for obj in start_selected_obj:
 			bpy.ops.object.select_all(action='DESELECT')
@@ -149,7 +151,7 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 
 			# Get islands and TD and UV areas of each polygon
 			islands_list = utils.get_uv_islands()
-			face_td_area_list = utils.calculate_td_area_to_list()
+			face_td_area_list = utils.calculate_td_area_to_list(tdcore_lib)
 
 			def is_in_threshold(value):
 				if td.select_type == "EQUAL":
