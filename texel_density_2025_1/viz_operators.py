@@ -247,13 +247,19 @@ class CheckerAssign(bpy.types.Operator):
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
+		bm = bmesh.new()
+
 		if td.checker_method == 'STORE':
 			for obj in start_selected_obj:
 				if obj.type != 'MESH' or obj.td_settings:
 					continue
+				bm.clear()
+				bm.from_mesh(obj.data)
+				bm.faces.ensure_lookup_table()
+				for face in bm.faces:
+					obj.td_settings.add().mat_index = face.material_index
 
-				for p in obj.data.polygons:
-					obj.td_settings.add().mat_index = p.material_index
+		bm.free()
 
 		# Remove all materials if REPLACE method
 		if td.checker_method == 'REPLACE':
@@ -271,10 +277,12 @@ class CheckerAssign(bpy.types.Operator):
 				if any(mat and mat.is_td_material for mat in obj.data.materials):
 					continue
 
+				bpy.ops.object.select_all(action='DESELECT')
+				bpy.context.view_layer.objects.active = obj
+				obj.select_set(True)
+
 				obj.data.materials.append(td_checker_material)
 				mat_index = len(obj.data.materials) - 1
-
-				context.view_layer.objects.active = obj
 				bpy.ops.object.mode_set(mode='EDIT')
 				bpy.ops.mesh.reveal()
 				bpy.ops.mesh.select_all(action='SELECT')
