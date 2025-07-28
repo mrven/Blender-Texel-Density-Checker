@@ -19,51 +19,43 @@ class TexelDensityCheck(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-
-		# Save current mode and selection
 		start_mode = bpy.context.object.mode
 		start_active_obj = bpy.context.active_object
 		need_select_again_obj = bpy.context.selected_objects
-
 		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
-
-		bpy.ops.object.mode_set(mode='OBJECT')
-		area = 0.0
-
-		local_area_list = []
-		local_td_list = []
 
 		tdcore_lib = TDCoreWrapper() if utils.get_preferences().calculation_backend == 'CPP' else None
 
-		for o in start_selected_obj:
-			bpy.ops.object.select_all(action='DESELECT')
+		bpy.ops.object.mode_set(mode='OBJECT')
 
-			if o.type != 'MESH' or len(o.data.uv_layers) == 0 or len(o.data.polygons) == 0:
+		area = 0.0
+		local_area_list = []
+		local_td_list = []
+
+		bm = bmesh.new()
+
+		for obj in start_selected_obj:
+			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
 				continue
 
-			bpy.context.view_layer.objects.active = o
-			o.select_set(True)
+			bpy.ops.object.select_all(action='DESELECT')
+			bpy.context.view_layer.objects.active = obj
+			obj.select_set(True)
 
-			mesh_data = o.data
+			mesh_data = obj.data
 			face_count = len(mesh_data.polygons)
 
 			if start_mode == 'OBJECT' or not td.selected_faces:
 				selected_faces = np.arange(face_count, dtype=np.int32)
 
 			elif bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
-				prev_mode = o.mode
-				if prev_mode != 'EDIT':
-					bpy.ops.object.mode_set(mode='EDIT')
-
-				bm = bmesh.from_edit_mesh(mesh_data)
+				bm.clear()
+				bm.from_mesh(obj.data)
 				bm.faces.ensure_lookup_table()
 				uv_layer = bm.loops.layers.uv.active
 
 				selected_faces = np.array([f.index for f in bm.faces
 					if f.select and all(loop[uv_layer].select for loop in f.loops)], dtype=np.int32)
-
-				if prev_mode != 'EDIT':
-					bpy.ops.object.mode_set(mode=prev_mode)
 
 			else:
 				selected_faces = np.array([p.index for p in mesh_data.polygons if p.select], dtype=np.int32)
@@ -88,6 +80,8 @@ class TexelDensityCheck(bpy.types.Operator):
 			local_td_list.append(local_texel_density)
 			area += local_area
 
+		bm.free()
+
 		if area > 0:
 			local_area_np = np.array(local_area_list, dtype=np.float32)
 			local_td_np = np.array(local_td_list, dtype=np.float32)
@@ -102,17 +96,15 @@ class TexelDensityCheck(bpy.types.Operator):
 			td.density = '0'
 
 		bpy.ops.object.mode_set(mode='OBJECT')
+
+		# Restore original selection and mode
 		bpy.ops.object.select_all(action='DESELECT')
-
-		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode='EDIT')
-
-		bpy.context.view_layer.objects.active = start_active_obj
-
 		for obj in need_select_again_obj:
 			obj.select_set(True)
+
+		context.view_layer.objects.active = start_active_obj
+		if start_mode == 'EDIT':
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		utils.print_execution_time("Calculate TD", start_time)
 		return {'FINISHED'}
