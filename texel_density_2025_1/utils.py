@@ -11,6 +11,8 @@ import math
 from collections import defaultdict
 
 
+from . import cpp_interface
+
 def sync_uv_selection():
 	mesh = bpy.context.active_object.data
 	bm = bmesh.from_edit_mesh(mesh)
@@ -56,26 +58,6 @@ def calculate_td_area_to_list():
 	largest_side = max(texture_size_x, texture_size_y)
 	scale = (largest_side / math.sqrt(aspect_ratio)) / (100 * bpy.context.scene.unit_settings.scale_length)
 
-	tdcore = None
-
-	if backend == 'CPP':
-		# Get Library
-		tdcore = get_td_core_dll()
-
-		if tdcore:
-			tdcore.CalculateTDAreaArray.argtypes = [
-				ctypes.POINTER(ctypes.c_float),  # UVs
-				ctypes.c_int,  # UVs Count
-				ctypes.POINTER(ctypes.c_float),  # Areas
-				ctypes.POINTER(ctypes.c_int),  # Vertex Count by Polygon
-				ctypes.c_int,  # Poly Count
-				ctypes.c_float,  # Scale
-				ctypes.c_int,  # Units
-				ctypes.POINTER(ctypes.c_float)  # Results
-			]
-
-			tdcore.CalculateTDAreaArray.restype = None
-
 	bpy.ops.object.mode_set(mode='OBJECT')
 
 	bpy.ops.object.duplicate()
@@ -92,7 +74,7 @@ def calculate_td_area_to_list():
 
 	result = []
 
-	if backend == 'CPP' and tdcore:
+	if backend == 'CPP' and cpp_interface.tdcore:
 		# Get UV-coordinates
 		uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
 		uv_layer.foreach_get("uv", uvs)
@@ -108,7 +90,7 @@ def calculate_td_area_to_list():
 		result_cpp = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
 
 		# Call function from Library
-		tdcore.CalculateTDAreaArray(
+		cpp_interface.tdcore.CalculateTDAreaArray(
 			uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
 			uvs.size,
 			areas.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
@@ -120,8 +102,6 @@ def calculate_td_area_to_list():
 		)
 
 		result = list(map(tuple, result_cpp.reshape(-1, 2)))
-
-		free_td_core_dll(tdcore)
 	else:
 		uv_area_by_face = defaultdict(float)
 
@@ -205,34 +185,18 @@ def get_texture_resolution():
 
 # Value by range to Color gradient by hue
 def value_to_color(values, range_min, range_max):
+	td = bpy.context.scene.td
 	backend = get_preferences().calculation_backend
-	tdcore = None
-
-	if backend == 'CPP':
-		# Get Library
-		tdcore = get_td_core_dll()
-
-		if tdcore:
-			tdcore.ValueToColor.argtypes = [
-				ctypes.POINTER(ctypes.c_float),  # Values
-				ctypes.c_int,  # Values Count
-				ctypes.c_float,  # Range Min
-				ctypes.c_float,  # Range Max
-				ctypes.POINTER(ctypes.c_float)  # Results
-			]
-
-			tdcore.ValueToColor.restype = None
 
 	result = []
 
-	if backend == 'CPP' and tdcore:
+	if backend == 'CPP' and cpp_interface.tdcore:
 		# Results Buffer (values count * RGBA (4 floats))
 		result_cpp = np.zeros(len(values) * 4, dtype=np.float32)
-
 		values_np = np.array(values, dtype=np.float32)
 
 		# Call function from Library
-		tdcore.ValueToColor(
+		cpp_interface.tdcore.ValueToColor(
 			values_np.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
 			len(values),
 			ctypes.c_float(range_min),
@@ -241,8 +205,6 @@ def value_to_color(values, range_min, range_max):
 		)
 
 		result = [tuple(result_cpp[i:i + 4]) for i in range(0, len(result_cpp), 4)]
-
-		free_td_core_dll(tdcore)
 	else:
 		for value in values:
 			# Remap value to range 0.0 - 1.0
@@ -356,55 +318,3 @@ def get_preferences():
 	addon_prefs = preferences.addons[__package__].preferences
 
 	return addon_prefs
-
-
-def get_td_core_dll():
-	if sys.platform.startswith("win"):
-		lib_name = "tdcore.dll"
-	elif sys.platform.startswith("linux"):
-		lib_name = "libtdcore.so"
-	elif sys.platform.startswith("darwin"):  # macOS
-		lib_name = "libtdcore.dylib"
-	else:
-		return None
-
-	addon_path = os.path.dirname(os.path.abspath(__file__))
-	tdcore_path = os.path.join(addon_path, lib_name)
-
-	if not os.path.isfile(tdcore_path):
-		print(f"Library not found: {tdcore_path}")
-		return None
-
-	try:
-		if sys.platform.startswith("win"):
-			return ctypes.WinDLL(tdcore_path)  # Windows
-		else:
-			return ctypes.CDLL(tdcore_path)  # Linux/macOS
-	except OSError as e:
-		print(f"Failed to load library {tdcore_path}: {e}")
-		return None
-
-
-def free_td_core_dll(dll_handle):
-	if not dll_handle or not hasattr(dll_handle, '_handle'):
-		return
-
-	try:
-		handle = ctypes.c_void_p(dll_handle._handle)
-
-		if sys.platform.startswith("win"):
-			# Windows
-			kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
-			kernel32.FreeLibrary.argtypes = [ctypes.c_void_p]
-			if not kernel32.FreeLibrary(handle):
-				raise ctypes.WinError(ctypes.get_last_error())
-		else:
-			# Linux/Mac
-			libc = ctypes.CDLL(None)
-			libc.dlclose.argtypes = [ctypes.c_void_p]
-			if libc.dlclose(handle) != 0:
-				raise RuntimeError("Failed to dlclose library")
-	except Exception as e:
-		print(f"Warning: Library unload error: {str(e)}")
-	finally:
-		del dll_handle

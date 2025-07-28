@@ -16,6 +16,8 @@ import importlib
 import bpy
 from bpy.app.handlers import persistent
 
+from . import cpp_interface
+
 modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui', 'test']
 
 modules_full_names = {}
@@ -91,3 +93,6 @@ def unregister():
 		if module_name in sys.modules:
 			if hasattr(sys.modules[module_name], 'unregister'):
 				sys.modules[module_name].unregister()
+
+	if cpp_interface.tdcore:
+		cpp_interface.free_td_core_dll()
