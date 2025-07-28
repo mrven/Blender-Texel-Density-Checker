@@ -403,8 +403,6 @@ class BakeTDToVC(bpy.types.Operator):
 		start_time = datetime.now()
 		td = context.scene.td
 		version = bpy.app.version
-
-		# Save current mode and active object
 		start_active_obj = context.active_object
 		start_mode = context.object.mode
 		need_select_again_obj = context.selected_objects
@@ -452,15 +450,17 @@ class BakeTDToVC(bpy.types.Operator):
 				bake_vc_min_td = min_td
 				bake_vc_max_td = max_td
 
+		bm = bmesh.new()
+
 		for obj in start_selected_obj:
-			bpy.ops.object.select_all(action='DESELECT')
 			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
 				continue
 
-			mesh_data = obj.data
-
+			bpy.ops.object.select_all(action='DESELECT')
 			context.view_layer.objects.active = obj
 			context.view_layer.objects.active.select_set(True)
+
+			mesh_data = obj.data
 
 			start_selected_faces = None
 
@@ -497,8 +497,8 @@ class BakeTDToVC(bpy.types.Operator):
 			if not face_td_area_list:
 				continue
 
-			bpy.ops.object.mode_set(mode='EDIT')
-			bm = bmesh.from_edit_mesh(mesh_data)
+			bm.clear()
+			bm.from_mesh(obj.data)
 			bm.faces.ensure_lookup_table()
 
 			color_layer = bm.loops.layers.color.get(TD_VC_NAME)
@@ -549,7 +549,6 @@ class BakeTDToVC(bpy.types.Operator):
 				td_vals = td_area_array[:, 0]
 				uv_areas = td_area_array[:, 1]
 
-				# Собираем island TD массив
 				islands_td = np.array([
 					np.dot(td_vals[island], uv_areas[island]) / max(uv_areas[island].sum(), 0.0001)
 					for island in islands_list
@@ -577,7 +576,6 @@ class BakeTDToVC(bpy.types.Operator):
 
 				distortions = []
 
-				# Назначение цвета по искажению
 				for face, geom_area, uv_area in zip(bm.faces, geom_areas, uv_areas):
 					uv_percent = uv_area / uv_area_total
 					geom_percent = geom_area / geom_area_total
@@ -590,7 +588,7 @@ class BakeTDToVC(bpy.types.Operator):
 					for loop in face.loops:
 						loop[color_layer] = color
 
-			bpy.ops.object.mode_set(mode='OBJECT')
+			bm.to_mesh(obj.data)
 
 			if start_mode == "EDIT" and start_selected_faces is not None:
 				bpy.ops.object.mode_set(mode='EDIT')
@@ -599,17 +597,16 @@ class BakeTDToVC(bpy.types.Operator):
 				for face_id in start_selected_faces:
 					mesh_data.polygons[face_id].select = True
 
-		bpy.ops.object.select_all(action='DESELECT')
+		bm.free()
 
-		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode='EDIT')
+		# Restore original selection and mode
+		bpy.ops.object.select_all(action='DESELECT')
+		for obj in need_select_again_obj:
+			obj.select_set(True)
 
 		context.view_layer.objects.active = start_active_obj
-
-		for j in need_select_again_obj:
-			j.select_set(True)
+		if start_mode == 'EDIT':
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		# Activate VC shading in viewport and show gradient line
 		context.space_data.shading.color_type = 'VERTEX'
