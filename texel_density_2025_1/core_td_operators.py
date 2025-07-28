@@ -95,8 +95,6 @@ class TexelDensityCheck(bpy.types.Operator):
 			td.uv_space = '0'
 			td.density = '0'
 
-		bpy.ops.object.mode_set(mode='OBJECT')
-
 		# Restore original selection and mode
 		bpy.ops.object.select_all(action='DESELECT')
 		for obj in need_select_again_obj:
@@ -120,12 +118,9 @@ class TexelDensitySet(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-
-		# save current mode and active object
 		start_active_obj = bpy.context.active_object
 		start_mode = bpy.context.object.mode
 		need_select_again_obj = bpy.context.selected_objects
-
 		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
 
 		density_new_value = 0.0
@@ -144,7 +139,6 @@ class TexelDensitySet(bpy.types.Operator):
 			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
 				continue
 
-			# Select current object
 			bpy.ops.object.select_all(action='DESELECT')
 			context.view_layer.objects.active = obj
 			obj.select_set(True)
@@ -202,6 +196,7 @@ class TexelDensitySet(bpy.types.Operator):
 				bpy.ops.uv.average_islands_scale()
 
 			bpy.ops.texel_density.check()
+
 			try:
 				density_current_value = float(td.density)
 				if density_current_value < 0.0001:
@@ -234,17 +229,14 @@ class TexelDensitySet(bpy.types.Operator):
 			for face_id in start_selected_faces:
 				mesh_data.polygons[face_id].select = True
 
-		# Restore object selection and mode
-		bpy.ops.object.mode_set(mode='OBJECT')
+		# Restore original selection and mode
 		bpy.ops.object.select_all(action='DESELECT')
 		for obj in need_select_again_obj:
 			obj.select_set(True)
-		context.view_layer.objects.active = start_active_obj
 
+		context.view_layer.objects.active = start_active_obj
 		if start_mode == 'EDIT':
-			for obj in start_selected_obj:
-				context.view_layer.objects.active = obj
-				bpy.ops.object.mode_set(mode='EDIT')
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		# Final TD check
 		bpy.ops.texel_density.check()
