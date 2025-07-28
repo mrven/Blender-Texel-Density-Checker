@@ -458,7 +458,7 @@ class BakeTDToVC(bpy.types.Operator):
 
 			bpy.ops.object.select_all(action='DESELECT')
 			context.view_layer.objects.active = obj
-			context.view_layer.objects.active.select_set(True)
+			obj.select_set(True)
 
 			mesh_data = obj.data
 
@@ -626,19 +626,19 @@ class ClearTDFromVC(bpy.types.Operator):
 
 	def execute(self, context):
 		start_time = datetime.now()
-
 		version = bpy.app.version
 		start_mode = context.object.mode
 		start_active_obj = context.active_object
 		need_select_again_obj = context.selected_objects
 		start_selected_obj = context.objects_in_mode if start_mode == 'EDIT' else context.selected_objects
 
+		bpy.ops.object.mode_set(mode='OBJECT')
+
 		for obj in start_selected_obj:
-			bpy.ops.object.mode_set(mode='OBJECT')
-			bpy.ops.object.select_all(action='DESELECT')
 			if obj.type == 'MESH':
+				bpy.ops.object.select_all(action='DESELECT')
 				context.view_layer.objects.active = obj
-				context.view_layer.objects.active.select_set(True)
+				obj.select_set(True)
 
 				# Delete vertex color for baked TD or UV area
 				if TD_VC_NAME in obj.data.vertex_colors:
@@ -648,15 +648,14 @@ class ClearTDFromVC(bpy.types.Operator):
 					else:
 						bpy.ops.geometry.color_attribute_remove()
 
+		# Restore original selection and mode
 		bpy.ops.object.select_all(action='DESELECT')
-		if start_mode == 'EDIT':
-			for o in start_selected_obj:
-				bpy.context.view_layer.objects.active = o
-				bpy.ops.object.mode_set(mode='EDIT')
+		for obj in need_select_again_obj:
+			obj.select_set(True)
 
-		bpy.context.view_layer.objects.active = start_active_obj
-		for j in need_select_again_obj:
-			j.select_set(True)
+		context.view_layer.objects.active = start_active_obj
+		if start_mode == 'EDIT':
+			bpy.ops.object.mode_set(mode='EDIT')
 
 		utils.print_execution_time("Clear Baked TD from VC", start_time)
 		return {'FINISHED'}

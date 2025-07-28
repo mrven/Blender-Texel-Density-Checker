@@ -17,8 +17,6 @@ class TexelDensityCopy(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-
-		# Save current mode and active object
 		start_active_obj = context.active_object
 		start_selected_obj = context.selected_objects
 
@@ -31,9 +29,9 @@ class TexelDensityCopy(bpy.types.Operator):
 
 		# Set calculated TD for all other selected objects
 		for obj in start_selected_obj:
-			bpy.ops.object.select_all(action='DESELECT')
 			if (obj.type == 'MESH' and len(obj.data.uv_layers) > 0
 				and len(obj.data.polygons) > 0) and not obj == start_active_obj:
+				bpy.ops.object.select_all(action='DESELECT')
 				obj.select_set(True)
 				bpy.context.view_layer.objects.active = obj
 				bpy.ops.texel_density.set()
@@ -121,7 +119,6 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-
 		start_mode = context.object.mode
 		start_active_obj = context.active_object
 		need_select_again_obj = context.selected_objects
@@ -138,12 +135,23 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 
 		tdcore_lib = TDCoreWrapper() if utils.get_preferences().calculation_backend == 'CPP' else None
 
+		def is_in_threshold(value):
+			if td.select_type == "EQUAL":
+				return (search_value - select_threshold) <= value <= (search_value + select_threshold)
+			elif td.select_type == "LESS":
+				return value <= search_value
+			elif td.select_type == "GREATER":
+				return value >= search_value
+			return False
+
+		bm = bmesh.new()
+
 		# Select polygons
 		for obj in start_selected_obj:
-			bpy.ops.object.select_all(action='DESELECT')
 			if obj.type != 'MESH' or not obj.data.uv_layers or not obj.data.polygons:
 				continue
 
+			bpy.ops.object.select_all(action='DESELECT')
 			context.view_layer.objects.active = obj
 			obj.select_set(True)
 			face_count = len(obj.data.polygons)
@@ -152,15 +160,6 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 			# Get islands and TD and UV areas of each polygon
 			islands_list = utils.get_uv_islands()
 			face_td_area_list = utils.calculate_td_area_to_list(tdcore_lib)
-
-			def is_in_threshold(value):
-				if td.select_type == "EQUAL":
-					return (search_value - select_threshold) <= value <= (search_value + select_threshold)
-				elif td.select_type == "LESS":
-					return value <= search_value
-				elif td.select_type == "GREATER":
-					return value >= search_value
-				return False
 
 			if td.select_mode == "FACES_BY_TD":
 				for face_id in range(face_count):
@@ -183,20 +182,21 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 						searched_faces.extend(uv_island)
 
 			if context.area.spaces.active.type == "IMAGE_EDITOR" and not context.scene.tool_settings.use_uv_select_sync:
-				bm_local = bmesh.from_edit_mesh(obj.data)
-				bm_local.faces.ensure_lookup_table()
-				uv_layer = bm_local.loops.layers.uv.active
+				bm.clear()
+				bm.from_mesh(obj.data)
+				bm.faces.ensure_lookup_table()
 
-				for face in bm_local.faces:
+				uv_layer = bm.loops.layers.uv.active
+
+				for face in bm.faces:
 					for loop in face.loops:
 						loop[uv_layer].select = False
 
 				for face_id in searched_faces:
-					for loop in bm_local.faces[face_id].loops:
+					for loop in bm.faces[face_id].loops:
 						loop[uv_layer].select = True
 
-				bmesh.update_edit_mesh(obj.data)
-				bpy.ops.object.mode_set(mode='OBJECT')
+				bm.to_mesh(obj.data)
 
 			else:
 				bpy.ops.object.mode_set(mode='EDIT')
@@ -206,7 +206,8 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 				for face_id in searched_faces:
 					obj.data.polygons[face_id].select = True
 
-		bpy.ops.object.mode_set(mode='OBJECT')
+		bm.free()
+
 		bpy.ops.object.select_all(action='DESELECT')
 
 		if start_mode == 'EDIT':
