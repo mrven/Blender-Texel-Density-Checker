@@ -2,19 +2,19 @@
 
 ## Texel Density Checker 2025.1
 
-#### New
+### New
 
-#### Changed
+### Changed
 
-#### Fix
+### Fix
 
 ## Texel Density Checker 2023.2
 
-#### New
+### New
 
 * Added Link to Documentation
 
-#### Fix
+### Fix
 
 * Show Gradient doesn't work on Blender 4.0
 
@@ -24,7 +24,7 @@
 
 ## Texel Density Checker 2023.1
 
-#### New
+### New
 
 * ##### Select anchor for scaling UV when using "Set TD"
 
@@ -42,7 +42,7 @@ Added options to Preferences for hiding Texel Density Panel from View 3D or UV E
 
 Print function execution time to console. For enabling this function enter to console bpy.context.scene.td.debug = True
 
-#### Changed
+### Changed
 
 * ##### Changed Version Numbering
 
@@ -54,7 +54,7 @@ This and next version will have contains current year and number of release in t
 
 A button "Report Bug" in add-on preferences now open GitHub issues page. This is best way to report bug or suggest your enhancement. Welcome!
 
-#### Fix
+### Fix
 
 * ##### Clean Up orphan mesh data
 
@@ -66,34 +66,34 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 3.4
 
-#### Changed
+### Changed
 
 * Added commentaries for all code
 
-#### Fix
+### Fix
 
 * Blender 3.4 Support
 
 ## Texel Density Checker 3.3.1
 
-#### Changed
+### Changed
 
 * Closest Interpolation for TD Material's Grid Texture
 
-#### Fix
+### Fix
 
 * Blender 3.0 Support
 
 
 ## Texel Density Checker 3.3
 
-#### New
+### New
 
 * [Bake TD to VC] Automatic Min/Max TD Values from Selected Objects
 
 * [Set TD] Presets "Half" and "Double" (works better with Average Set Method)
 
-#### Fix
+### Fix
 
 * Incorrect TD if selected Non-Mesh Objects
 
@@ -101,28 +101,28 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 3.2.2
 
-#### Fix
+### Fix
 
 * Incorrect Calculation of average TD when islands have different TD
 
 ## Texel Density Checker 3.2.1
 
-#### Changed
+### Changed
 
 * Small Improvements
 
-#### Fix
+### Fix
 
 * Operators don't work if enable edit mode from outliner
 
 
 ## Texel Density Checker 3.2
 
-#### New
+### New
 
 * [Checker Material] New Option "UV Scale" for changing Tiling of Checker Texture (Very Useful with "UV Grid" Checker Texture Type)
 
-#### Fix
+### Fix
 
 * [Logic] Error for some operators if Object has no polygons
 
@@ -132,11 +132,11 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 3.1
 
-#### New
+### New
 
 * [UI/UX] Changing Category for Panels from Preferences
 
-#### Changed
+### Changed
 
 * [UI/UX] Default Checker Mode is "Store and Replace"
 
@@ -148,7 +148,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 3.0
 
-#### New
+### New
 
 * [Baking to VC] Baking UV Space for Each Islands to VC
 
@@ -164,7 +164,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * [Preferences] Optional Enable/Disable "Calling Select/Bake VC operator after changing Mode/Value". By Default is Disabled
 
-#### Changed
+### Changed
 
 * [Logic] Optimization Calculation TD and UV Space to List
 
@@ -182,7 +182,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * [Other] Many small improvements
 
-#### Fix
+### Fix
 
 [Logic] Incorrect Calculation TD for Complicated N-Gons
 [Logic] Infinite recurcive call when updating values in the fields
@@ -190,7 +190,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 2.3
 
-#### New
+### New
 
 * Visualize UV Islands with Random Vertex Color in Viewport
 
@@ -198,7 +198,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 2.2.1
 
-#### Changed
+### Changed
 
 * Increase performance for "TD to Vertex Colors"
 
@@ -208,17 +208,17 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 2.2
 
-#### New
+### New
 
 * Baking Texel Density Value to Vertex Colors
 
-#### Changed
+### Changed
 
 * Change Checker Texture Type - Color Grid or UV Grid
 
 ## Texel Density Checker 2.1
 
-#### Changed
+### Changed
 
 * Now Addon works correctly on all platforms (Windows, Linux, MacOS)
  
@@ -229,7 +229,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 ## Texel Density Checker 2.0
 
-#### New
+### New
 
 * Interactive Checker Material - Assigment Material with checker texture. Texture dynamically changes if you change "Texture Size" on Texel Density UI Panel. This feature have two modes:
 
@@ -237,7 +237,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * TD Checker works with MultiEdit (both modes - 3D View and UV Editor)
 
-#### Changed
+### Changed
 
 * UI is more flexability
 
@@ -247,7 +247,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * Refactoring of Code
 
-#### Fix
+### Fix
 
 * Error if Custom Texture size equals 0 or negative
 
