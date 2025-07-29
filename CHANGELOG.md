@@ -1,6 +1,6 @@
-## Texel Density Checker Changelog
+# Texel Density Checker Changelog
 
-### Texel Density Checker 2025.1
+## Texel Density Checker 2025.1
 
 #### New
 
@@ -8,7 +8,7 @@
 
 #### Fix
 
-### Texel Density Checker 2023.2
+## Texel Density Checker 2023.2
 
 #### New
 
@@ -22,7 +22,7 @@
 
 * Many Small Fixes
 
-### Texel Density Checker 2023.1
+## Texel Density Checker 2023.1
 
 #### New
 
@@ -64,7 +64,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * TD is wrong if parent has scale not 1 (in some cases)
 
-### Texel Density Checker 3.4
+## Texel Density Checker 3.4
 
 #### Changed
 
@@ -74,7 +74,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * Blender 3.4 Support
 
-### Texel Density Checker 3.3.1
+## Texel Density Checker 3.3.1
 
 #### Changed
 
@@ -85,7 +85,7 @@ No more orphan mesh data after using Texel Density Checker.
 * Blender 3.0 Support
 
 
-### Texel Density Checker 3.3
+## Texel Density Checker 3.3
 
 #### New
 
@@ -99,13 +99,13 @@ No more orphan mesh data after using Texel Density Checker.
 
 * Face Maps are Empty after using "Assign Checker Material"
 
-### Texel Density Checker 3.2.2
+## Texel Density Checker 3.2.2
 
 #### Fix
 
 * Incorrect Calculation of average TD when islands have different TD
 
-### Texel Density Checker 3.2.1
+## Texel Density Checker 3.2.1
 
 #### Changed
 
@@ -116,7 +116,7 @@ No more orphan mesh data after using Texel Density Checker.
 * Operators don't work if enable edit mode from outliner
 
 
-### Texel Density Checker 3.2
+## Texel Density Checker 3.2
 
 #### New
 
@@ -130,7 +130,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * [UI/UX] Image Editor Window switched to Console if opened several Image Editor Windows
 
-### Texel Density Checker 3.1
+## Texel Density Checker 3.1
 
 #### New
 
@@ -146,7 +146,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * [UI/UX] Hide "Texel Density Checker" Panel in UV Editor if current mode is not Edit Mesh
 
-### Texel Density Checker 3.0
+## Texel Density Checker 3.0
 
 #### New
 
@@ -188,7 +188,7 @@ No more orphan mesh data after using Texel Density Checker.
 [Logic] Infinite recurcive call when updating values in the fields
 [Other] Many small fixes
 
-### Texel Density Checker 2.3
+## Texel Density Checker 2.3
 
 #### New
 
@@ -196,7 +196,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * New Option for "Bake TD to Vertex Colors" - Show Gradient with Intermadiate Values (0%, 25%, 50%, 75%, 100% of TD Range)
 
-### Texel Density Checker 2.2.1
+## Texel Density Checker 2.2.1
 
 #### Changed
 
@@ -206,7 +206,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * More accuracy calculation for N-gons
 
-### Texel Density Checker 2.2
+## Texel Density Checker 2.2
 
 #### New
 
@@ -216,7 +216,7 @@ No more orphan mesh data after using Texel Density Checker.
 
 * Change Checker Texture Type - Color Grid or UV Grid
 
-### Texel Density Checker 2.1
+## Texel Density Checker 2.1
 
 #### Changed
 
@@ -227,7 +227,7 @@ No more orphan mesh data after using Texel Density Checker.
 * "Restore Materials" now works only for selected objects
 
 
-### Texel Density Checker 2.0
+## Texel Density Checker 2.0
 
 #### New
 
