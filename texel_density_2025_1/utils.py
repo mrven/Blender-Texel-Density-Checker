@@ -43,6 +43,32 @@ def sync_uv_selection():
 	bmesh.update_edit_mesh(mesh)
 
 
+def calculate_geometry_areas(obj):
+	mesh = obj.data
+	world_matrix = obj.matrix_world
+
+	areas = []
+
+	for poly in mesh.polygons:
+		verts_world = [world_matrix @ obj.data.vertices[i].co for i in poly.vertices]
+
+		if len(verts_world) == 3:
+			v1 = verts_world[1] - verts_world[0]
+			v2 = verts_world[2] - verts_world[0]
+			area = 0.5 * (v1.cross(v2)).length
+
+		else:
+			area = 0
+			for i in range(1, len(verts_world) - 1):
+				v1 = verts_world[i] - verts_world[0]
+				v2 = verts_world[i + 1] - verts_world[0]
+				area += 0.5 * (v1.cross(v2)).length
+
+		areas.append(area)
+
+	return areas
+
+
 def calculate_td_area_to_list(tdcore):
 	backend = get_preferences().calculation_backend
 	td = bpy.context.scene.td
@@ -59,16 +85,11 @@ def calculate_td_area_to_list(tdcore):
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
-	bpy.ops.object.duplicate()
-	bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-	bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', object=True, obdata=True)
-	bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-
 	obj = bpy.context.active_object
 	mesh_data = obj.data
 	mesh_data.calc_loop_triangles()
 
-	face_areas = [p.area for p in mesh_data.polygons]
+	face_areas = calculate_geometry_areas(obj)
 	uv_layer = mesh_data.uv_layers.active.data
 
 	result = []
@@ -135,13 +156,6 @@ def calculate_td_area_to_list(tdcore):
 				texel_density *= 30.48
 
 			result.append([texel_density, uv_area])
-
-	mesh_name = mesh_data.name
-	bpy.ops.object.delete()
-	try:
-		bpy.data.meshes.remove(bpy.data.meshes[mesh_name])
-	except Exception:
-		pass
 
 	bpy.context.view_layer.objects.active = start_obj
 	bpy.ops.object.mode_set(mode=start_mode)
@@ -232,7 +246,6 @@ def get_uv_islands():
 	uv_layer = bm.loops.layers.uv.active
 	face_count = len(bm.faces)
 
-	# Сохраняем состояние выделений и скрытий
 	start_selected_3d_faces = {f.index for f in bm.faces if f.select}
 	start_hidden_faces = {f.index for f in bm.faces if f.hide}
 	start_selected_uv_faces = {f.index for f in bm.faces if all(loop[uv_layer].select for loop in f.loops)}
@@ -244,22 +257,18 @@ def get_uv_islands():
 	bpy.ops.mesh.reveal()
 	bpy.ops.mesh.select_all(action='SELECT')
 
-	# Используем set для быстрого удаления
 	remaining_faces = set(range(face_count))
 	uv_islands = []
 
 	while remaining_faces:
-		# Начинаем с любого оставшегося лица
 		seed_face_idx = next(iter(remaining_faces))
 
-		# Делаем локальный выбор для оператора uv.select_linked()
 		bpy.ops.uv.select_all(action='DESELECT')
 		for loop in bm.faces[seed_face_idx].loops:
 			loop[uv_layer].select = True
 
 		bpy.ops.uv.select_linked()
 
-		# Собираем выбранные грани, которые ещё в remaining_faces
 		current_island = []
 		for face_idx in list(remaining_faces):
 			face = bm.faces[face_idx]
@@ -272,10 +281,8 @@ def get_uv_islands():
 
 		uv_islands.append(current_island)
 
-		# Удаляем найденные грани из множества
 		remaining_faces.difference_update(current_island)
 
-	# Восстанавливаем выделения и скрытия
 	bpy.ops.mesh.select_all(action='DESELECT')
 	scene.tool_settings.use_uv_select_sync = start_uv_sync
 	bpy.ops.uv.select_all(action='DESELECT')
