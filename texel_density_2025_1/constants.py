@@ -78,6 +78,14 @@ TD_SELECT_TYPE_ITEMS = (('EQUAL', 'Equal To', ''),
                         ('GREATER', 'Greater Than', ''))
 
 
+PREFS_ANCHOR_ITEMS = (('LEFT_TOP', 'Left Top', ''),
+                      ('LEFT_BOTTOM', 'Left Bottom', ''),
+                      ('RIGHT_TOP', 'Right Top', ''),
+                      ('RIGHT_BOTTOM', 'Right Bottom', ''))
+
+PREFS_BACKEND_ITEMS = (('CPP', 'C++ (Fast)', ''), ('PY', 'Python (Slow)', ''))
+
+
 # Shaders
 VERTEX_SHADER_TEXT_3_0 = '''
 	in vec2 position;

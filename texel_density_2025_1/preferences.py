@@ -7,7 +7,8 @@ from bpy.props import (
 
 from . import ui
 from .ui import TDAddonView3DPanel, TDAddonUVPanel
-from.constants import *
+from . import config_json
+from .constants import *
 
 def update_view3d_panel_category(_, __):
 	is_panel = hasattr(bpy.types, 'VIEW3D_PT_texel_density_checker')
@@ -21,6 +22,7 @@ def update_view3d_panel_category(_, __):
 			pass
 	TDAddonView3DPanel.bl_category = category
 	bpy.utils.register_class(TDAddonView3DPanel)
+	config_json.save_addon_prefs()
 
 
 def update_uv_panel_category(_, __):
@@ -36,10 +38,11 @@ def update_uv_panel_category(_, __):
 
 	TDAddonUVPanel.bl_category = category
 	bpy.utils.register_class(TDAddonUVPanel)
+	config_json.save_addon_prefs()
 
 
-def filter_gradient_offset_x(_, __):
-	offset_x_filtered = bpy.context.preferences.addons[__package__].preferences['offset_x'].replace(',', '.')
+def filter_gradient_offset_x(self, __):
+	offset_x_filtered = self.offset_x.replace(',', '.')
 
 	try:
 		offset_x = int(offset_x_filtered)
@@ -49,12 +52,14 @@ def filter_gradient_offset_x(_, __):
 	if offset_x < 0:
 		offset_x = 20
 
-	bpy.context.preferences.addons[__package__].preferences['offset_x'] = str(offset_x)
+	if not str(offset_x) == self.offset_x:
+		self.offset_x = str(offset_x)
+	config_json.save_addon_prefs()
 	return None
 
 
-def filter_gradient_offset_y(_, __):
-	offset_y_filtered = bpy.context.preferences.addons[__package__].preferences['offset_y'].replace(',', '.')
+def filter_gradient_offset_y(self, __):
+	offset_y_filtered = self.offset_y.replace(',', '.')
 
 	try:
 		offset_y = int(offset_y_filtered)
@@ -64,8 +69,14 @@ def filter_gradient_offset_y(_, __):
 	if offset_y < 0:
 		offset_y = 20
 
-	bpy.context.preferences.addons[__package__].preferences['offset_y'] = str(offset_y)
+	if not str(offset_y) == self.offset_y:
+		self.offset_y = str(offset_y)
+	config_json.save_addon_prefs()
 	return None
+
+
+def update_save_config(_, __):
+	config_json.save_addon_prefs()
 
 
 class TDAddonPreferences(bpy.types.AddonPreferences):
@@ -81,124 +92,92 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		description="Offset Y from Anchor",
 		default="30", update=filter_gradient_offset_y)
 
-	anchor_pos_list = (('LEFT_TOP', 'Left Top', ''), ('LEFT_BOTTOM', 'Left Bottom', ''),
-					   ('RIGHT_TOP', 'Right Top', ''), ('RIGHT_BOTTOM', 'Right Bottom', ''))
-	anchor_pos: EnumProperty(name="", items=anchor_pos_list, default='LEFT_BOTTOM')
+	anchor_pos: EnumProperty(name="", items=PREFS_ANCHOR_ITEMS, default='LEFT_BOTTOM', update=update_save_config)
 
 	automatic_recalc: BoolProperty(
 		name="Calling Select/Bake VC operator after changing Mode/Value",
 		description="Calling Select/Bake VC operator after changing Mode/Value",
-		default=False)
+		default=False,
+		update=update_save_config)
 
-	backend_list = (('CPP', 'C++ (Fast)', ''), ('PY', 'Python (Slow)', ''))
-	calculation_backend: EnumProperty(name="", items=backend_list, default='CPP')
+	calculation_backend: EnumProperty(name="", items=PREFS_BACKEND_ITEMS, default='CPP', update=update_save_config)
 
 	view3d_panel_category: StringProperty(
 		name="",
 		description="Choose a name for the category of panel (3D View)",
 		default="Texel Density",
-		update=update_view3d_panel_category
-	)
+		update=update_view3d_panel_category)
 
 	uv_panel_category: StringProperty(
 		name="",
 		description="Choose a name for the category of panel (UV Editor)",
 		default="Texel Density",
-		update=update_uv_panel_category
-	)
+		update=update_save_config)
 
 	view3d_panel_category_enable: BoolProperty(
 		name="View 3D TD Panel",
 		description="Show/Hide View 3D View UI Panel",
-		default=True)
+		default=True,
+		update=update_save_config)
 
 	uv_panel_enable: BoolProperty(
 		name="UV Editor TD Panel",
 		description="Show/Hide UV Editor TD UI Panel",
-		default=True)
+		default=True,
+		update=update_save_config)
 
 	# Defaults
-	default_units: EnumProperty(name="",
-								items=TD_UNITS_ITEMS)
+	default_units: EnumProperty(name="", items=TD_UNITS_ITEMS, update=update_save_config)
 
-	default_texture_size: EnumProperty(name="",
-									   items=TD_TEXTURE_SIZE_ITEMS)
+	default_texture_size: EnumProperty(name="", items=TD_TEXTURE_SIZE_ITEMS, update=update_save_config)
 
-	default_custom_width: StringProperty(
-		name="W",
-		default="1024")
+	default_custom_width: StringProperty(name="W", default="1024", update=update_save_config)
 
-	default_custom_height: StringProperty(
-		name="  H",
-		default="1024")
+	default_custom_height: StringProperty(name="  H", default="1024", update=update_save_config)
 
-	default_selected_faces: BoolProperty(
+	default_selected_faces: BoolProperty(name="", default=True, update=update_save_config)
+
+	default_checker_method: EnumProperty(
 		name="",
-		default=True)
+		items=TD_CHECKER_METHOD_ITEMS,
+		default='STORE',
+		update=update_save_config)
 
-	default_checker_method: EnumProperty(name="",
-										 items=TD_CHECKER_METHOD_ITEMS,
-										 default='STORE')
+	default_checker_type: EnumProperty(name="", items=TD_CHECKER_TYPE_ITEMS, update=update_save_config)
 
-	default_checker_type: EnumProperty(name="",
-									   items=TD_CHECKER_TYPE_ITEMS)
+	default_checker_uv_scale: StringProperty(name="", default="1", update=update_save_config)
 
-	default_checker_uv_scale: StringProperty(
-		name="",
-		default="1")
+	default_density_set: StringProperty(name="", default="1.28", update=update_save_config)
 
-	default_density_set: StringProperty(
-		name="",
-		default="1.28")
+	default_set_method: EnumProperty(name="", items=TD_SET_METHOD_ITEMS, update=update_save_config)
 
-	default_set_method: EnumProperty(name="", items=TD_SET_METHOD_ITEMS)
+	default_rescale_anchor: EnumProperty(name="", items=TD_ANCHOR_ORIGIN_ITEMS, update=update_save_config)
 
-	default_rescale_anchor: EnumProperty(name="", items=TD_ANCHOR_ORIGIN_ITEMS)
+	default_select_mode: EnumProperty(name="", items=TD_SELECT_MODE_ITEMS, update=update_save_config)
 
-	default_select_mode: EnumProperty(name="", items=TD_SELECT_MODE_ITEMS)
+	default_select_type: EnumProperty(name="", items=TD_SELECT_TYPE_ITEMS, update=update_save_config)
 
-	default_select_type: EnumProperty(name="", items=TD_SELECT_TYPE_ITEMS)
+	default_select_value: StringProperty(name="", default="1.0", update=update_save_config)
 
-	default_select_value: StringProperty(
-		name="",
-		default="1.0")
+	default_select_threshold: StringProperty(name="", default="0.1", update=update_save_config)
 
-	default_select_threshold: StringProperty(
-		name="",
-		default="0.1")
+	default_bake_vc_mode: EnumProperty(name="", items=TD_BAKE_VC_MODE_ITEMS, update=update_save_config)
 
-	default_bake_vc_mode: EnumProperty(name="", items=TD_BAKE_VC_MODE_ITEMS)
+	default_bake_vc_auto_min_max: BoolProperty(name="", default=True, update=update_save_config)
 
-	default_bake_vc_auto_min_max: BoolProperty(
-		name="",
-		default=True)
+	default_bake_vc_min_td: StringProperty(name="Min", default="0.64", update=update_save_config)
 
-	default_bake_vc_min_td: StringProperty(
-		name="Min",
-		default="0.64")
+	default_bake_vc_max_td: StringProperty(name="   Max", default="10.24", update=update_save_config)
 
-	default_bake_vc_max_td: StringProperty(
-		name="   Max",
-		default="10.24")
+	default_uv_islands_to_vc_mode: EnumProperty(name="", items=TD_BAKE_UV_ISLANDS_MODE_ITEMS, update=update_save_config)
 
-	default_uv_islands_to_vc_mode: EnumProperty(name="",
-										items=TD_BAKE_UV_ISLANDS_MODE_ITEMS)
+	default_bake_vc_min_space: StringProperty(name="Min", default="0.1", update=update_save_config)
 
-	default_bake_vc_min_space: StringProperty(
-		name="Min",
-		default="0.1")
+	default_bake_vc_max_space: StringProperty(name="   Max", default="25.0", update=update_save_config)
 
-	default_bake_vc_max_space: StringProperty(
-		name="   Max",
-		default="25.0")
+	default_bake_vc_distortion_range: StringProperty(name="", default="50", update=update_save_config)
 
-	default_bake_vc_distortion_range: StringProperty(
-		name="",
-		default="50")
-
-	default_bake_vc_show_gradient: BoolProperty(
-		name="",
-		default=False)
+	default_bake_vc_show_gradient: BoolProperty(name="", default=False, update=update_save_config)
 
 
 	def draw(self, _):
@@ -291,6 +270,10 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 			row.label(text='Show Gradient:')
 			row.prop(self, 'default_bake_vc_show_gradient')
 
+		box.separator(factor=0.5)
+		row = box.row()
+		row.operator(ApplyDefaultsToProps.bl_idname, text='Apply Default Settings')
+
 		box = layout.box()
 		row = box.row()
 		row.label(text='Texel Density Gradient Position:')
@@ -316,12 +299,42 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 		layout.prop(self, 'automatic_recalc')
 
+		layout.separator(factor=0.5)
+		row = layout.row()
+		row.operator(ResetPreferences.bl_idname, text='Reset Preferences')
 
 class TDObjectSetting(bpy.types.PropertyGroup):
 	mat_index: bpy.props.IntProperty(name="Material Index", default=0)
 
 
+class ResetPreferences(bpy.types.Operator):
+	"""Reset all preferences to default values"""
+	bl_idname = "texel_density.reset_preferences"
+	bl_label = "Reset Preferences"
+
+	def execute(self, context):
+		prefs = context.preferences.addons[__package__].preferences
+
+		prefs.default_checker_uv_scale = "10.0"
+
+		self.report({'INFO'}, "Preferences was successfully reset.")
+		return {'FINISHED'}
+
+
+class ApplyDefaultsToProps(bpy.types.Operator):
+	"""Apply current defaults from preferences to props"""
+	bl_idname = "texel_density.apply_defaults_to_props"
+	bl_label = "Apply Default Settings"
+
+	def execute(self, _):
+		config_json.copy_prefs_to_props(force=True)
+		return {'FINISHED'}
+
+
+
 classes = (
+	ApplyDefaultsToProps,
+	ResetPreferences,
 	TDAddonPreferences,
 	TDAddonView3DPanel,
 	TDAddonUVPanel,
