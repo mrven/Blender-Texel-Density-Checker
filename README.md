@@ -1,6 +1,6 @@
 # Blender Addon: Texel Density Checker
 
-![Cover](/docs/images/promo/cover.png)
+![Cover](./docs/images/promo/cover.png)
 
 With **Texel Density Checker** you can: 
 
@@ -49,34 +49,34 @@ If you want to support me you can buy this addon:
 
 ## Documentation
 
-[Install Addon](/docs/install_addon.md)
+[Install Addon](./docs/install_addon.md)
 
-[Help Panel](/docs/help_panel.md)
+[Help Panel](./docs/help_panel.md)
 
-[Texel Units & Texture Size](/docs/texel_units.md)
+[Texel Units & Texture Size](./docs/texel_units.md)
 
-[Calculate Texel Density](/docs/calculate_td.md)
+[Calculate Texel Density](./docs/calculate_td.md)
 
-[Set Texel Density](/docs/set_td.md)
+[Set Texel Density](./docs/set_td.md)
 
-[Interactive Checker Material](/docs/checker_material.md)
+[Interactive Checker Material](./docs/checker_material.md)
 
-[Bake TD/UV/Islands to VC](/docs/bake_td.md)
+[Bake TD/UV/Islands to VC](./docs/bake_td.md)
 
-[Select Faces by TD/UV](/docs/select_by_td.md)
+[Select Faces by TD/UV](./docs/select_by_td.md)
 
-[Addon Preferences](docs/preferences.md)
+[Addon Preferences](./docs/preferences.md)
 
-[How to report a bug?](/docs/bug_report.md)
+[How to report a bug?](./docs/bug_report.md)
 
 ## Features Overview
 
-![Calculate](/docs/images/promo/calculate.png)
+![Calculate](./docs/images/promo/calculate.png)
 
-![Set](/docs/images/promo/set.png)
+![Set](./docs/images/promo/set.png)
 
-![Checker](/docs/images/promo/checker.png)
+![Checker](./docs/images/promo/checker.png)
 
-![Bake](/docs/images/promo/bake.png)
+![Bake](./docs/images/promo/bake.png)
 
-![Select](/docs/images/promo/select.png)
+![Select](./docs/images/promo/select.png)

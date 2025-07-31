@@ -6,6 +6,6 @@
 
 # UI Elements and Functionality
 
-![Set TD](/docs/images/ui/set_td_panel.png)
+![Set TD](./images/ui/set_td_panel.png)
 
 # Usage Examples

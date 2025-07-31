@@ -5,6 +5,10 @@
 
 # UI Elements and Functionality
 
-![Help](/docs/images/ui/help_panel.png)
+![Help](./images/ui/help_panel.png)
 
-# Usage Examples
+| Button | Description                                                                  |
+|--------|------------------------------------------------------------------------------|
+| Prefs  | Open Addon Preferences                                                       | 
+| Docs   | Open [documentation](../README.md#documentation) on GitHub in browser        |
+| Report | Open [instruction about reporting a bug](bug_report.md) on GitHub in browser |

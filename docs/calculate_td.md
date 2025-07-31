@@ -8,7 +8,7 @@ If the object is in Edit Mode, the calculation will be performed only on selecte
 
 # UI Elements and Functionality
 
-![Calculate TD](/docs/images/ui/calculalte_td_panel.png)
+![Calculate TD](./images/ui/calculalte_td_panel.png)
 
 
 # Usage Examples

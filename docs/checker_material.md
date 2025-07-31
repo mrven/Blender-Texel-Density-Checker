@@ -6,6 +6,6 @@
 
 # UI Elements and Functionality
 
-![Checker Material](/docs/images/ui/checker_material_panel.png)
+![Checker Material](./images/ui/checker_material_panel.png)
 
 # Usage Examples
