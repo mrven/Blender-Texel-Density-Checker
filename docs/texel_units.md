@@ -8,7 +8,7 @@ This section defines how texel density is calculated, based on the measurement u
 
 ![Texel Units](./images/ui/texel_units_panel.png)
 
-## Units
+### Units
 
 | Value | Description          |
 |-------|----------------------|
@@ -17,7 +17,7 @@ This section defines how texel density is calculated, based on the measurement u
 | px/in | pixels by inch       |
 | px/ft | pixels by feat       |
 
-## Texture Size
+### Texture Size
 
 | Value         | Description |
 |---------------|-------------|
@@ -26,11 +26,8 @@ This section defines how texel density is calculated, based on the measurement u
 
 ![Texel Units Custom](./images/ui/texel_units_custom_panel.png)
 
-### Custom Size
+### Width
 
-| Value  | Description |
-|--------|-------------|
-| Width  | aaa         | 
-| Height | aaa         |
+### Height
 
 # Usage Examples

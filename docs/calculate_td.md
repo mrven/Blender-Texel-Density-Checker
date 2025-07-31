@@ -10,6 +10,17 @@ If the object is in Edit Mode, the calculation will be performed only on selecte
 
 ![Calculate TD](./images/ui/calculalte_td_panel.png)
 
+### Selected Faces
+
+### UV Space
+
+### Density
+
+### Calculate TD
+
+### Calc -> Set Value
+
+### Calc -> Select Value
 
 # Usage Examples
 

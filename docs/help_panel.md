@@ -7,8 +7,14 @@
 
 ![Help](./images/ui/help_panel.png)
 
-| Button | Description                                                                  |
-|--------|------------------------------------------------------------------------------|
-| Prefs  | Open Addon Preferences                                                       | 
-| Docs   | Open [documentation](../README.md#documentation) on GitHub in browser        |
-| Report | Open [instruction about reporting a bug](bug_report.md) on GitHub in browser |
+### Prefs
+
+Open Addon Preferences window                                                    
+
+### Docs 
+
+Open [documentation](../README.md#documentation) on GitHub in browser        
+
+### Report
+
+Open [instruction about reporting a bug](bug_report.md) on GitHub in browser 
