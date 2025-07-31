@@ -94,7 +94,7 @@ def calculate_td_area_to_list(tdcore):
 
 	result = []
 
-	if backend == 'CPP' and tdcore:
+	if backend == 'CPP' and tdcore.lib:
 		# Get UV-coordinates
 		uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
 		uv_layer.foreach_get("uv", uvs)
@@ -203,7 +203,7 @@ def value_to_color(values, range_min, range_max, tdcore):
 
 	result = []
 
-	if backend == 'CPP' and tdcore:
+	if backend == 'CPP' and tdcore.lib:
 		# Results Buffer (values count * RGBA (4 floats))
 		result_cpp = np.zeros(len(values) * 4, dtype=np.float32)
 		values_np = np.array(values, dtype=np.float32)

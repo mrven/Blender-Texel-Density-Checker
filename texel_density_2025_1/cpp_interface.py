@@ -25,7 +25,7 @@ class TDCoreWrapper:
 		tdcore_path = os.path.join(addon_path, lib_name)
 
 		if not os.path.isfile(tdcore_path):
-			print(f"Library not found: {tdcore_path}")
+			print(f"Library not found: {tdcore_path}. Will use python backend instead.")
 			return None
 
 		try:
