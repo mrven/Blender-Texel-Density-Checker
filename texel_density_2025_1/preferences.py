@@ -179,7 +179,6 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 	default_bake_vc_show_gradient: BoolProperty(name="", default=False, update=update_save_config)
 
-
 	def draw(self, _):
 		layout = self.layout
 		box = layout.box()
@@ -272,7 +271,7 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 		box.separator(factor=0.5)
 		row = box.row()
-		row.operator(ApplyDefaultsToProps.bl_idname, text='Apply Default Settings')
+		row.operator(ApplyDefaultsToProps.bl_idname, icon='PRESET')
 
 		box = layout.box()
 		row = box.row()
@@ -301,7 +300,8 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 		layout.separator(factor=0.5)
 		row = layout.row()
-		row.operator(ResetPreferences.bl_idname, text='Reset Preferences')
+		row.operator(ResetPreferences.bl_idname, icon='FILE_REFRESH')
+
 
 class TDObjectSetting(bpy.types.PropertyGroup):
 	mat_index: bpy.props.IntProperty(name="Material Index", default=0)
@@ -312,10 +312,8 @@ class ResetPreferences(bpy.types.Operator):
 	bl_idname = "texel_density.reset_preferences"
 	bl_label = "Reset Preferences"
 
-	def execute(self, context):
-		prefs = context.preferences.addons[__package__].preferences
-
-		prefs.default_checker_uv_scale = "10.0"
+	def execute(self, _):
+		config_json.apply_defaults_from_file()
 
 		self.report({'INFO'}, "Preferences was successfully reset.")
 		return {'FINISHED'}
@@ -324,12 +322,11 @@ class ResetPreferences(bpy.types.Operator):
 class ApplyDefaultsToProps(bpy.types.Operator):
 	"""Apply current defaults from preferences to props"""
 	bl_idname = "texel_density.apply_defaults_to_props"
-	bl_label = "Apply Default Settings"
+	bl_label = "Copy Default Settings To Current Session"
 
 	def execute(self, _):
 		config_json.copy_prefs_to_props(force=True)
 		return {'FINISHED'}
-
 
 
 classes = (

@@ -87,3 +87,24 @@ def copy_prefs_to_props(force = False):
             props.bake_vc_show_gradient = prefs.default_bake_vc_show_gradient
 
         props.initialized = True
+
+
+def load_default_prefs():
+    default_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default_prefs.json")
+    try:
+        with open(default_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[TD Prefs] Failed to load default prefs: {e}")
+        return {}
+
+
+def apply_defaults_from_file():
+    prefs = bpy.context.preferences.addons[__package__].preferences
+    defaults = load_default_prefs()
+    for key, value in defaults.items():
+        try:
+            prop_type = type(getattr(prefs, key))
+            setattr(prefs, key, prop_type(value))
+        except Exception as e:
+            print(f"[TD Prefs] Failed to apply {key}: {e}")
