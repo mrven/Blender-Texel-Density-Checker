@@ -33,7 +33,9 @@ for current_module_full_name in modules_full_names.values():
 		setattr(globals()[current_module_full_name], 'modulesNames', modules_full_names)
 
 def deferred_initialize():
+	config_json.saving_enabled = False
 	config_json.load_or_initialize_prefs()
+	config_json.saving_enabled = True
 	config_json.copy_prefs_to_props()
 
 	return None

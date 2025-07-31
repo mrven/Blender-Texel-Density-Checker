@@ -5,6 +5,8 @@ from bpy.utils import user_resource
 
 from .utils import get_preferences
 
+saving_enabled = False
+
 def get_prefs_path():
     config_dir = user_resource('CONFIG', path='texel_density', create=True)
     os.makedirs(config_dir, exist_ok=True)
@@ -39,6 +41,7 @@ def load_or_initialize_prefs():
         except Exception as e:
             print(f"[TD Prefs] Failed to load: {e}")
     else:
+        print(f"[TD Prefs] No preferences file found at {path}")
         save_addon_prefs()
 
 
@@ -102,9 +105,13 @@ def load_default_prefs():
 def apply_defaults_from_file():
     prefs = bpy.context.preferences.addons[__package__].preferences
     defaults = load_default_prefs()
+    if not defaults:
+        return False
+
     for key, value in defaults.items():
         try:
             prop_type = type(getattr(prefs, key))
             setattr(prefs, key, prop_type(value))
         except Exception as e:
             print(f"[TD Prefs] Failed to apply {key}: {e}")
+    return True

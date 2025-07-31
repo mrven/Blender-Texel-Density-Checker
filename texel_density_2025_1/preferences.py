@@ -22,7 +22,8 @@ def update_view3d_panel_category(_, __):
 			pass
 	TDAddonView3DPanel.bl_category = category
 	bpy.utils.register_class(TDAddonView3DPanel)
-	config_json.save_addon_prefs()
+	if config_json.saving_enabled:
+		config_json.save_addon_prefs()
 
 
 def update_uv_panel_category(_, __):
@@ -38,7 +39,8 @@ def update_uv_panel_category(_, __):
 
 	TDAddonUVPanel.bl_category = category
 	bpy.utils.register_class(TDAddonUVPanel)
-	config_json.save_addon_prefs()
+	if config_json.saving_enabled:
+		config_json.save_addon_prefs()
 
 
 def filter_gradient_offset_x(self, __):
@@ -54,7 +56,8 @@ def filter_gradient_offset_x(self, __):
 
 	if not str(offset_x) == self.offset_x:
 		self.offset_x = str(offset_x)
-	config_json.save_addon_prefs()
+	if config_json.saving_enabled:
+		config_json.save_addon_prefs()
 	return None
 
 
@@ -71,12 +74,14 @@ def filter_gradient_offset_y(self, __):
 
 	if not str(offset_y) == self.offset_y:
 		self.offset_y = str(offset_y)
-	config_json.save_addon_prefs()
+	if config_json.saving_enabled:
+		config_json.save_addon_prefs()
 	return None
 
 
 def update_save_config(_, __):
-	config_json.save_addon_prefs()
+	if config_json.saving_enabled:
+		config_json.save_addon_prefs()
 
 
 class TDAddonPreferences(bpy.types.AddonPreferences):
@@ -313,9 +318,12 @@ class ResetPreferences(bpy.types.Operator):
 	bl_label = "Reset Preferences"
 
 	def execute(self, _):
-		config_json.apply_defaults_from_file()
+		success = config_json.apply_defaults_from_file()
 
-		self.report({'INFO'}, "Preferences was successfully reset.")
+		if success:
+			self.report({'INFO'}, "Preferences was successfully reset")
+		else:
+			self.report({'ERROR'}, "Failed to reset preferences")
 		return {'FINISHED'}
 
 
