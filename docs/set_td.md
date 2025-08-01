@@ -8,7 +8,7 @@
 
 ![Set TD](./images/ui/set_td_panel.png)
 
-### Selected Faces
+### Selected Faces (Edit mode only)
 
 ### Set TD
 
@@ -37,6 +37,6 @@
 
 ### Half/Double TD
 
-### TD from Active to Others
+### TD from Active to Others (Object mode only)
 
 # Usage Examples

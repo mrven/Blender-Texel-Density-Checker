@@ -10,7 +10,7 @@ If the object is in Edit Mode, the calculation will be performed only on selecte
 
 ![Calculate TD](./images/ui/calculalte_td_panel.png)
 
-### Selected Faces
+### Selected Faces (Edit mode only)
 
 ### UV Space
 
@@ -20,7 +20,7 @@ If the object is in Edit Mode, the calculation will be performed only on selecte
 
 ### Calc -> Set Value
 
-### Calc -> Select Value
+### Calc -> Select Value (Edit mode only)
 
 # Usage Examples
 

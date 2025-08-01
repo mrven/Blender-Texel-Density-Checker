@@ -26,8 +26,8 @@
 
 ### Assign Checker Material
 
-### Restore Materials
+### Restore Materials (Store and Replace method only)
 
-### Clear Stored Materials
+### Clear Stored Materials (Store and Replace method only)
 
 # Usage Examples

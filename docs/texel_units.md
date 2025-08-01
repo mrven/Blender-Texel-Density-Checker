@@ -8,6 +8,8 @@ This section defines how texel density is calculated, based on the measurement u
 
 ![Texel Units](./images/ui/texel_units_panel.png)
 
+![Texel Units Custom](./images/ui/texel_units_custom_panel.png)
+
 ### Units
 
 | Value | Description          |
@@ -24,10 +26,8 @@ This section defines how texel density is calculated, based on the measurement u
 | 512 - 4096 px | aaa         | 
 | Custom        | aaa         |
 
-![Texel Units Custom](./images/ui/texel_units_custom_panel.png)
+### Width (Custom Size only)
 
-### Width
-
-### Height
+### Height (Custom Size only)
 
 # Usage Examples
