@@ -2,7 +2,7 @@
 
 # Interactive Checker Material
 
-This feature is assignment Material with checker texture. Texture dynamically changes if you change "Texture Size" on Texel Units and Texture Size UI Panel. Also this material visualize data from [Bake TD/UV/Islands to Vertex Color](bake_td.md) operator.
+This feature is assignment Material with checker texture. Texture dynamically changes if you change "Texture Size" on Texel Units and Texture Size UI Panel. Also, this material can visualize data from [Bake TD/UV/Islands to Vertex Color](bake_td.md) operator.
 
 # UI Elements and Functionality
 
