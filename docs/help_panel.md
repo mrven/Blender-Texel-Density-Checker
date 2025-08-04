@@ -2,6 +2,7 @@
 
 # Addon Help Panel
 
+Buttons for addon quick access to preferences, documentation and bug report.
 
 # UI Elements and Functionality
 
