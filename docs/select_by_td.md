@@ -24,7 +24,7 @@ Select mode for faces or islands.
 
 ### Select Type
 
-Comparison type.
+Comparison type for selection.
 
 | Value        | Description                                |
 |--------------|--------------------------------------------|

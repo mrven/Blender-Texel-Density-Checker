@@ -45,7 +45,7 @@ If you want to support me you can buy this addon:
 * Fixed operators working incorrectly with multi-user data
 * Various minor bugfixes and stability improvements
 
-[See full CHANGELOG](CHANGELOG.md)
+[See full CHANGELOG](CHANGELOG.md#texel-density-checker-20251)
 
 ## Documentation
 
@@ -68,6 +68,14 @@ If you want to support me you can buy this addon:
 [Addon Preferences](./docs/preferences.md)
 
 [How to report a bug?](./docs/bug_report.md)
+
+## Performance Comparison
+
+![Chart 1](./docs/images/promo/chart_1.png)
+
+![Chart 2](./docs/images/promo/chart_2.png)
+
+![Chart 3](./docs/images/promo/chart_3.png)
 
 ## Features Overview
 

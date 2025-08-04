@@ -4,21 +4,50 @@
 
 ### New
 
-* New C++ backend for texel density calculations
-* Default settings system for the addon
-* Buttons linking to Preferences, Documentation, and Bug Report
-* Basic implementation of unit tests
-* Unified ZIP package for Blender 3.0+ compatibility
+* #### New C++ backend for texel density calculations
+
+Now Texel Density Checker uses C++ backend for texel density calculations. This is faster, but compatible not for all operating systems. Python backend is also available and automatically used if C++ library is not found or can't be loaded. You can see comparison between C++, Python and previous version on [Performance comparison charts](README.md#performance-comparison).
+
+![Prefs 1](./docs/images/ui/prefs_backend.png)
+
+* #### Default settings system for the addon
+
+In Preferences window you can set default settings for the addon. These settings will be applied to new scene.
+
+![Prefs 2](./docs/images/ui/prefs_defaults.png)
+
+* #### Buttons linking to Preferences, Documentation, and Bug Report
+
+Added buttons in top of panel linking to Preferences, Documentation, and Bug Report.
+
+![Help](./docs/images/ui/help_panel.png)
+
+* #### Basic implementation of unit tests
+
+Added basic implementation of unit tests for Python and C++ backends. It's important for testing compatibility of the add-on with different Blender versions and operating systems. 
+
+* #### Unified ZIP package for Blender 3.0+ compatibility
+
+Do not understand which version of addon you need? You can download unified ZIP package for Blender 3.0+ and use it with any version of Blender. It's also compatible with Blender 4.0+.
 
 ### Changed
 
-* Improved performance of Python calculations
-* UI updates and layout refinements
+* #### Improved performance of Python calculations
+
+Many of code was optimized for better performance.
+
+* #### UI updates and layout refinements
+
+Added Icons to buttons and some UI refinements.
+
 * Codebase refactored for better structure and readability
 
 ### Fix
 
-* Fixed operators working incorrectly with multi-user data
+* #### Fixed operators working incorrectly with multi-user data
+
+Calculation of TD early works with duplicate meshes, but now it works directly with original mesh. It's fixed problems with multi-user data nd improved speed.
+
 * Various minor bugfixes and stability improvements
 
 ## Texel Density Checker 2023.2

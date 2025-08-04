@@ -5,7 +5,7 @@
 You can install Texel Density Checker by two ways:
 
 1. Install directly from [Blender Extensions](https://extensions.blender.org/add-ons/texel-density-checker/) (for Blender 4.2+)
-2. Download Zip from [GitHub](https://github.com/mrven/Blender-Texel-Density-Checker), [Gumroad](https://mrven.gumroad.com/l/CEIOR) or [Superhive](https://superhivemarket.com/products/texel-density-checker) and install it manually
+2. Download Zip from [GitHub](../README.md#download-latest-version), [Gumroad](https://mrven.gumroad.com/l/CEIOR) or [Superhive](https://superhivemarket.com/products/texel-density-checker) and install it manually
 
 ## How to install from Blender Extensions (Blender 4.2+)
 
