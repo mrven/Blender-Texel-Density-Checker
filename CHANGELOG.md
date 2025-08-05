@@ -6,7 +6,10 @@
 
 * #### New C++ backend for texel density calculations
 
-Now Texel Density Checker uses C++ backend for texel density calculations. This is faster, but compatible not for all operating systems. Python backend is also available and automatically used if C++ library is not found or can't be loaded. You can see comparison between C++, Python and previous version on [Performance comparison charts](README.md#performance-comparison).
+Now Texel Density Checker uses C++ backend for texel density calculations. This is faster, but compatible not for all operating systems. Python backend is also available and automatically used if C++ library is not found or can't be loaded. You can see comparison between C++, Python and previous version on the [Performance comparison charts](README.md#performance-comparison).
+
+> [!NOTE]
+> The C++ backend is only available for Linux and Windows. On macOS will be available in future versions.
 
 ![Prefs 1](./docs/images/ui/prefs_backend.png)
 
@@ -46,7 +49,7 @@ Added Icons to buttons and some UI refinements.
 
 * #### Fixed operators working incorrectly with multi-user data
 
-Calculation of TD early works with duplicate meshes, but now it works directly with original mesh. It's fixed problems with multi-user data nd improved speed.
+Calculation of TD early works with duplicate meshes, but now it works directly with original mesh. It's fixed problems with multi-user data and improved speed.
 
 * Various minor bugfixes and stability improvements
 

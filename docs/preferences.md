@@ -97,5 +97,3 @@ Auto recalculate VC when changing Mode/Value in [Bake TD/UV/Islands Panel](bake_
 ### Reset Preferences
 
 Reset all preferences to default values.
-
-# Usage Examples

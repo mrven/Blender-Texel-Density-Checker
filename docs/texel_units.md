@@ -37,5 +37,3 @@ Width of texture in pixels if select Custom Texture Size option.
 ### Height (Custom Size only)
 
 Height of texture in pixels if select Custom Texture Size option.
-
-# Usage Examples

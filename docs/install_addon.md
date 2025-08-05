@@ -9,14 +9,35 @@ You can install Texel Density Checker by two ways:
 
 ## How to install from Blender Extensions (Blender 4.2+)
 
-1. Open Blender Preferences (Edit > Preferences).
-2. In Get Extensions tab, search for Texel Density Checker and click Install.
+1. Open **Blender Preferences** (Edit > Preferences).
 
-## How to install from GitHub
+![Install Prefs](./images/ui/install_prefs.png)
 
-1. Download Texel Density Checker from [README.md](../README.md#download-latest-version) for your Blender version.
-2. Open Blender Preferences (Edit > Preferences).
-3. In Add-ons tab, click Install and select downloaded zip file.
+2. In **Get Extensions** tab, search for **Texel Density Checker** and click **Install**.
+
+![Install Get Extensions](./images/ui/install_4_2_get_extensions.png)
+
+3. After installation, you can find **Texel Density Checker** in **N-Panel** of **3D View** and **UV Editor**.
+
+![Addon in Panel](./images/ui/install_panel.png)
+
+## How to install from GitHub (Blender 3.0+)
+
+1. Download **Texel Density Checker zip-file** from [README.md](../README.md#download-latest-version) for your Blender version.
+
+![Install GitHub](./images/ui/install_3_0_github.png)
+
+2. Open **Blender Preferences** (Edit > Preferences).
+
+![Install Prefs](./images/ui/install_prefs.png)
+
+3. In **Add-ons** tab, click **Install** and select **downloaded zip-file**.
+
+![Install Addon](./images/ui/install_3_0_addons.png)
+
+4.After installation, you can find **Texel Density Checker** in **N-Panel** of **3D View** and **UV Editor**.
+
+![Addon in Panel](./images/ui/install_panel.png)
 
 > [!NOTE]
 > You can also download it from [Gumroad](https://mrven.gumroad.com/l/CEIOR) or [Superhive](https://superhivemarket.com/products/texel-density-checker)

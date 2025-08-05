@@ -4,11 +4,11 @@
 
 With **Texel Density Checker** you can: 
 
-* Calculate Texel Density for model for different texture size (includes non-squared textures and custom size)
-* Rescale UV for getting texel density what you want
+* Calculate Texel Density for mesh for different texture size (includes non-squared textures and custom size)
+* Rescale UV for getting of target Texel Density
 * Copy Texel Density from one object to others
-* Select faces for same Density
-* Vizualize Texel Density with Cheker material and vertex color
+* Select faces for same Density/UV Space
+* Visualize Texel Density/UV/Islands with Checker material and vertex color
 
 Texel Density Checker simple for use. You need select your mesh (or faces) and texture size and just click button.
 
