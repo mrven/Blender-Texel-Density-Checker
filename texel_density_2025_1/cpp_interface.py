@@ -16,8 +16,8 @@ class TDCoreWrapper:
 			lib_name = "tdcore.dll"
 		elif sys.platform.startswith("linux"):
 			lib_name = "libtdcore.so"
-		elif sys.platform.startswith("darwin"):  # macOS
-			lib_name = "libtdcore.dylib"
+		# elif sys.platform.startswith("darwin"):  # macOS
+		# 	lib_name = "libtdcore.dylib"
 		else:
 			return None
 
