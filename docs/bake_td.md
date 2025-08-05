@@ -65,3 +65,5 @@ Run Bake Texel Density/UV Islands/UV Space/UV Distortion to Vertex Color operato
 Clear TD Vertex Color only for selected objects.
 
 # Usage Examples
+
+![Bake TD](./images/gifs/bake_td.gif)

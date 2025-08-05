@@ -36,3 +36,4 @@ Copy value from the calculated texel density field to the Select Value field.
 
 # Usage Examples
 
+![Calculate TD](./images/gifs/calculate_td.gif)

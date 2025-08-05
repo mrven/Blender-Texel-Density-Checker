@@ -45,3 +45,5 @@ Threshold for Equal To comparison type.
 Run Select Faces/Islands By TD/UV Space operator.
 
 # Usage Examples
+
+![Select TD](./images/gifs/select_td.gif)

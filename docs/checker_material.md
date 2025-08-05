@@ -46,3 +46,5 @@ Clear saved materials from selected object.
 > This operation may lose saved materials.
 
 # Usage Examples
+
+![Checker Material](./images/gifs/checker_material.gif)

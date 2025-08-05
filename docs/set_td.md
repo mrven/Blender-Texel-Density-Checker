@@ -56,3 +56,5 @@ Set Texel Density to half or double of current value.
 Calculate Texel Density for active object and set it to other selected objects.
 
 # Usage Examples
+
+![Set TD](./images/gifs/set_td.gif)
