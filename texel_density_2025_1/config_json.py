@@ -3,8 +3,6 @@ import json
 import bpy
 from bpy.utils import user_resource
 
-from .utils import get_preferences
-
 saving_enabled = False
 
 def get_prefs_path():
