@@ -1,4 +1,5 @@
 import bpy
+import sys
 from bpy.props import (
 	StringProperty,
 	EnumProperty,
@@ -189,7 +190,12 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		box = layout.box()
 		row = box.row(align=True)
 		row.label(text='Calculation Backend:')
-		row.prop(self, 'calculation_backend', expand=False)
+
+		if sys.platform.startswith("darwin"):
+			self.calculation_backend = 'PY'
+			row.label(text='Option is not available on macOS yet.', icon='INFO')
+		else:
+			row.prop(self, 'calculation_backend', expand=False)
 
 		box = layout.box()
 		row = box.row()

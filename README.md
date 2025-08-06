@@ -1,65 +1,90 @@
 # Blender Addon: Texel Density Checker
 
-![Header](/images/Header_TD_2023_1920.png)
-
-**[Russian README](/README_ru.md)**
+![Cover](./docs/images/promo/cover.png)
 
 With **Texel Density Checker** you can: 
 
-* Calculate Texel Density for model for different texture size (includes non-squared textures and custom size)
-* Rescale UV for getting texel density what you want
+* Calculate Texel Density for mesh for different texture size (includes non-squared textures and custom size)
+* Rescale UV for getting of target Texel Density
 * Copy Texel Density from one object to others
-* Select faces for same Density
-* Vizualize Texel Density with Vertex Colors
+* Select faces for same Density/UV Space
+* Visualize Texel Density/UV/Islands with Checker material and vertex color
 
 Texel Density Checker simple for use. You need select your mesh (or faces) and texture size and just click button.
 
-***Download latest version:***
+## ***Download latest version:***
 
-* ***[(2023.2) Blender 4.2+ (from Blender Extensions)](https://extensions.blender.org/add-ons/texel-density-checker/)***
-* ***[(2023.2) Blender 4.0+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2023_2_Bl400.zip)***
-* ***[(2023.2) Blender 3.6+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_2023_2_Bl361.zip)***
-* ***[(3.4) Blender 3.4+ (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_4_341.zip)***
-* ***[(3.3.1) Blender 2.91+ (also 3.0+) (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_3_1_291.zip)***
-* ***[(3.2.1) Blender 2.83-2.90 (Windows, Linux, MacOS)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_3_2_1_283.zip)***
-* ***[(1.0.9) Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/Releases/Texel_Density_1_0_9_279.zip)***
+* ***[(2025.1) Blender 4.2+ (from Blender Extensions)](https://extensions.blender.org/add-ons/texel-density-checker/)***
+* ***[(2025.1) Blender 3.0++ (even 4.5+)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/texel_density_2025_1.zip)***
+* ***[(3.3.1) Blender 2.91+](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/Texel_Density_3_3_1_291.zip)***
+* ***[(3.2.1) Blender 2.83-2.90](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/Texel_Density_3_2_1_283.zip)***
+* ***[(1.0.9) Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/Texel_Density_1_0_9_279.zip)***
 
 If you want to support me you can buy this addon:
-* ***[Blender Market](https://blendermarket.com/products/texel-density-checker)***
+* ***[Superhive](https://superhivemarket.com/products/texel-density-checker)***
+* ***[Gumroad](https://mrven.gumroad.com/l/CEIOR)***
 
-## New in Texel Density Checker 2023
-### 25% speed increase
-![Speed_Increase](/images/pngs/2023/01_Performance.png)
+## New in Texel Density Checker 2025.1
 
-### Select anchor for scaling UV when using "Set TD"
-Select Origin for Rescale UV: Average point of Selection, Corner of UV, Center of UV or 2D Cursor. Before that Rescale origin was from average point of selection of UV.\
-![Select_Anchor_1](/images/pngs/2023/02_Select_Anchor_1.png)\
-![Select_Anchor_2](/images/pngs/2023/03_Select_Anchor_2.png)\
+#### New
 
-### Visualization of Distortion UV
-Shows the ratio between the percentage of UV occupied area and the percentage of the object's geometry area.\
-![Distortion](/images/pngs/2023/04_Distortion.png)
+* New C++ backend for texel density calculations
+* Default settings system for the addon
+* Buttons linking to Preferences, Documentation, and Bug Report
+* Basic implementation of unit tests
+* Unified ZIP package for Blender 3.0+ compatibility
 
-### Ability to remove panel from View 3D or UV Editor
-Added options to Preferences for hiding Texel Density Panel from View 3D or UV Editor.\
-![Hide_Panels](/images/pngs/2023/05_Hide_Panels.png)
+#### Changed
 
-## Features
+* Improved performance of Python calculations
+* UI updates and layout refinements
+* Codebase refactored for better structure and readability
 
-![Different Units](/images/TD_3_En-en/01_Units_EN.png)
+#### Fix
 
-![Texture Size](/images/TD_3_En-en/02_Texture_Size_EN.png)
+* Fixed operators working incorrectly with multi-user data
+* Various minor bugfixes and stability improvements
 
-![Checker Material](/images/TD_3_En-en/03_Checker_Material_EN.png)
+[See full CHANGELOG](CHANGELOG.md#texel-density-checker-20251)
 
-![Calculate TD](/images/TD_3_En-en/04_Calculate_EN.png)
+## Documentation
 
-![Copy Value](/images/TD_3_En-en/05_Calc_to_Set_EN.png)
+[Install Addon](./docs/install_addon.md)
 
-![Set TD](/images/TD_3_En-en/06_Set_TD_EN.png)
+[Help Panel](./docs/help_panel.md)
 
-![Select](/images/TD_3_En-en/07_Select_EN.png)
+[Texel Units & Texture Size](./docs/texel_units.md)
 
-![TD To VC](/images/TD_3_En-en/08_TD_VC_EN.png)
+[Calculate Texel Density](./docs/calculate_td.md)
 
-![UV To VC](/images/TD_3_En-en/09_UV_VC_EN.png)
+[Set Texel Density](./docs/set_td.md)
+
+[Interactive Checker Material](./docs/checker_material.md)
+
+[Bake TD/UV/Islands to VC](./docs/bake_td.md)
+
+[Select Faces by TD/UV](./docs/select_by_td.md)
+
+[Addon Preferences](./docs/preferences.md)
+
+[How to report a bug?](./docs/bug_report.md)
+
+## Performance Comparison
+
+![Chart 1](./docs/images/promo/chart_1.png)
+
+![Chart 2](./docs/images/promo/chart_2.png)
+
+![Chart 3](./docs/images/promo/chart_3.png)
+
+## Features Overview
+
+![Calculate](./docs/images/promo/calculate.png)
+
+![Set](./docs/images/promo/set.png)
+
+![Checker](./docs/images/promo/checker.png)
+
+![Bake](./docs/images/promo/bake.png)
+
+![Select](./docs/images/promo/select.png)

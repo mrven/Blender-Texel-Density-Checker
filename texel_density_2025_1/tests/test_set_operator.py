@@ -3,20 +3,20 @@ import unittest
 from .. import utils
 
 class TestTexelDensitySetOperator(unittest.TestCase):
-	# Тест кейсы:
-	# • в обжект моде 3д вью
-	# • в эдит моде 3д вью с/без селектед фейсес
-	# • в юв эдиторе с/без синком выделения
-	# • в юв эдиторе с/без селектед фейсес
-	# • кейсы, когда полигоны не выделены
-	# • кейсы, когда нет юв
-	# • кейсы, когда юв маленькое
-	# • кейсы с несколькими мешами в обжект и эдит моде
-	# • кейсы со сменой размера текстур
-	# • кейсы со сменой юнитов
-	# • кейс, когда нет активного объекта
+	# Test cases:
+	# • In object mode with 3d view
+	# • In edit mode with 3d view with/without selected faces
+	# • In uv editor with/without sync selection
+	# • In uv editor with/without selected faces
+	# • Cases when polygons are not selected
+	# • Cases when there is no uv
+	# • Cases when uv is small
+	# • Cases with multiple meshes in object and edit mode
+	# • Cases with changing texture size
+	# • Cases with changing units
+	# • Case when there is no active object
 
-	#  Лучше всего тесты держать атомарными и делать по одной проверке в функции, чтобы не повышать сложность тестов
+	# It is better to keep tests atomic and make one check per function, so that the complexity of tests does not increase
 
 	@classmethod
 	def setUpClass(cls):

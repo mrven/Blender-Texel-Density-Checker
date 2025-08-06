@@ -3,21 +3,21 @@ import unittest
 from .. import utils
 
 class TestTexelDensityCheckOperator(unittest.TestCase):
-	# TODO: Возможно даже стоит добавить что-то из НЕ мешей и перебирать в тестах разные варианты активного объекта
-	# Тест кейсы:
-	# • в обжект моде 3д вью
-	# • в эдит моде 3д вью с/без селектед фейсес
-	# • в юв эдиторе с/без синком выделения
-	# • в юв эдиторе с/без селектед фейсес
-	# • кейсы, когда полигоны не выделены
-	# • кейсы, когда нет юв
-	# • кейсы, когда юв маленькое
-	# • кейсы с несколькими мешами в обжект и эдит моде
-	# • кейсы со сменой размера текстур
-	# • кейсы со сменой юнитов
-	# • кейс, когда нет активного объекта
+	# TODO: Maybe it's worth adding some non-mesh objects and iterating over different variants of the active object in tests
+	# Test cases:
+	# • Object mode, 3d view
+	# • Edit mode, 3d view with/without selected faces
+	# • UV editor with/without sync selection
+	# • UV editor with/without selected faces
+	# • Cases when polygons are not selected
+	# • Cases when there is no UV
+	# • Cases when UV is small
+	# • Cases with multiple meshes in object and edit mode
+	# • Cases with changing texture size
+	# • Cases with changing units
+	# • Case when there is no active object
 
-	#  Лучше всего тесты держать атомарными и делать по одной проверке в функции, чтобы не повышать сложность тестов
+	#  It's better to keep tests atomic and make one check per function to avoid increasing test complexity
 
 	@classmethod
 	def setUpClass(cls):

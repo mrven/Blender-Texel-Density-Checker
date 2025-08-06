@@ -4,8 +4,8 @@ TD_MATERIAL_NAME = 'TD_Checker'
 
 
 # URLs
-TD_DOC_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker#readme'
-TD_REPORT_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker/issues'
+TD_DOC_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker/blob/master/README.md#documentation'
+TD_REPORT_URL = 'https://github.com/mrven/Blender-Texel-Density-Checker/blob/master/docs/bug_report.md'
 
 
 # Enums/Dictionaries/Lists
