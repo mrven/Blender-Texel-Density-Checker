@@ -124,6 +124,8 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 		need_select_again_obj = context.selected_objects
 		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
 
+		version = bpy.app.version
+
 		search_value = float(td.select_value)
 		select_threshold = float(td.select_threshold)
 
@@ -190,11 +192,17 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 
 				for face in bm.faces:
 					for loop in face.loops:
-						loop[uv_layer].select = False
+						if version < (5, 0, 0):
+							loop[uv_layer].select = False
+						else:
+							loop.uv_select_vert = False
 
 				for face_id in searched_faces:
 					for loop in bm.faces[face_id].loops:
-						loop[uv_layer].select = True
+						if version < (5, 0, 0):
+							loop[uv_layer].select = True
+						else:
+							loop.uv_select_vert = True
 
 				bm.to_mesh(obj.data)
 

@@ -19,20 +19,32 @@ def sync_uv_selection():
 	uv_layer = bm.loops.layers.uv.active
 	td = bpy.context.scene.td
 
+	version = bpy.app.version
+
 	uv_selected_faces = []
 
 	for face in bm.faces:
 		if face.select:
-			if all(loop[uv_layer].select for loop in face.loops):
-				uv_selected_faces.append(face.index)
+			if version < (5, 0, 0):
+				if all(loop[uv_layer].select for loop in face.loops):
+					uv_selected_faces.append(face.index)
+			else:
+				if all(loop.uv_select_vert for loop in face.loops):
+					uv_selected_faces.append(face.index)
 
 	for face in bm.faces:
 		for loop in face.loops:
-			loop[uv_layer].select = False
+			if version < (5, 0, 0):
+				loop[uv_layer].select = False
+			else:
+				loop.uv_select_vert = False
 
 	for face_id in uv_selected_faces:
 		for loop in bm.faces[face_id].loops:
-			loop[uv_layer].select = True
+			if version < (5, 0, 0):
+				loop[uv_layer].select = True
+			else:
+				loop.uv_select_vert = True
 
 	for face in bm.faces:
 		face.select_set(not td.selected_faces)
@@ -246,9 +258,15 @@ def get_uv_islands():
 	uv_layer = bm.loops.layers.uv.active
 	face_count = len(bm.faces)
 
+	version = bpy.app.version
+
 	start_selected_3d_faces = {f.index for f in bm.faces if f.select}
 	start_hidden_faces = {f.index for f in bm.faces if f.hide}
-	start_selected_uv_faces = {f.index for f in bm.faces if all(loop[uv_layer].select for loop in f.loops)}
+
+	if version < (5, 0, 0):
+		start_selected_uv_faces = {f.index for f in bm.faces if all(loop[uv_layer].select for loop in f.loops)}
+	else:
+		start_selected_uv_faces = {f.index for f in bm.faces if all(loop.uv_select_vert for loop in f.loops)}
 
 	scene = bpy.context.scene
 	start_uv_sync = scene.tool_settings.use_uv_select_sync
@@ -265,15 +283,22 @@ def get_uv_islands():
 
 		bpy.ops.uv.select_all(action='DESELECT')
 		for loop in bm.faces[seed_face_idx].loops:
-			loop[uv_layer].select = True
+			if version < (5, 0, 0):
+				loop[uv_layer].select = True
+			else:
+				loop.uv_select_vert = True
 
 		bpy.ops.uv.select_linked()
 
 		current_island = []
 		for face_idx in list(remaining_faces):
 			face = bm.faces[face_idx]
-			if face.select and all(loop[uv_layer].select for loop in face.loops):
-				current_island.append(face_idx)
+			if version < (5, 0, 0):
+				if face.select and all(loop[uv_layer].select for loop in face.loops):
+					current_island.append(face_idx)
+			else:
+				if face.select and all(loop.uv_select_vert for loop in face.loops):
+					current_island.append(face_idx)
 
 		if not current_island:
 			print("Warning: Could not select UV island properly.")
@@ -292,7 +317,10 @@ def get_uv_islands():
 
 	for face_idx in start_selected_uv_faces:
 		for loop in bm.faces[face_idx].loops:
-			loop[uv_layer].select = True
+			if version < (5, 0, 0):
+				loop[uv_layer].select = True
+			else:
+				loop.uv_select_vert = True
 
 	for face_idx in start_hidden_faces:
 		bm.faces[face_idx].hide_set(True)

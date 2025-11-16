@@ -26,6 +26,8 @@ class TexelDensityCheck(bpy.types.Operator):
 
 		tdcore_lib = TDCoreWrapper() if utils.get_preferences().calculation_backend == 'CPP' else None
 
+		version = bpy.app.version
+
 		bpy.ops.object.mode_set(mode='OBJECT')
 
 		area = 0.0
@@ -52,11 +54,13 @@ class TexelDensityCheck(bpy.types.Operator):
 				bm.clear()
 				bm.from_mesh(obj.data)
 				bm.faces.ensure_lookup_table()
-				uv_layer = bm.loops.layers.uv.active
-
-				selected_faces = np.array([f.index for f in bm.faces
-					if f.select and all(loop[uv_layer].select for loop in f.loops)], dtype=np.int32)
-
+				if version < (5, 0, 0):
+					uv_layer = bm.loops.layers.uv.active
+					selected_faces = np.array([f.index for f in bm.faces
+						if f.select and all(loop[uv_layer].select for loop in f.loops)], dtype=np.int32)
+				else:
+					selected_faces = np.array([f.index for f in bm.faces
+						if f.select and all(loop.uv_select_vert for loop in f.loops)], dtype=np.int32)
 			else:
 				selected_faces = np.array([p.index for p in mesh_data.polygons if p.select], dtype=np.int32)
 
@@ -150,6 +154,8 @@ class TexelDensitySet(bpy.types.Operator):
 
 			bpy.ops.object.mode_set(mode='EDIT')
 
+			start_sync_selection = context.scene.tool_settings.use_uv_select_sync
+
 			if context.area.spaces.active.type == "IMAGE_EDITOR" and not context.scene.tool_settings.use_uv_select_sync:
 				utils.sync_uv_selection()
 
@@ -192,6 +198,8 @@ class TexelDensitySet(bpy.types.Operator):
 			if not context.scene.tool_settings.use_uv_select_sync:
 				bpy.ops.uv.select_all(action='SELECT')
 
+			context.scene.tool_settings.use_uv_select_sync = False
+
 			if td.set_method == 'EACH':
 				bpy.ops.uv.average_islands_scale()
 
@@ -212,6 +220,8 @@ class TexelDensitySet(bpy.types.Operator):
 				scale_fac = density_new_value / density_current_value
 
 			bpy.ops.transform.resize(value=(scale_fac, scale_fac, 1))
+
+			context.scene.tool_settings.use_uv_select_sync = start_sync_selection
 
 			# Restore cursor and pivot
 			bpy.ops.uv.cursor_set(location=start_cursor_loc)
