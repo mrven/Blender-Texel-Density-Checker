@@ -96,7 +96,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 					td.density = ''
 					td.uv_space = ''
 
-					result = bpy.ops.texel_density.check()
+					result = bpy.ops.object.texel_density_check()
 
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
@@ -158,7 +158,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 					obj.data.polygons[i].select = True
 
 					bpy.ops.object.mode_set(mode='EDIT')
-					result = bpy.ops.texel_density.check()
+					result = bpy.ops.object.texel_density_check()
 
 					actual_density = td.density
 					actual_uv_space = td.uv_space
@@ -210,7 +210,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 					td.density = ''
 					td.uv_space = ''
 
-					result = bpy.ops.texel_density.check()
+					result = bpy.ops.object.texel_density_check()
 
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
@@ -266,7 +266,7 @@ class TestTexelDensityCheckOperator(unittest.TestCase):
 					bpy.ops.object.mode_set(mode='EDIT')
 					bpy.ops.mesh.select_all(action='DESELECT')
 
-					result = bpy.ops.texel_density.check()
+					result = bpy.ops.object.texel_density_check()
 
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 

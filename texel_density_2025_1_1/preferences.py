@@ -320,7 +320,7 @@ class TDObjectSetting(bpy.types.PropertyGroup):
 
 class ResetPreferences(bpy.types.Operator):
 	"""Reset all preferences to default values"""
-	bl_idname = "texel_density.reset_preferences"
+	bl_idname = "object.texel_density_reset_preferences"
 	bl_label = "Reset Preferences"
 
 	def execute(self, _):
@@ -335,7 +335,7 @@ class ResetPreferences(bpy.types.Operator):
 
 class ApplyDefaultsToProps(bpy.types.Operator):
 	"""Apply current defaults from preferences to props"""
-	bl_idname = "texel_density.apply_defaults_to_props"
+	bl_idname = "object.texel_density_apply_defaults_to_props"
 	bl_label = "Copy Default Settings To Current Session"
 
 	def execute(self, _):

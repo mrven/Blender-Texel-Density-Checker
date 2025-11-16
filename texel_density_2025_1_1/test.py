@@ -5,7 +5,7 @@ import sys
 
 
 class RunTests(bpy.types.Operator):
-    bl_idname = "texel_density.run_tests"
+    bl_idname = "object.texel_density_run_tests"
     bl_label = "Run Texel Density Tests"
     bl_description = "Run all Texel Density tests"
 

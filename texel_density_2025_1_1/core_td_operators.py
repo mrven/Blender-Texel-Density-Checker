@@ -12,7 +12,7 @@ from .cpp_interface import TDCoreWrapper
 # Calculate TD for selected polygons
 class TexelDensityCheck(bpy.types.Operator):
 	"""Calculate TD for selected objects/faces"""
-	bl_idname = "texel_density.check"
+	bl_idname = "object.texel_density_check"
 	bl_label = "Calculate TD"
 	bl_options = {'REGISTER', 'UNDO'}
 
@@ -119,7 +119,7 @@ class TexelDensityCheck(bpy.types.Operator):
 # Set TD
 class TexelDensitySet(bpy.types.Operator):
 	"""Sets texel density for selected UV islands based on target value"""
-	bl_idname = "texel_density.set"
+	bl_idname = "object.texel_density_set"
 	bl_label = "Set TD"
 	bl_options = {'REGISTER', 'UNDO'}
 
@@ -211,7 +211,7 @@ class TexelDensitySet(bpy.types.Operator):
 			if td.set_method == 'EACH':
 				bpy.ops.uv.average_islands_scale()
 
-			bpy.ops.texel_density.check()
+			bpy.ops.object.texel_density_check()
 
 			try:
 				density_current_value = float(td.density)
@@ -257,7 +257,7 @@ class TexelDensitySet(bpy.types.Operator):
 			bpy.ops.object.mode_set(mode='EDIT')
 
 		# Final TD check
-		bpy.ops.texel_density.check()
+		bpy.ops.object.texel_density_check()
 		utils.print_execution_time("Set TD", start_time)
 		return {'FINISHED'}
 

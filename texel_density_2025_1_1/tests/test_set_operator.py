@@ -96,7 +96,7 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					td.uv_space = ''
 					td.density_set = '1.28'
 
-					result = bpy.ops.texel_density.set()
+					result = bpy.ops.object.texel_density_set()
 
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
@@ -118,7 +118,7 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					td.uv_space = ''
 					td.density_set = '5.12'
 
-					result = bpy.ops.texel_density.set()
+					result = bpy.ops.object.texel_density_set()
 
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
@@ -190,7 +190,7 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					obj.data.polygons[i].select = True
 
 					bpy.ops.object.mode_set(mode='EDIT')
-					result = bpy.ops.texel_density.set()
+					result = bpy.ops.object.texel_density_set()
 
 					actual_density = td.density
 					actual_uv_space = td.uv_space
@@ -243,7 +243,7 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					td.uv_space = ''
 					td.density_set = '1.28'
 
-					result = bpy.ops.texel_density.set()
+					result = bpy.ops.object.texel_density_set()
 
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
@@ -265,7 +265,7 @@ class TestTexelDensitySetOperator(unittest.TestCase):
 					td.uv_space = ''
 					td.density_set = '5.12'
 
-					result = bpy.ops.texel_density.set()
+					result = bpy.ops.object.texel_density_set()
 
 					print(f"Run {i + 1}: density={td.density}, uv_space={td.uv_space} %")
 
