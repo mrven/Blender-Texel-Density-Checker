@@ -191,11 +191,7 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		row = box.row(align=True)
 		row.label(text='Calculation Backend:')
 
-		if sys.platform.startswith("darwin"):
-			self.calculation_backend = 'PY'
-			row.label(text='Option is not available on macOS yet.', icon='INFO')
-		else:
-			row.prop(self, 'calculation_backend', expand=False)
+		row.prop(self, 'calculation_backend', expand=False)
 
 		box = layout.box()
 		row = box.row()
