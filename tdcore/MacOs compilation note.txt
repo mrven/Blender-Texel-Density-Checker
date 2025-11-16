@@ -1,0 +1,21 @@
+clang -arch x86_64 -dynamiclib -o build_x86_64/libtdcore.dylib tdcore.cpp -fPIC
+clang -arch arm64 -dynamiclib -o build_arm64/libtdcore.dylib tdcore.cpp -fPIC  
+
+# Combine libs
+lipo -create build_x86_64/libtdcore.dylib build_arm64/libtdcore.dylib -output libtdcore.dylib
+lipo -info libtdcore.dylib # Check Universal Lib
+
+# Add rpath
+install_name_tool -id @rpath/libtdcore.dylib libtdcore.dylib
+install_name_tool -add_rpath @loader_path/ libtdcore.dylib
+otool -L libtdcore.dylib # Check rpath and external dependencies
+
+# Signing
+codesign --force --sign - libtdcore.dylib
+
+# Check sign
+codesign -dv --verbose=4 libtdcore.dylib
+spctl --assess --verbose libtdcore.dylib # Reject is OK for Ad-Hoc sign
+
+# Clean attributes before making archive
+xattr -cr path/to/my_addon/
