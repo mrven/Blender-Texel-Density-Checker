@@ -11,7 +11,7 @@ class RunTests(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            addon_name = __name__.split('.')[0]
+            addon_name = __package__
             tests_pkg_name = f"{addon_name}.tests"
             tests_pkg = importlib.import_module(tests_pkg_name)
 

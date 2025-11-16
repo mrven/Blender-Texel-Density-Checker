@@ -262,7 +262,7 @@ class ShowAddonPrefs(bpy.types.Operator):
 	bl_label = "Open Addon Preferences"
 
 	def execute(self, _):
-		addon_name = __name__.split('.')[0]
+		addon_name = __package__
 		bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
 		bpy.context.preferences.active_section = 'ADDONS'
 		bpy.ops.preferences.addon_show(module=addon_name)
