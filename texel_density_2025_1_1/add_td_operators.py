@@ -18,6 +18,11 @@ class TexelDensityCopy(bpy.types.Operator):
 		start_time = datetime.now()
 		td = context.scene.td
 		start_active_obj = context.active_object
+
+		if len(bpy.context.selected_objects) < 2:
+			self.report({'INFO'}, "Select at least 2 meshes")
+			return {"FINISHED"}
+
 		start_selected_obj = context.selected_objects
 
 		# Calculate TD for active object only and copy value to "Set TD Value" field
