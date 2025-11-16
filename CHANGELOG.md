@@ -1,5 +1,18 @@
 # Texel Density Checker Changelog
 
+## Texel Density Checker 2025.1.1
+
+### New
+
+* Blender 5.0 Support
+* C++ calculation backend for Mac
+
+### Fix
+
+* "Assign Shortcut" for operators
+* "Prefs" button when addon installed from Blender Extensions
+* Operators working when active object is mesh but not selected
+
 ## Texel Density Checker 2025.1
 
 ### New
