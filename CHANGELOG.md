@@ -1,5 +1,11 @@
 # Texel Density Checker Changelog
 
+## Texel Density Checker 2025.1.2
+
+### Fix
+
+* Error when operators call outside right context 
+
 ## Texel Density Checker 2025.1.1
 
 ### New
