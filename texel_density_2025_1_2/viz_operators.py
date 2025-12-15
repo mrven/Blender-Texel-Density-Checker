@@ -180,8 +180,13 @@ class CheckerAssign(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-		start_mode = context.object.mode
+
 		start_active_obj = context.active_object
+
+		if start_active_obj is None:
+			return {"CANCELLED"}
+
+		start_mode = context.object.mode
 
 		if len(bpy.context.selected_objects) == 0:
 			start_active_obj.select_set(True)
@@ -316,8 +321,13 @@ class CheckerRestore(bpy.types.Operator):
 
 	def execute(self, context):
 		start_time = datetime.now()
-		start_mode = context.object.mode
+
 		start_active_obj = context.active_object
+
+		if start_active_obj is None:
+			return {"CANCELLED"}
+
+		start_mode = context.object.mode
 
 		if len(bpy.context.selected_objects) == 0:
 			start_active_obj.select_set(True)
@@ -384,8 +394,13 @@ class ClearSavedMaterials(bpy.types.Operator):
 
 	def execute(self, context):
 		start_time = datetime.now()
+
+		start_active_obj = context.active_object
+
+		if start_active_obj is None:
+			return {"CANCELLED"}
+
 		start_mode = context.object.mode
-		start_active_obj = bpy.context.active_object
 
 		if len(bpy.context.selected_objects) == 0:
 			start_active_obj.select_set(True)
@@ -417,6 +432,9 @@ class BakeTDToVC(bpy.types.Operator):
 		td = context.scene.td
 		version = bpy.app.version
 		start_active_obj = context.active_object
+
+		if start_active_obj is None:
+			return {"CANCELLED"}
 
 		if len(bpy.context.selected_objects) == 0:
 			start_active_obj.select_set(True)
@@ -644,8 +662,13 @@ class ClearTDFromVC(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		version = bpy.app.version
-		start_mode = context.object.mode
+
 		start_active_obj = context.active_object
+
+		if start_active_obj is None:
+			return {"CANCELLED"}
+
+		start_mode = context.object.mode
 
 		if len(bpy.context.selected_objects) == 0:
 			start_active_obj.select_set(True)

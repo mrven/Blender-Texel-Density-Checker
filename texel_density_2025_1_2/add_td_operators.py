@@ -124,8 +124,14 @@ class SelectByTDOrUVSpace(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-		start_mode = context.object.mode
+
 		start_active_obj = context.active_object
+
+		if start_active_obj is None:
+			return {"CANCELLED"}
+
+		start_mode = context.object.mode
+
 		need_select_again_obj = context.selected_objects
 		start_selected_obj = (bpy.context.objects_in_mode if start_mode == 'EDIT' else bpy.context.selected_objects)
 

@@ -20,7 +20,7 @@ class TexelDensityCheck(bpy.types.Operator):
 		start_time = datetime.now()
 		td = context.scene.td
 
-		start_active_obj = bpy.context.active_object
+		start_active_obj = context.active_object
 
 		if start_active_obj is None:
 			return {"CANCELLED"}
@@ -131,7 +131,7 @@ class TexelDensitySet(bpy.types.Operator):
 	def execute(self, context):
 		start_time = datetime.now()
 		td = context.scene.td
-		start_active_obj = bpy.context.active_object
+		start_active_obj = context.active_object
 
 		if start_active_obj is None:
 			return {"CANCELLED"}
