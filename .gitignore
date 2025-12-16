@@ -3,3 +3,4 @@
 .clang-format
 x64/
 *.vcxproj.*
+.DS_Store
