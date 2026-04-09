@@ -40,8 +40,11 @@ TD_ANCHOR_ORIGIN_ITEMS = (('SELECTION', 'Selection', ''),
                           ('UV_RIGHT_TOP', 'UV Right Top', ''),
                           ('2D_CURSOR', '2D Cursor', ''))
 
-TD_TEXTURE_SIZE_ITEMS = (('512', '512px', ''),
-                        ('1024', '1024px', ''),
+TD_TEXTURE_SIZE_ITEMS = (('64', '64px', ''),
+                        ('128', '128px', ''),
+                        ('256', '256px', ''),
+                        ('512', '512px', ''),                        
+						('1024', '1024px', ''),
                         ('2048', '2048px', ''),
                         ('4096', '4096px', ''),
                         ('CUSTOM', 'Custom', ''))
