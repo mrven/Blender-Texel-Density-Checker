@@ -1,5 +1,11 @@
 # Texel Density Checker Changelog
 
+## Texel Density Checker 2026.1
+
+### New
+
+* Added presets for small texture sizes (PR from @whodgson)
+
 ## Texel Density Checker 2025.1.2
 
 ### Fix
