@@ -83,8 +83,6 @@ PREFS_ANCHOR_ITEMS = (('LEFT_TOP', 'Left Top', ''),
                       ('RIGHT_TOP', 'Right Top', ''),
                       ('RIGHT_BOTTOM', 'Right Bottom', ''))
 
-PREFS_BACKEND_ITEMS = (('CPP', 'C++ (Fast)', ''), ('PY', 'Python (Slow)', ''))
-
 
 # Shaders
 VERTEX_SHADER_TEXT_3_0 = '''
