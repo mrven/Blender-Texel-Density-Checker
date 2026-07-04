@@ -259,7 +259,7 @@ class TDAddonView3DPanel(bpy.types.Panel):
 # Panel in UV Editor
 class TDAddonUVPanel(bpy.types.Panel):
 	bl_idname = "UV_PT_texel_density_checker"
-	bl_label = "Texel Density Checker 2025.1"
+	bl_label = "Texel Density Checker 2026.1"
 	bl_space_type = "IMAGE_EDITOR"
 	bl_region_type = "UI"
 	bl_category = "Texel Density"
