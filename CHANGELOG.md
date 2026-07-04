@@ -5,6 +5,7 @@
 ### Fix
 
 * 2D cursor position changing after setting texel density when Pixel Coordinates are enabled.
+* Startup errors caused by running context-dependent operators without an active UI area.
 
 ### New
 

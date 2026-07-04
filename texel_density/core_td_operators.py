@@ -59,7 +59,8 @@ class TexelDensityCheck(bpy.types.Operator):
 			if start_mode == 'OBJECT' or not td.selected_faces:
 				selected_faces = np.arange(face_count, dtype=np.int32)
 
-			elif bpy.context.area.spaces.active.type == "IMAGE_EDITOR" and not bpy.context.scene.tool_settings.use_uv_select_sync:
+			elif (context.area is not None and context.area.type == "IMAGE_EDITOR"
+				and not context.scene.tool_settings.use_uv_select_sync):
 				bm.clear()
 				bm.from_mesh(obj.data)
 				bm.faces.ensure_lookup_table()
