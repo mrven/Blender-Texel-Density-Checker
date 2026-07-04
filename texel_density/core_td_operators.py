@@ -183,7 +183,7 @@ class TexelDensitySet(bpy.types.Operator):
 			uv_areas = [a for a in context.screen.areas if a.type == 'IMAGE_EDITOR' and a.ui_type == 'UV']
 			flag_uv_area_exists = bool(uv_areas)
 
-			ie_cursor_loc = uv_areas[0].spaces.active.cursor_location.copy() if flag_uv_area_exists else (0, 0)
+			anchor_cursor_loc = _get_normalized_uv_cursor(uv_areas[0].spaces.active) if flag_uv_area_exists else (0, 0)
 
 			# Set active area to UV editor
 			context.area.type = 'IMAGE_EDITOR'
@@ -193,7 +193,7 @@ class TexelDensitySet(bpy.types.Operator):
 			if context.space_data.mode != 'UV':
 				context.space_data.mode = 'UV'
 
-			start_cursor_loc = context.space_data.cursor_location.copy()
+			start_cursor_loc = _get_normalized_uv_cursor(context.space_data)
 			start_pivot_mode = context.space_data.pivot_point
 
 			# Set pivot anchor if needed
@@ -206,7 +206,7 @@ class TexelDensitySet(bpy.types.Operator):
 				'UV_LEFT_BOTTOM': (0, 0),
 				'UV_RIGHT_TOP': (1, 1),
 				'UV_RIGHT_BOTTOM': (1, 0),
-				'2D_CURSOR': ie_cursor_loc
+				'2D_CURSOR': anchor_cursor_loc
 			}
 			if td.rescale_anchor in cursor_locations:
 				bpy.ops.uv.cursor_set(location=cursor_locations[td.rescale_anchor])
@@ -268,6 +268,21 @@ class TexelDensitySet(bpy.types.Operator):
 		bpy.ops.object.texel_density_check()
 		utils.print_execution_time("Set TD", start_time)
 		return {'FINISHED'}
+
+
+def _get_normalized_uv_cursor(space):
+	"""Return the 2D cursor location in normalized UV coordinates."""
+	uv_editor = space.uv_editor
+	show_pixel_coords = uv_editor.show_pixel_coords
+
+	if not show_pixel_coords:
+		return space.cursor_location.copy()
+
+	try:
+		uv_editor.show_pixel_coords = False
+		return space.cursor_location.copy()
+	finally:
+		uv_editor.show_pixel_coords = show_pixel_coords
 
 
 classes = (

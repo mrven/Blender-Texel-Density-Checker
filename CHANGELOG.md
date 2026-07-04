@@ -2,6 +2,10 @@
 
 ## Texel Density Checker 2026.1
 
+### Fix
+
+* 2D cursor position changing after setting texel density when Pixel Coordinates are enabled.
+
 ### New
 
 * Added presets for small texture sizes (PR from @whodgson)
