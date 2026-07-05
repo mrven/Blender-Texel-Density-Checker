@@ -14,8 +14,8 @@ Texel Density Checker simple for use. You need select your mesh (or faces) and t
 
 ## ***Download latest version:***
 
-* ***[(2025.1) Blender 4.2+ (from Blender Extensions)](https://extensions.blender.org/add-ons/texel-density-checker/)***
-* ***[(2025.1) Blender 3.0++ (even 5.0+)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/texel_density_2025_1_2.zip)***
+* ***[(2026.1) Blender 4.2+ (from Blender Extensions (Python Only version))](https://extensions.blender.org/add-ons/texel-density-checker/)***
+* ***[(2026.1) Blender 3.0++ (even 5.0+)](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/texel_density_2026_1.zip)***
 * ***[(3.3.1) Blender 2.91+](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/Texel_Density_3_3_1_291.zip)***
 * ***[(3.2.1) Blender 2.83-2.90](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/Texel_Density_3_2_1_283.zip)***
 * ***[(1.0.9) Blender 2.79](https://github.com/mrven/Blender-Texel-Density-Checker/raw/master/release/Texel_Density_1_0_9_279.zip)***
@@ -24,26 +24,17 @@ If you want to support me you can buy this addon:
 * ***[Superhive](https://superhivemarket.com/products/texel-density-checker)***
 * ***[Gumroad](https://mrven.gumroad.com/l/CEIOR)***
 
-## New in Texel Density Checker 2025.1
+## New in Texel Density Checker 2026.1
 
-#### New
+### Fix
 
-* New C++ backend for texel density calculations
-* Default settings system for the addon
-* Buttons linking to Preferences, Documentation, and Bug Report
-* Basic implementation of unit tests
-* Unified ZIP package for Blender 3.0+ compatibility
+* 2D cursor position changing after setting texel density when Pixel Coordinates are enabled.
+* Startup errors caused by running context-dependent operators without an active UI area.
 
-#### Changed
+### New
 
-* Improved performance of Python calculations
-* UI updates and layout refinements
-* Codebase refactored for better structure and readability
-
-#### Fix
-
-* Fixed operators working incorrectly with multi-user data
-* Various minor bugfixes and stability improvements
+* Added presets for small texture sizes (PR from @whodgson)
+* Custom checker image assignment
 
 [See full CHANGELOG](CHANGELOG.md#texel-density-checker-20251)
 
