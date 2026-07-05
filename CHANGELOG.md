@@ -1,5 +1,17 @@
 # Texel Density Checker Changelog
 
+## Texel Density Checker 2026.1
+
+### Fix
+
+* 2D cursor position changing after setting texel density when Pixel Coordinates are enabled.
+* Startup errors caused by running context-dependent operators without an active UI area.
+
+### New
+
+* Added presets for small texture sizes (PR from @whodgson)
+* Custom checker image assignment
+
 ## Texel Density Checker 2025.1.2
 
 ### Fix
