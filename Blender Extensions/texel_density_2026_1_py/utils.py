@@ -3,14 +3,10 @@ import bmesh
 import colorsys
 from datetime import datetime
 import os
-import ctypes
-import ctypes.util
 import numpy as np
 import sys
 import math
 from collections import defaultdict
-
-from .cpp_interface import TDCoreWrapper
 
 def sync_uv_selection():
 	mesh = bpy.context.active_object.data
@@ -81,8 +77,7 @@ def calculate_geometry_areas(obj):
 	return areas
 
 
-def calculate_td_area_to_list(tdcore):
-	backend = get_preferences().calculation_backend
+def calculate_td_area_to_list(_):
 	td = bpy.context.scene.td
 
 	start_obj = bpy.context.active_object
@@ -106,68 +101,39 @@ def calculate_td_area_to_list(tdcore):
 
 	result = []
 
-	if backend == 'CPP' and tdcore.lib:
-		# Get UV-coordinates
-		uvs = np.empty(len(uv_layer) * 2, dtype=np.float32)
-		uv_layer.foreach_get("uv", uvs)
-		uvs = uvs.reshape(-1, 2).flatten()
+	uv_area_by_face = defaultdict(float)
 
-		areas = np.array(face_areas, dtype=np.float32)
+	for tri in mesh_data.loop_triangles:
+		face_index = tri.polygon_index
+		loops = tri.loops
 
-		# Get Vertex Count
-		vertex_counts = np.empty(len(mesh_data.polygons), dtype=np.int32)
-		mesh_data.polygons.foreach_get("loop_total", vertex_counts)
+		uv0 = uv_layer[loops[0]].uv
+		uv1 = uv_layer[loops[1]].uv
+		uv2 = uv_layer[loops[2]].uv
 
-		# Results Buffer (Poly Count * 2 float: TD and uv_area)
-		result_cpp = np.zeros(len(mesh_data.polygons) * 2, dtype=np.float32)
+		u = uv1 - uv0
+		v = uv2 - uv0
+		cross = u.x * v.y - u.y * v.x
+		uv_area = 0.5 * abs(cross)
 
-		# Call function from Library
-		tdcore.lib.CalculateTDAreaArray(
-			uvs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
-			uvs.size,
-			areas.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
-			vertex_counts.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
-			areas.size,
-			scale,
-			int(td.units),
-			result_cpp.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-		)
+		uv_area_by_face[face_index] += uv_area
 
-		result = list(map(tuple, result_cpp.reshape(-1, 2)))
-	else:
-		uv_area_by_face = defaultdict(float)
+	for face_index, uv_area in uv_area_by_face.items():
+		geo_area = face_areas[face_index]
 
-		for tri in mesh_data.loop_triangles:
-			face_index = tri.polygon_index
-			loops = tri.loops
+		if geo_area > 0 and uv_area > 0:
+			texel_density = scale * math.sqrt(uv_area) / math.sqrt(geo_area)
+		else:
+			texel_density = 0.0001
 
-			uv0 = uv_layer[loops[0]].uv
-			uv1 = uv_layer[loops[1]].uv
-			uv2 = uv_layer[loops[2]].uv
+		if td.units == '1':
+			texel_density *= 100.0
+		elif td.units == '2':
+			texel_density *= 2.54
+		elif td.units == '3':
+			texel_density *= 30.48
 
-			u = uv1 - uv0
-			v = uv2 - uv0
-			cross = u.x * v.y - u.y * v.x
-			uv_area = 0.5 * abs(cross)
-
-			uv_area_by_face[face_index] += uv_area
-
-		for face_index, uv_area in uv_area_by_face.items():
-			geo_area = face_areas[face_index]
-
-			if geo_area > 0 and uv_area > 0:
-				texel_density = scale * math.sqrt(uv_area) / math.sqrt(geo_area)
-			else:
-				texel_density = 0.0001
-
-			if td.units == '1':
-				texel_density *= 100.0
-			elif td.units == '2':
-				texel_density *= 2.54
-			elif td.units == '3':
-				texel_density *= 30.48
-
-			result.append([texel_density, uv_area])
+		result.append([texel_density, uv_area])
 
 	bpy.context.view_layer.objects.active = start_obj
 	bpy.ops.object.mode_set(mode=start_mode)
@@ -209,40 +175,21 @@ def get_texture_resolution():
 
 
 # Value by range to Color gradient by hue
-def value_to_color(values, range_min, range_max, tdcore):
-	td = bpy.context.scene.td
-	backend = get_preferences().calculation_backend
-
+def value_to_color(values, range_min, range_max, _):
 	result = []
 
-	if backend == 'CPP' and tdcore.lib:
-		# Results Buffer (values count * RGBA (4 floats))
-		result_cpp = np.zeros(len(values) * 4, dtype=np.float32)
-		values_np = np.array(values, dtype=np.float32)
+	for value in values:
+		# Remap value to range 0.0 - 1.0
+		remapped_value = 0.5
 
-		# Call function from Library
-		tdcore.lib.ValueToColor(
-			values_np.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
-			len(values),
-			ctypes.c_float(range_min),
-			ctypes.c_float(range_max),
-			result_cpp.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-		)
+		if abs(range_max - range_min) > 0.001:
+			remapped_value = saturate((value - range_min) / (range_max - range_min))
 
-		result = [tuple(result_cpp[i:i + 4]) for i in range(0, len(result_cpp), 4)]
-	else:
-		for value in values:
-			# Remap value to range 0.0 - 1.0
-			remapped_value = 0.5
+		# Calculate hue and get color
+		hue = (1 - remapped_value) * 0.67
+		r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
 
-			if abs(range_max - range_min) > 0.001:
-				remapped_value = saturate((value - range_min) / (range_max - range_min))
-
-			# Calculate hue and get color
-			hue = (1 - remapped_value) * 0.67
-			r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
-
-			result.append((r, g, b, 1))
+		result.append((r, g, b, 1))
 
 	return result
 

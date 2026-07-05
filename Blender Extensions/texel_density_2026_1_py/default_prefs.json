@@ -4,7 +4,6 @@
     "offset_y": "30",
     "anchor_pos": "LEFT_BOTTOM",
     "automatic_recalc": false,
-    "calculation_backend": "CPP",
     "view3d_panel_category": "Texel Density",
     "uv_panel_category": "Texel Density",
     "view3d_panel_category_enable": true,

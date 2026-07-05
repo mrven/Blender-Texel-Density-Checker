@@ -15,7 +15,6 @@ from datetime import datetime
 from . import utils
 from . import props
 from .constants import *
-from .cpp_interface import TDCoreWrapper
 
 # Draw Reference Gradient Line for Color Visualizer
 def draw_callback_px(_, __):
@@ -469,8 +468,6 @@ class BakeTDToVC(bpy.types.Operator):
 		# Calculate TD and UV Area for all objects
 		td_area_map = {}
 
-		tdcore_lib = TDCoreWrapper() if utils.get_preferences().calculation_backend == 'CPP' else None
-
 		for obj in start_selected_obj:
 			if obj.type != 'MESH' or len(obj.data.uv_layers) == 0 or len(obj.data.polygons) == 0:
 				continue
@@ -479,7 +476,7 @@ class BakeTDToVC(bpy.types.Operator):
 			context.view_layer.objects.active = obj
 			obj.select_set(True)
 
-			td_area_map[obj.name] = utils.calculate_td_area_to_list(tdcore_lib)
+			td_area_map[obj.name] = utils.calculate_td_area_to_list(None)
 
 		# Automatic Min/Max TD
 		if td.bake_vc_auto_min_max and (td.bake_vc_mode in {'TD_FACES_TO_VC', 'TD_ISLANDS_TO_VC'}):
@@ -553,7 +550,7 @@ class BakeTDToVC(bpy.types.Operator):
 			# Calculate and assign color from TD to VC for each polygon
 			if td.bake_vc_mode == "TD_FACES_TO_VC":
 				td_values = np.array(face_td_area_list, dtype=np.float32)[:, 0]
-				colors = utils.value_to_color(td_values.tolist(), bake_vc_min_td, bake_vc_max_td, tdcore_lib)
+				colors = utils.value_to_color(td_values.tolist(), bake_vc_min_td, bake_vc_max_td, None)
 
 				for face, color in zip(bm.faces, colors):
 					for loop in face.loops:
@@ -583,7 +580,7 @@ class BakeTDToVC(bpy.types.Operator):
 					# Convert island area value to percentage of area
 					island_areas.append(island_area * 100)
 
-				colors = utils.value_to_color(island_areas, bake_vc_min_space, bake_vc_max_space, tdcore_lib)
+				colors = utils.value_to_color(island_areas, bake_vc_min_space, bake_vc_max_space, None)
 
 				for color, uv_island in zip(colors, islands_list):
 					for face_id in uv_island:
@@ -601,7 +598,7 @@ class BakeTDToVC(bpy.types.Operator):
 					for island in islands_list
 				], dtype=np.float32)
 
-				colors = utils.value_to_color(islands_td.tolist(), bake_vc_min_td, bake_vc_max_td, tdcore_lib)
+				colors = utils.value_to_color(islands_td.tolist(), bake_vc_min_td, bake_vc_max_td, None)
 
 				for color, uv_island in zip(colors, islands_list):
 					for face_id in uv_island:
@@ -629,7 +626,7 @@ class BakeTDToVC(bpy.types.Operator):
 					distortion_ratio = uv_percent / geom_percent
 					distortions.append(distortion_ratio)
 
-				colors = utils.value_to_color(distortions, min_range, max_range, tdcore_lib)
+				colors = utils.value_to_color(distortions, min_range, max_range, None)
 
 				for color, face in zip(colors, bm.faces):
 					for loop in face.loops:

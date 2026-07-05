@@ -106,8 +106,6 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		default=False,
 		update=update_save_config)
 
-	calculation_backend: EnumProperty(name="", items=PREFS_BACKEND_ITEMS, default='CPP', update=update_save_config)
-
 	view3d_panel_category: StringProperty(
 		name="",
 		description="Choose a name for the category of panel (3D View)",
@@ -187,12 +185,6 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 
 	def draw(self, _):
 		layout = self.layout
-		box = layout.box()
-		row = box.row(align=True)
-		row.label(text='Calculation Backend:')
-
-		row.prop(self, 'calculation_backend', expand=False)
-
 		box = layout.box()
 		row = box.row()
 		row.label(text='Default Settings:')

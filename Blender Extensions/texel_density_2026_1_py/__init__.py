@@ -1,5 +1,5 @@
 bl_info = {
-	"name": "Texel Density Checker",
+	"name": "Texel Density Checker (Python Edition)",
 	"description": "Toolset for working with Texel Density",
 	"author": "Ivan 'mrven' Vostrikov, Toomas Laik, Oxicid, johnwildauer, lfod1997",
 	"wiki_url": "https://github.com/mrven/Blender-Texel-Density-Checker#readme",
@@ -19,7 +19,7 @@ from bpy.app import timers
 
 from . import config_json
 
-modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui', 'test']
+modules_names = ['props', 'preferences', 'utils', 'core_td_operators', 'add_td_operators', 'viz_operators', 'ui']
 
 modules_full_names = {}
 for current_module_name in modules_names:
