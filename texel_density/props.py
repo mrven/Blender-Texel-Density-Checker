@@ -37,7 +37,8 @@ def change_texture_size(_, context):
 	if td_checker_texture:
 		td_checker_texture.generated_width = checker_resolution_x
 		td_checker_texture.generated_height = checker_resolution_y
-		td_checker_texture.generated_type = td.checker_type
+		if td.checker_type != 'CUSTOM':
+			td_checker_texture.generated_type = td.checker_type
 
 	if _operator_context_available(context):
 		bpy.ops.object.texel_density_check()
@@ -57,8 +58,34 @@ def change_texture_type(_, context):
 		if tex.is_td_texture:
 			td_checker_texture = tex
 
-	if td_checker_texture:
+	if td_checker_texture and td.checker_type != 'CUSTOM':
 		td_checker_texture.generated_type = td.checker_type
+
+	_update_checker_material_image(td)
+
+
+def _change_custom_checker_image(_, context):
+	td = context.scene.td
+	if td.checker_type == 'CUSTOM':
+		_update_checker_material_image(td)
+
+
+def _update_checker_material_image(td):
+	if td.checker_type == 'CUSTOM':
+		checker_image = td.checker_custom_image
+	else:
+		checker_image = next((image for image in bpy.data.images if image.is_td_texture), None)
+
+	if checker_image is None and td.checker_type != 'CUSTOM':
+		return
+
+	td_checker_material = next((mat for mat in bpy.data.materials if mat.is_td_material), None)
+	if td_checker_material is None or not td_checker_material.use_nodes:
+		return
+
+	tex_node = next((node for node in td_checker_material.node_tree.nodes if node.type == 'TEX_IMAGE'), None)
+	if tex_node:
+		tex_node.image = checker_image
 
 
 def filter_bake_vc_min_td(_, context):
@@ -327,6 +354,12 @@ class TDAddonProps(bpy.types.PropertyGroup):
 	checker_method: EnumProperty(name="", items=TD_CHECKER_METHOD_ITEMS, default='STORE')
 
 	checker_type: EnumProperty(name="", items=TD_CHECKER_TYPE_ITEMS, update=change_texture_type)
+
+	checker_custom_image: PointerProperty(
+		name="",
+		description="Custom checker image",
+		type=bpy.types.Image,
+		update=_change_custom_checker_image)
 
 	checker_uv_scale: StringProperty(
 		name="",

@@ -149,7 +149,7 @@ class TDAddonPreferences(bpy.types.AddonPreferences):
 		default='STORE',
 		update=update_save_config)
 
-	default_checker_type: EnumProperty(name="", items=TD_CHECKER_TYPE_ITEMS, update=update_save_config)
+	default_checker_type: EnumProperty(name="", items=TD_DEFAULT_CHECKER_TYPE_ITEMS, update=update_save_config)
 
 	default_checker_uv_scale: StringProperty(name="", default="1", update=update_save_config)
 

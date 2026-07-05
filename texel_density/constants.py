@@ -61,7 +61,10 @@ TD_CHECKER_METHOD_ITEMS = (('REPLACE', 'Replace', ''),
                            ('STORE', 'Store and Replace', ''))
 
 TD_CHECKER_TYPE_ITEMS = (('COLOR_GRID', 'Color Grid', ''),
-                         ('UV_GRID', 'UV Grid', ''))
+                          ('UV_GRID', 'UV Grid', ''),
+                          ('CUSTOM', 'Custom', 'Use a custom image as checker texture'))
+
+TD_DEFAULT_CHECKER_TYPE_ITEMS = TD_CHECKER_TYPE_ITEMS[:2]
 
 TD_BAKE_VC_MODE_ITEMS = (('TD_FACES_TO_VC', 'Texel (by Face)', ''),
 						 ('TD_ISLANDS_TO_VC', 'Texel (by Island)', ''),

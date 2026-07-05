@@ -45,12 +45,19 @@ def panel_draw(layout, context):
 			row.label(text="Checker Type:")
 			row.prop(td, 'checker_type', expand=False)
 
+			if td.checker_type == 'CUSTOM':
+				row = box.row(align=True)
+				row.label(text="Image:")
+				row.template_ID(td, 'checker_custom_image', open='image.open')
+
 			row = box.row(align=True)
 			row.label(text="UV Scale:")
 			row.prop(td, 'checker_uv_scale')
 
 			row = box.row()
 			row.operator(viz_operators.CheckerAssign.bl_idname, icon='MATSPHERE')
+			if td.checker_type == 'CUSTOM' and td.checker_custom_image is None:
+				row.enabled = False
 
 			# If Checker Method "Store and Replace"
 			if td.checker_method == 'STORE':
@@ -242,7 +249,7 @@ def panel_draw(layout, context):
 # Panel in 3D View
 class TDAddonView3DPanel(bpy.types.Panel):
 	bl_idname = "VIEW3D_PT_texel_density_checker"
-	bl_label = "Texel Density Checker 2025.1"
+	bl_label = "Texel Density Checker 2026.1"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
 	bl_category = "Texel Density"

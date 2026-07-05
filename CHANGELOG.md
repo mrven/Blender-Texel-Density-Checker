@@ -10,6 +10,7 @@
 ### New
 
 * Added presets for small texture sizes (PR from @whodgson)
+* Custom checker image assignment
 
 ## Texel Density Checker 2025.1.2
 

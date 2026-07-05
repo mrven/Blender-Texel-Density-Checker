@@ -197,16 +197,25 @@ class CheckerAssign(bpy.types.Operator):
 		# Get texture size from panel
 		checker_resolution_x, checker_resolution_y = utils.get_texture_resolution()
 
-		# Get or create checker texture
-		td_checker_texture = next((tex for tex in bpy.data.images if tex.is_td_texture), None)
-		if not td_checker_texture:
-			td_checker_texture = bpy.data.images.new(TD_MATERIAL_NAME, width=checker_resolution_x, height=checker_resolution_y)
-			td_checker_texture.generated_type = td.checker_type
-			td_checker_texture.is_td_texture = True
+		if td.checker_type == 'CUSTOM':
+			checker_texture = td.checker_custom_image
+			if checker_texture is None:
+				self.report({'ERROR'}, "Select a custom checker image")
+				return {'CANCELLED'}
 		else:
-			td_checker_texture.generated_width = checker_resolution_x
-			td_checker_texture.generated_height = checker_resolution_y
-			td_checker_texture.generated_type = td.checker_type
+			# Get or create generated checker texture
+			checker_texture = next((tex for tex in bpy.data.images if tex.is_td_texture), None)
+			if not checker_texture:
+				checker_texture = bpy.data.images.new(
+					TD_MATERIAL_NAME,
+					width=checker_resolution_x,
+					height=checker_resolution_y)
+				checker_texture.is_td_texture = True
+			else:
+				checker_texture.generated_width = checker_resolution_x
+				checker_texture.generated_height = checker_resolution_y
+
+			checker_texture.generated_type = td.checker_type
 
 		# Get or create checker material
 		td_checker_material = next((mat for mat in bpy.data.materials if mat.is_td_material), None)
@@ -234,7 +243,6 @@ class CheckerAssign(bpy.types.Operator):
 
 			tex_node = nodes.new('ShaderNodeTexImage')
 			tex_node.location = (-500, 300)
-			tex_node.image = td_checker_texture
 			tex_node.interpolation = 'Closest'
 			links.new(tex_node.outputs['Color'], mix_node.inputs['Color1'])
 
@@ -253,6 +261,10 @@ class CheckerAssign(bpy.types.Operator):
 
 			links.new(uv_map.outputs['UV'], mapping.inputs['Vector'])
 			links.new(mapping.outputs['Vector'], tex_node.inputs['Vector'])
+
+		tex_node = next((node for node in td_checker_material.node_tree.nodes if node.type == 'TEX_IMAGE'), None)
+		if tex_node:
+			tex_node.image = checker_texture
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 
