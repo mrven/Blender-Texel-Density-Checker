@@ -16,7 +16,7 @@ def save_addon_prefs():
     data = {}
     for prop in prefs.bl_rna.properties:
         key = prop.identifier
-        if key == "rna_type":
+        if key in {"rna_type", "bl_idname"}:
             continue
         value = getattr(prefs, key)
         data[key] = value
@@ -25,22 +25,28 @@ def save_addon_prefs():
 
 
 def load_or_initialize_prefs():
+    global saving_enabled
+
     prefs = bpy.context.preferences.addons[__package__].preferences
     path = get_prefs_path()
+    saving_was_enabled = saving_enabled
+    saving_enabled = False
 
-    if os.path.exists(path):
-        try:
+    try:
+        if os.path.exists(path):
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
             for k, v in data.items():
-                if hasattr(prefs, k):
+                if k != "bl_idname" and hasattr(prefs, k):
                     setattr(prefs, k, v)
-        except Exception as e:
-            print(f"[TD Prefs] Failed to load: {e}")
-    else:
-        print(f"[TD Prefs] No preferences file found at {path}")
-        save_addon_prefs()
+        else:
+            print(f"[TD Prefs] No preferences file found at {path}")
+            save_addon_prefs()
+    except Exception as e:
+        print(f"[TD Prefs] Failed to load: {e}")
+    finally:
+        saving_enabled = saving_was_enabled
 
 
 def copy_prefs_to_props(force = False):

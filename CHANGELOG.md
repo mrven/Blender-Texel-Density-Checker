@@ -1,5 +1,12 @@
 # Texel Density Checker Changelog
 
+## Texel Density Checker 2026.1.1
+
+### Fix
+
+* Fixed add-on module reloading to follow Blender's recommended script reload workflow.
+* Restored saved add-on preferences correctly after reloading scripts.
+
 ## Texel Density Checker 2026.1
 
 ### Fix
